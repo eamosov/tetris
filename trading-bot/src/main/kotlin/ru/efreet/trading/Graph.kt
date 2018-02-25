@@ -1,0 +1,235 @@
+package ru.efreet.trading
+
+import org.jfree.chart.ChartFactory
+import org.jfree.chart.ChartPanel
+import org.jfree.chart.axis.DateAxis
+import org.jfree.chart.axis.NumberAxis
+import org.jfree.chart.plot.ValueMarker
+import org.jfree.chart.plot.XYPlot
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer
+import org.jfree.data.general.SeriesException
+import org.jfree.data.time.Minute
+import org.jfree.data.time.TimeSeriesCollection
+import org.jfree.ui.ApplicationFrame
+import org.jfree.ui.RefineryUtilities
+import ru.efreet.trading.exchange.*
+import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.ProfitCalculator
+import ru.efreet.trading.bot.StatsCalculator
+import ru.efreet.trading.logic.impl.LogicFactory
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
+import ru.efreet.trading.bars.checkBars
+import ru.efreet.trading.exchange.impl.cache.BarsCache
+import ru.efreet.trading.utils.CmdArgs
+import ru.efreet.trading.utils.toJson
+import java.awt.Color
+import java.text.SimpleDateFormat
+import java.time.ZonedDateTime
+import java.util.*
+
+/**
+ * Created by fluder on 15/02/2018.
+ */
+class Graph {
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+
+            val cmd = CmdArgs.parse(args)
+
+            cmd.exchange = "trading"
+            cmd.barInterval =  BarInterval.ONE_MIN
+            cmd.start = ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
+            cmd.end = ZonedDateTime.parse("2018-11-01T01:00Z[GMT]")
+            cmd.logicPropertiesPath = "sd3.properties"
+            cmd.logicName = "sd3"
+
+            val cache = BarsCache(cmd.cachePath)
+
+            val exchange = Exchange.getExchange(cmd.exchange)
+            val population = 10
+
+            val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, cmd.start!!.minusDays(10), cmd.end!!)
+            bars.checkBars()
+
+            //val descr = StrategyPa(instrument, interval, startTime.toString(), endTime.toString(), Duration.between(startTime, endTime).toMinutes().toInt())
+            //val sp = trainer.searchBetter(descr, population, startTime, bars)
+
+            val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+            logic.loadState(cmd.logicPropertiesPath!!)
+            val sp = logic.getParams()
+
+//            val sp = SimpleBotLogicParams(
+//                    short = 59, long = 74, signal = 35, deviationTimeFrame = 48, deviation = 26, stopLoss = 9.314348758746558,
+//                    dayLong = 842, dayShort = 1408, daySignal = 1166)
+
+            //val sp = SimpleBotLogicParams(short = 60, long = 94, signal = 72, deviationTimeFrame = 98, deviation = 15, stopLoss = 7.47)
+
+            //val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName!!, sp, cmd.instrument!!, cmd.barInterval!!)
+
+            //val sp = SimpleBotLogicParams(short = 15, long = 87, signal = 27, deviationTimeFrame = 31, deviation = 17)
+
+            //val sp = SimpleBotLogicParams(short = 1202, long = 2162, signal = 59, deviation = 20, deviationTimeFrame = 341, mainRation = 100, reservedPriceStep = 4, reservedAmountStep = 50)
+            //val sp = StrategyParams(descr, null, StrategyParamsProps(short = 250, long = 254, signal = 108, deviationTimeFrame = 109))
+
+            println(sp.toJson())
+
+            val history = ProfitCalculator().tradeHistory(cmd.logicName,
+                    sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
+                    listOf(Pair(cmd.start!!, ZonedDateTime.now())),
+//                    listOf(
+//                            Pair(ZonedDateTime.parse("2017-12-17T00:00Z[GMT]"), ZonedDateTime.parse("2017-12-22T00:00Z[GMT]")),
+//                            Pair(ZonedDateTime.parse("2017-12-27T00:00Z[GMT]"), ZonedDateTime.parse("2017-12-30T00:00Z[GMT]")),
+//                            Pair(ZonedDateTime.parse("2018-01-07T00:00Z[GMT]"), ZonedDateTime.parse("2018-01-18T00:00Z[GMT]"))
+//                    ),
+                    true)
+
+            val stats = StatsCalculator().stats(history)
+
+            println("calcProfit $sp ${stats}")
+
+//            val sp = StrategyParams()
+//            sp.descr = StrategyParamsDescr(Instrument("BTC", "USDT"),
+//                    BarInterval.FIVE_MIN,
+//                    "2017-09-01T00:00Z[GMT]",
+//                    "2017-10-01T00:00Z[GMT]",
+//                    0)
+//
+//            sp.props = StrategyParamsProps(short = 146, long = 550, signal = 666, rsiTimeFrame = 65)
+
+
+//            val start = ZonedDateTime.parse(sp.descr!!.start)
+//            val end = ZonedDateTime.parse(sp.descr!!.end)
+
+
+            val dataset = TimeSeriesCollection()
+
+            for ((iName, iValues) in history.indicators) {
+                if (iName == "macd" || iName == "sd")
+                    continue
+
+                val ts = org.jfree.data.time.TimeSeries(iName)
+
+                for (v in iValues) {
+                    try {
+                        ts.add(Minute(Date.from(v.first.toInstant())), v.second)
+                    }catch (e: SeriesException){
+                        println("dup: $v")
+                    }
+                }
+
+                dataset.addSeries(ts)
+            }
+
+            val cashDataset = TimeSeriesCollection()
+            val cashSeries = org.jfree.data.time.TimeSeries("usd")
+
+            for (c in history.cash) {
+                cashSeries.add(Minute(Date.from(c.first.toInstant())), c.second)
+            }
+
+            cashDataset.addSeries(cashSeries)
+
+            ///
+            val profitDataset = TimeSeriesCollection()
+
+//            if (stats.profitStats !=null){
+//                for ((s, l) in stats.profitStats){
+//                    val profitSeries = org.jfree.data.time.TimeSeries(s)
+//
+//                    for (c in l) {
+//                        profitSeries.addOrUpdate(Minute(Date.from(c.first.toInstant())), c.second)
+//                    }
+//
+//                    profitDataset.addSeries(profitSeries)
+//                }
+//            }
+            ///
+
+            val chart = ChartFactory.createTimeSeriesChart(
+                    "poloniex", // title
+                    "Date", // x-axis label
+                    "Price Per Unit", // y-axis label
+                    dataset, // data
+                    true, // create legend?
+                    true, // generate tooltips?
+                    false // generate URLs?
+            )
+            val plot = chart.plot as XYPlot
+            val axis = plot.domainAxis as DateAxis
+            axis.dateFormatOverride = SimpleDateFormat("yyyy-MM-dd")
+
+
+            // Adding markers to plot
+            for (trade in history.trades) {
+                // Buy signal
+
+                val signalBarTime = Minute(Date.from(trade.time.toInstant())).firstMillisecond.toDouble()
+                val marker = ValueMarker(signalBarTime)
+                if (trade.side == OrderSide.BUY) {
+                    marker.paint = Color.GREEN
+                    marker.label = "B"
+                } else {
+                    marker.paint = Color.RED
+                    marker.label = "S"
+                }
+//                if (trade.profit != null)
+//                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"
+                plot.addDomainMarker(marker)
+            }
+
+            /*if (history.indicators.containsKey("macdrule")) {
+                var prevmacd: Double? = null
+                for ((time, macd) in history.indicators["macdrule"]!!) {
+                    if (macd > 0 && (prevmacd == null || prevmacd < 0)) {
+                        val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
+                        val marker = ValueMarker(signalBarTime)
+                        marker.paint = Color.ORANGE
+                        marker.label = "MACD(B)"
+                        plot.addDomainMarker(marker)
+                    } else if (macd < 0 && (prevmacd == null || prevmacd > 0)) {
+                        val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
+                        val marker = ValueMarker(signalBarTime)
+                        marker.paint = Color.BLACK
+                        marker.label = "MACD(S)"
+                        plot.addDomainMarker(marker)
+                    }
+                    prevmacd = macd
+                }
+            }*/
+
+            val cashAxis = NumberAxis("cash")
+            cashAxis.autoRangeIncludesZero = false
+            plot.setRangeAxis(1, cashAxis)
+            plot.setDataset(1, cashDataset)
+            plot.mapDatasetToRangeAxis(1, 1)
+            val cashFlowRenderer = StandardXYItemRenderer()
+            cashFlowRenderer.setSeriesPaint(0, Color.blue)
+            plot.setRenderer(1, cashFlowRenderer)
+
+
+            val profitAxis = NumberAxis("profit")
+            profitAxis.autoRangeIncludesZero = false
+            plot.setRangeAxis(2, profitAxis)
+            plot.setDataset(2, profitDataset)
+            plot.mapDatasetToRangeAxis(2, 2)
+            val profitFlowRenderer = StandardXYItemRenderer()
+            profitFlowRenderer.setSeriesPaint(0, Color.MAGENTA)
+            plot.setRenderer(2, profitFlowRenderer)
+
+
+            val panel = ChartPanel(chart)
+            panel.fillZoomRectangle = true
+            panel.isMouseWheelEnabled = true
+            panel.preferredSize = java.awt.Dimension(500, 270)
+            // Application frame
+            val frame = ApplicationFrame("Ta4j example - Indicators to chart")
+            frame.contentPane = panel
+            frame.pack()
+            RefineryUtilities.centerFrameOnScreen(frame)
+            frame.isVisible = true
+
+        }
+    }
+}
