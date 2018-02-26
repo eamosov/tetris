@@ -38,40 +38,25 @@ class Graph {
 
             val cmd = CmdArgs.parse(args)
 
-            cmd.exchange = "trading"
-            cmd.barInterval =  BarInterval.ONE_MIN
-            cmd.start = ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
-            cmd.end = ZonedDateTime.parse("2018-11-01T01:00Z[GMT]")
-            cmd.logicPropertiesPath = "sd3.properties"
-            cmd.logicName = "sd3"
+//            cmd.exchange = "binance"
+//            cmd.barInterval =  BarInterval.ONE_MIN
+//            cmd.start = ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
+//            cmd.end = ZonedDateTime.parse("2018-11-01T01:00Z[GMT]")
+//            cmd.logicPropertiesPath = "sd3.properties"
+//            cmd.logicName = "sd3"
 
             val cache = BarsCache(cmd.cachePath)
 
             val exchange = Exchange.getExchange(cmd.exchange)
-            val population = 10
-
-            val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, cmd.start!!.minusDays(10), cmd.end!!)
-            bars.checkBars()
-
-            //val descr = StrategyPa(instrument, interval, startTime.toString(), endTime.toString(), Duration.between(startTime, endTime).toMinutes().toInt())
-            //val sp = trainer.searchBetter(descr, population, startTime, bars)
 
             val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.loadState(cmd.logicPropertiesPath!!)
+
+            val historyStart =cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
+            val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
+            bars.checkBars()
+
             val sp = logic.getParams()
-
-//            val sp = SimpleBotLogicParams(
-//                    short = 59, long = 74, signal = 35, deviationTimeFrame = 48, deviation = 26, stopLoss = 9.314348758746558,
-//                    dayLong = 842, dayShort = 1408, daySignal = 1166)
-
-            //val sp = SimpleBotLogicParams(short = 60, long = 94, signal = 72, deviationTimeFrame = 98, deviation = 15, stopLoss = 7.47)
-
-            //val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName!!, sp, cmd.instrument!!, cmd.barInterval!!)
-
-            //val sp = SimpleBotLogicParams(short = 15, long = 87, signal = 27, deviationTimeFrame = 31, deviation = 17)
-
-            //val sp = SimpleBotLogicParams(short = 1202, long = 2162, signal = 59, deviation = 20, deviationTimeFrame = 341, mainRation = 100, reservedPriceStep = 4, reservedAmountStep = 50)
-            //val sp = StrategyParams(descr, null, StrategyParamsProps(short = 250, long = 254, signal = 108, deviationTimeFrame = 109))
 
             println(sp.toJson())
 
@@ -88,20 +73,6 @@ class Graph {
             val stats = StatsCalculator().stats(history)
 
             println("calcProfit $sp ${stats}")
-
-//            val sp = StrategyParams()
-//            sp.descr = StrategyParamsDescr(Instrument("BTC", "USDT"),
-//                    BarInterval.FIVE_MIN,
-//                    "2017-09-01T00:00Z[GMT]",
-//                    "2017-10-01T00:00Z[GMT]",
-//                    0)
-//
-//            sp.props = StrategyParamsProps(short = 146, long = 550, signal = 666, rsiTimeFrame = 65)
-
-
-//            val start = ZonedDateTime.parse(sp.descr!!.start)
-//            val end = ZonedDateTime.parse(sp.descr!!.end)
-
 
             val dataset = TimeSeriesCollection()
 

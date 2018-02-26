@@ -1,24 +1,21 @@
 package ru.efreet.trading
 
+import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
-import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.trainer.getBestParams
 import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.loadFromJson
-import ru.efreet.trading.utils.storeAsJson
 import ru.efreet.trading.utils.toJson
-import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 08/02/2018.
  */
 
-data class TrainSettings(val times: List<Pair<String, String>>)
+//data class TrainSettings(val times: List<Pair<String, String>>)
 
 class Train {
     companion object {
@@ -31,14 +28,14 @@ class Train {
             val exchange = Exchange.getExchange(cmd.exchange)
             val cache = CachedExchange(exchange.getName(), exchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
 
-            val ts: TrainSettings
-
-            if (cmd.start != null && cmd.end != null) {
-                ts = TrainSettings(arrayListOf(Pair(cmd.start!!.toString(), cmd.end!!.toString())))
-                ts.storeAsJson("train.json")
-            } else {
-                ts = loadFromJson("train.json")
-            }
+//            val ts: TrainSettings
+//
+//            if (cmd.start != null && cmd.end != null) {
+//                ts = TrainSettings(arrayListOf(Pair(cmd.start!!.toString(), cmd.end!!.toString())))
+//                ts.storeAsJson("train.json")
+//            } else {
+//                ts = loadFromJson("train.json")
+//            }
 
             val (sp, stats) = CdmBotTrainer().getBestParams(
                     cache, cmd.instrument, cmd.barInterval,
@@ -46,7 +43,8 @@ class Train {
                     cmd.logicPropertiesPath!!,
                     cmd.seedType,
                     cmd.population ?: 10,
-                    ts.times.map { Pair(ZonedDateTime.parse(it.first), ZonedDateTime.parse(it.second)) },
+                    //ts.times.map { Pair(ZonedDateTime.parse(it.first), ZonedDateTime.parse(it.second)) },
+                    arrayListOf(Pair(cmd.start!!, cmd.end!!)),
                     null as AbstractBotLogicParams?)
 
             println(sp.toJson())
