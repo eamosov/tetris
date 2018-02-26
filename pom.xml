@@ -11,6 +11,7 @@
     <modules>
         <module>trading-common</module>
         <module>trading-bot</module>
+        <module>trading-gustos</module>
     </modules>
 
     <properties>

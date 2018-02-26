@@ -30,11 +30,15 @@ class CdmBotTrainer : BotTrainer {
 
         doCdm(genes, population, function, metrica, copy)
 
-        val best = population.maxWith(Comparator.comparingDouble { metrica(it.args, it.result!!) })!!
+        population.sortBy { metrica(it.args, it.result!!) }
 
-        println("Best strategy: $best")
+        println("TOP RESULTS:")
 
-        return Pair(best.args, best.result!!)
+        for (i in minOf(population.size - 5, 0) until population.size ){
+            println(population[i])
+        }
+
+        return Pair(population.last().args, population.last().result!!)
     }
 
 
@@ -43,18 +47,28 @@ class CdmBotTrainer : BotTrainer {
 
         val futures: MutableList<CompletableFuture<Unit>> = mutableListOf()
         var finished = 0
+        var lastBest: Double? = null
 
         (0 until population.size).mapTo(futures) {
             CompletableFuture.supplyAsync(Supplier {
                 try {
                     population[it].result = function(population[it].args)
                     population[it] = doCdm(genes, population[it], function, metrica, copy)
+
+                    val m = metrica(population[it].args, population[it].result!!)
+                    if (lastBest == null || m > lastBest!!) {
+                        lastBest = m
+                        println("CDM: NEW BEST ${population[it]}")
+                    }
+
+                    print("CDM: (${(finished * 100.0 / population.size).round2()} %)\r")
+
                 } catch (e: Exception) {
                     println("WARNING: Exception ${e.message} for ${population[it]}")
                     e.printStackTrace()
                 }
                 finished++
-                println("Finish cdm (${(finished * 100.0 / population.size).round2()} %):  ${population[it]}")
+                Unit
             }, threadPool)
         }
 
