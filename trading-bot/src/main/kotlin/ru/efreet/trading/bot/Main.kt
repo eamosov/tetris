@@ -25,8 +25,6 @@ class Main {
             val exchange = Exchange.getExchange(cmd.exchange)
             val barsCache = BarsCache(cmd.cachePath)
             val instruments = arrayListOf(cmd.instrument)
-            val botSettingsPath = "bot.json"
-            val botSettings = BotSettings.load(botSettingsPath)
             val baseName = "USDT"
 
             exchange.logBalance(baseName)
@@ -50,8 +48,8 @@ class Main {
                 logic.loadState(cmd.logicPropertiesPath!!)
 
                 val bot = TradeBot(exchange, barsCache, usdLimit / instruments.size, testOnly, instrument, logic, interval, { bot, order ->
-                    botSettings.addTrade(bot.instrument, order)
-                    BotSettings.save(botSettingsPath, botSettings)
+//                    botSettings.addTrade(bot.instrument, order)
+//                    BotSettings.save(botSettingsPath, botSettings)
                 })
                 bots.put(instrument, bot)
 
@@ -68,7 +66,7 @@ class Main {
 //                }
 //
 //                botSettings.setParams(instrument, logic.getParams())
-                BotSettings.save(botSettingsPath, botSettings)
+//                BotSettings.save(botSettingsPath, botSettings)
             }
 
 //            if (cmd.hasOption('n')) {

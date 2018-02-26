@@ -1,4 +1,5 @@
 src/test/kotlin/ru/efreet/trading/test/tmp
+src/test/java/ru/efreet/trading/test/tmp
 src/main/resources/application.properties
 logback-test.xml
 todo.txt

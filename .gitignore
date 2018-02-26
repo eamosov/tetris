@@ -1,4 +1,6 @@
 *.iml
+*.ipr
+*.iws
 target
 cache.sqlite3
 cache.sqlite3-shm
