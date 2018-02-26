@@ -94,14 +94,14 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         }
     }
 
-    private fun seedByCell(size: Int): MutableList<P> {
+    protected fun seedByCell(size: Int): MutableList<P> {
 
         val population = mutableListOf<P>()
         seedByCell(population, size, paramsCls.java.newInstance(), 0)
         return population
     }
 
-    private fun seedRandom(size: Int): MutableList<P> {
+    open protected fun seedRandom(size: Int): MutableList<P> {
         return (0 until size).map { properties.random() } as MutableList<P>
     }
 
