@@ -5,11 +5,11 @@ import ru.efreet.trading.logic.AbstractBotLogicParams
 /**
  * Created by fluder on 20/02/2018.
  */
-data class SimpleBotLogicParams(var short: Int? = null,
-                                var long: Int? = null,
-                                var signal: Int? = null,
-                                var deviationTimeFrame: Int? = null,
-                                var deviation: Int? = null,
+data class SimpleBotLogicParams(var short: Int? = 1,
+                                var long: Int? = 1,
+                                var signal: Int? = 1,
+                                var deviationTimeFrame: Int? = 1,
+                                var deviation: Int? = 1,
 
                                 var dayShort: Int? = 712,
                                 var dayLong: Int? = 1487,

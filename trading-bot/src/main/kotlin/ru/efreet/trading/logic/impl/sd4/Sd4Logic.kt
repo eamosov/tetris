@@ -122,7 +122,7 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             else -> null
         }
     }
-    
+
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
         return mapOf(Pair("sma", sma),
                 Pair("sd", sd),
