@@ -11,5 +11,13 @@
 
     <artifactId>trading-gustos</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>ru.efreet.trading</groupId>
+            <artifactId>trading-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 
 </project>
