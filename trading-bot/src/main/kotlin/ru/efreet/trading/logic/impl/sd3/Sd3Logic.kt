@@ -8,7 +8,7 @@ import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
-import ru.efreet.trading.utils.BooleanFunction3
+import ru.efreet.trading.utils.IntFunction3
 import java.time.Duration
 
 /**
@@ -60,6 +60,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofHours(13), Duration.ofHours(26), Duration.ofMinutes(15), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 0.1, 10.0, 0.5, true)
+
+        of(SimpleBotLogicParams::f3Index, "logic.sd3.f3Index", 0, IntFunction3.size()-1, 1, true)
 //        add(SimpleBotLogicParams::deviationTimeFrame, 1, 93*5*60, 1, false)
 
         //add(SimpleBotLogicParams::mainRation, 10, 100, 1, false)
@@ -112,11 +114,29 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
 
-        return when {
-            BooleanFunction3.get(_params.f3Index!!, true, price < sma - sd * _params.deviation!! / 10.0, macd > signalEma, dayMacd > daySignal) -> OrderSide.BUY
-            BooleanFunction3.get(_params.f3Index!!, false, price > sma + sd * _params.deviation!! / 10.0, macd > signalEma, dayMacd > daySignal) -> OrderSide.SELL
-            else -> null
+        val _sd = when {
+            price < sma - sd * _params.deviation!! / 10.0 -> 0
+            price > sma + sd * _params.deviation!! / 10.0 -> 1
+            else -> 2
         }
+
+        val _macd = when {
+            macd > signalEma -> 0
+            else -> 1
+        }
+
+        val _dayMacd = when {
+            dayMacd > daySignal -> 0
+            else -> 1
+        }
+
+        val f = IntFunction3.get(_params.f3Index!!, _sd, _macd, _dayMacd)
+
+//        return when {
+//            BooleanFunction3.get(_params.f3Index!!, true, price < sma - sd * _params.deviation!! / 10.0, macd > signalEma, dayMacd > daySignal) -> OrderSide.BUY
+//            BooleanFunction3.get(_params.f3Index!!, false, price > sma + sd * _params.deviation!! / 10.0, macd > signalEma, dayMacd > daySignal) -> OrderSide.SELL
+//            else -> null
+//        }
 
 //        return when {
 //            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
@@ -124,18 +144,23 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 //            else -> null
 //        }
 
-    }
-
-    override fun seedRandom(size: Int): MutableList<SimpleBotLogicParams> {
-
-        val ret = mutableListOf<SimpleBotLogicParams>()
-
-        for (i in 0 until BooleanFunction3.size()) {
-            ret.addAll(super.seedRandom(size).map { it.f3Index = i; it })
+        return when (f) {
+            0 -> OrderSide.BUY
+            1 -> OrderSide.SELL
+            else -> null
         }
-
-        return ret;
     }
+
+//    override fun seedRandom(size: Int): MutableList<SimpleBotLogicParams> {
+//
+//        val ret = mutableListOf<SimpleBotLogicParams>()
+//
+//        for (i in 0 until BooleanFunction3.size()) {
+//            ret.addAll(super.seedRandom(size).map { it.f3Index = i; it })
+//        }
+//
+//        return ret;
+//    }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
         return mapOf(Pair("sma", sma),

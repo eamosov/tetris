@@ -19,7 +19,7 @@ public class BooleanFunction3 {
 
         for (boolean[] s : sell) {
             for (boolean[] b : buy) {
-                if (allow(s, b) && valid(s) && valid(b)) {
+                if (allow(s, b) && notConst(s) && notConst(b)) {
                     table.add(new Object[]{b,s});
                 }
             }
@@ -44,6 +44,7 @@ public class BooleanFunction3 {
         }
     }
 
+    //Исключаются варианты, которые одновременно возвращают true на BUY и SELL
     private static boolean allow(boolean s[], boolean b[]) {
         for (int i = 0; i < s.length; i++) {
             if (s[i] == true && b[i] == true) {
@@ -72,7 +73,8 @@ public class BooleanFunction3 {
         return true;
     }
 
-    private static boolean valid(boolean s[]){
+    //искулючаются варианты, дающие всегда true или false
+    private static boolean notConst(boolean s[]){
         return alwaysFalse(s) == false && alwaysTrue(s) == false;
     }
 
