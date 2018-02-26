@@ -33,6 +33,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var daySignalEma: XEMAIndicator<XExtBar>
 
     init {
+
+        _params = SimpleBotLogicParams()
         /**
          * Best strategy: TrainItem(args=SimpleBotLogicParams(short=59, long=74, signal=35, deviationTimeFrame=48, deviation=26, dayShort=1408, dayLong=842, daySignal=1166, stopLoss=9.314348758746558), result=TradesStats(trades=118, goodTrades=0.8389830508474576, profit=5.538901702193952, avrProfitPerTrade=1.0171860580536856, sdProfitPerTrade=0.028404997651252876, sma=0.9915254237288136, profitStats=null))
         {
