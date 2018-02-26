@@ -41,15 +41,6 @@ class StatsCalculator {
             }
         }
 
-        val smaH: Double
-
-        if (profits.size > 0) {
-            val sma = profits.sma(10)
-            smaH = sma.count { it.second > 1.0 }.toDouble() / profits.size
-        } else {
-            smaH = 0.0
-        }
-
         val avrProfitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
         val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - avrProfitPerTrade).pow2() }.sum() / profits.size) else 0.0
         return TradesStats(
@@ -58,7 +49,8 @@ class StatsCalculator {
                 profit,
                 avrProfitPerTrade,
                 sdProfitPerTrade,
-                smaH,
+                if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
+                if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 profits.firstOrNull()?.first,
                 profits.lastOrNull()?.first
         )
