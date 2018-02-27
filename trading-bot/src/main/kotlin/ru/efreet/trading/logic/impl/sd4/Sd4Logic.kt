@@ -34,8 +34,6 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     init {
 
-        _params = SimpleBotLogicParams()
-
         of(SimpleBotLogicParams::deviation, "logic.sd4.deviation", 8, 40, 1, true)
         of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd4.deviationTimeFrame", Duration.ofMinutes(20), Duration.ofMinutes(100), Duration.ofSeconds(1), true)
 
