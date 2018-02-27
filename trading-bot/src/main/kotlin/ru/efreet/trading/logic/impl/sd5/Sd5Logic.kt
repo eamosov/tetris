@@ -1,4 +1,4 @@
-package ru.efreet.trading.logic.impl.sd3
+package ru.efreet.trading.logic.impl.sd5
 
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.TradesStats
@@ -8,12 +8,13 @@ import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
+import ru.efreet.trading.utils.IntFunction3
 import java.time.Duration
 
 /**
  * Created by fluder on 20/02/2018.
  */
-class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
+class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -33,40 +34,23 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     init {
 
-        //_params = SimpleBotLogicParams()
-        /**
-         * Best strategy: TrainItem(args=SimpleBotLogicParams(short=59, long=74, signal=35, deviationTimeFrame=48, deviation=26, dayShort=1408, dayLong=842, daySignal=1166, stopLoss=9.314348758746558), result=TradesStats(trades=118, goodTrades=0.8389830508474576, profit=5.538901702193952, avrProfitPerTrade=1.0171860580536856, sdProfitPerTrade=0.028404997651252876, sma=0.9915254237288136, profitStats=null))
-        {
-        "short": 59,
-        "long": 74,
-        "signal": 35,
-        "deviationTimeFrame": 48,
-        "deviation": 26,
-        "dayShort": 1408,
-        "dayLong": 842,
-        "daySignal": 1166,
-        "stopLoss": 9.314348758746558
-        }
-         */
+        of(SimpleBotLogicParams::deviation, "logic.sd4.deviation", 8, 40, 1, true)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd4.deviationTimeFrame", Duration.ofMinutes(20), Duration.ofMinutes(100), Duration.ofSeconds(1), true)
 
-        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 8, 40, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(20), Duration.ofMinutes(100), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd4.short", Duration.ofMinutes(10), Duration.ofMinutes(60), Duration.ofSeconds(1), true)
+        of(SimpleBotLogicParams::long, "logic.sd4.long", Duration.ofMinutes(20), Duration.ofMinutes(160), Duration.ofSeconds(1), true)
+        of(SimpleBotLogicParams::signal, "logic.sd4.signal", Duration.ofMinutes(10), Duration.ofMinutes(300), Duration.ofSeconds(1), true)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(10), Duration.ofMinutes(60), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(20), Duration.ofMinutes(160), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(10), Duration.ofMinutes(300), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd4.dayShort", Duration.ofHours(10), Duration.ofHours(20), Duration.ofMinutes(15), false)
+        of(SimpleBotLogicParams::dayLong, "logic.sd4.dayLong", Duration.ofHours(15), Duration.ofHours(30), Duration.ofMinutes(15), false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd4.daySignal", Duration.ofHours(13), Duration.ofHours(26), Duration.ofMinutes(15), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofHours(10), Duration.ofHours(20), Duration.ofMinutes(15), false)
-        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofHours(15), Duration.ofHours(30), Duration.ofMinutes(15), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofHours(13), Duration.ofHours(26), Duration.ofMinutes(15), false)
-
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 0.1, 10.0, 0.5, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd4.stopLoss", 0.1, 10.0, 0.5, true)
     }
 
     override fun metrica(stats: TradesStats): Double {
-        //foo(stats.sma, 0.8) +
 
-        //val minTrades = maxOf(Duration.between(stats.start, stats.end).toHours() / 6.0, 5.0)
+        val minTrades = minOf(Duration.between(stats.start, stats.end).toHours() / 2.0, 5.0)
 
         return foo(stats.trades.toDouble(), 100.0, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
     }
@@ -101,6 +85,14 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         daySignalEma.prepare()
     }
 
+//    override fun seedRandom(size: Int): MutableList<SimpleBotLogicParams> {
+//        val list = mutableListOf<SimpleBotLogicParams>()
+//        for (i in 0 until IntFunction3.size() - 1) {
+//            list.addAll(super.seedRandom(size).map { it.f3Index = i; it })
+//        }
+//        return list
+//    }
+
     override fun getAdvice(index: Int, bar: XExtBar): OrderSide? {
 
         val sd = sd.getValue(index, bar)
@@ -112,9 +104,27 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
 
-        return when {
-            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
-            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
+        val _sd = when {
+            price < sma - sd * _params.deviation!! / 10.0 -> 0
+            price > sma + sd * _params.deviation!! / 10.0 -> 1
+            else -> 2
+        }
+
+        val _macd = when {
+            macd > signalEma -> 0
+            else -> 1
+        }
+
+        val _dayMacd = when {
+            dayMacd > daySignal -> 0
+            else -> 1
+        }
+
+        val f = IntFunction3.get(496544, _sd, _macd, _dayMacd).toInt()
+
+        return when (f) {
+            0 -> OrderSide.BUY
+            1 -> OrderSide.SELL
             else -> null
         }
     }

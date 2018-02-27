@@ -14,9 +14,7 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
-import ru.efreet.trading.trainer.BotTrainer
 import ru.efreet.trading.trainer.CdmBotTrainer
-import ru.efreet.trading.trainer.getBestParams
 import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.LocalDate
@@ -123,7 +121,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
 ////
                 //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
-                val tmpLogic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+                val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
                 tmpLogic.setMinMax(logic.getParams()!!, 20.0, false)
                 val population = tmpLogic.seed(cmd.seedType, state.population)
                 population.add(logic.getParams()!!)
@@ -136,7 +134,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                 val (params, stats) = CdmBotTrainer().getBestParams(tmpLogic.genes, population,
                         {
                             val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.getTime())), false)
-                            val stats =  StatsCalculator().stats(history)
+                            val stats = StatsCalculator().stats(history)
 
 //                            if (stats.profit > 1.0 && params is SimpleBotLogicParams && (params as SimpleBotLogicParams).f3Index !=null){
 //                                IntFunction3.incCounter(params.f3Index!!)
