@@ -27,7 +27,7 @@ data class State(var name: String,
                  var interval: BarInterval,
                  var trainDays: Long = 0,
                  var tradeHistory: TradeHistory? = null,
-                 val tradeDuration: Duration = Duration.ofHours(1),
+                 val tradeDuration: Duration = Duration.ofDays(1),
                  var population: Int = 20,
                  var summary: TradesStats? = null
 ) {

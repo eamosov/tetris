@@ -19,7 +19,6 @@ data class CmdArgs(var stoploss: Double? = null,
                    var instruments: List<Instrument> = arrayListOf(Instrument("BTC", "USDT")),
                    var barInterval: BarInterval = BarInterval.ONE_MIN,
                    var testOnly: Boolean = false,
-                   var usdLimit: Double? = null,
                    var trainPeriod: Long? = null,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
@@ -57,7 +56,6 @@ data class CmdArgs(var stoploss: Double? = null,
                     .addOption("i", "instrument", true, "instrument, default BTC_USDT")
                     .addOption("t", "interval", true, "interval, default ONE_MIN")
                     .addOption("n", "test", false, "test only, default false")
-                    .addOption("m", "limit", true, "usd limit ratio")
                     .addOption("o", "tperiod", true, "train period in hours")
                     .addOption("g", "logic", true, "logic (macd, sd(default))")
                     .addOption("c", "cache", true, "cache path")
@@ -108,7 +106,6 @@ data class CmdArgs(var stoploss: Double? = null,
                 cmdArgs.testOnly = true
             }
 
-            cmd.getOptionValue('m')?.let { cmdArgs.usdLimit = it.toDouble() }
             cmd.getOptionValue('o')?.let { cmdArgs.trainPeriod = it.toLong() }
 
             cmd.getOptionValue('x')?.let { cmdArgs.exchange = it }
