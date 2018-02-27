@@ -69,7 +69,7 @@ class Main {
                             true)
 
                     val tradesStats = StatsCalculator().stats(tradeHistory)
-                    println("Stats for last ${days} days: $tradesStats")
+                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: $tradesStats")
                 }
 
                 val bot = TradeBot(exchange, cache, bot.limit / bots.size, cmd.testOnly, instrument, logic, interval, { bot, order ->
