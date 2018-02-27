@@ -28,7 +28,7 @@ class Main {
             val cmd = CmdArgs.parse(args)
 
             val exchange = Exchange.getExchange(cmd.exchange)
-            val barsCache = BarsCache(cmd.cachePath)
+            val cache = BarsCache(cmd.cachePath)
             val baseName = "USDT"
 
             exchange.logBalance(baseName)
@@ -43,8 +43,6 @@ class Main {
 
             val botConfiguration:BotConfiguration = loadFromJson("bot.js")
 
-            val cache = BarsCache(cmd.cachePath)
-
             for (bot in botConfiguration.bots) {
 
                 val instrument = Instrument.parse(bot.instrument)
@@ -57,7 +55,7 @@ class Main {
                 val lastCachedBar = cache.getLast(exchange.getName(), instrument, interval)
                 println("Updating cache from ${lastCachedBar.endTime}...")
                 val newCachedBars = exchange.loadBars(instrument, interval, lastCachedBar.endTime.minusHours(1), ZonedDateTime.now())
-                cache.saveBars(exchange.getName(), cmd.instrument, newCachedBars.filter { it.timePeriod == cmd.barInterval.duration })
+                cache.saveBars(exchange.getName(), instrument, newCachedBars.filter { it.timePeriod == interval.duration })
 
 
                 for (days in arrayOf(56, 28, 14, 7)){
@@ -74,7 +72,7 @@ class Main {
                     println("Stats for last ${days} days: $tradesStats")
                 }
 
-                val bot = TradeBot(exchange, barsCache, bot.limit / bots.size, cmd.testOnly, instrument, logic, interval, { bot, order ->
+                val bot = TradeBot(exchange, cache, bot.limit / bots.size, cmd.testOnly, instrument, logic, interval, { bot, order ->
 //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
                 })
