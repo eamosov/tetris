@@ -52,8 +52,8 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     override fun metrica(stats: TradesStats): Double {
 
-        val minTrades = minOf(Duration.between(stats.start, stats.end).toHours() / 12.0, 5.0)
-        
+        val minTrades = minOf(Duration.between(stats.start, stats.end).toHours() / 2.0, 5.0)
+
         return foo(stats.trades.toDouble(), 100.0, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
     }
 
