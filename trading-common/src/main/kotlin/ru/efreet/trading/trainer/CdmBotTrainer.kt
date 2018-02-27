@@ -14,7 +14,10 @@ import java.util.function.Supplier
 class CdmBotTrainer : BotTrainer {
 
     companion object {
-        private val executor = Executors.newWorkStealingPool()
+        private val executor = ForkJoinPool(
+                Runtime.getRuntime().availableProcessors() * 85 / 100,
+                ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+                null, true)
 
         private val threadPool = ThreadPoolExecutor(32, 32,
                 0L, TimeUnit.MILLISECONDS,

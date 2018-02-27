@@ -59,7 +59,11 @@ class TradeBot(val exchange: Exchange,
         val tradeTimeStamp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(trade.timestampMillis), zone)
 
         secondsBarAgg.addBar(trade.asSecondsBar())?.let {
-            barsCache.saveBar(exchange.getName(), instrument, it)
+            try {
+                barsCache.saveBar(exchange.getName(), instrument, it)
+            }catch (e:Exception){
+                println
+            }
         }
 
         if (logic.barsCount() > 0 && tradeTimeStamp.isBefore(logic.lastBar().endTime)) {
