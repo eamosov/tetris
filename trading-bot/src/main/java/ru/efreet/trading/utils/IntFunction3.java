@@ -67,7 +67,7 @@ public class IntFunction3 {
             throw new IllegalArgumentException(String.format("Illegal arguments %d %d %d %d", function, sd, m1, m2));
         }
 
-        return table[ROW_SIZE * function + 4 * sd + 2 * m2 + m2];
+        return table[ROW_SIZE * function + 4 * sd + 2 * m1 + m2];
     }
 
     public synchronized static void setCounter(int function, int data) {
@@ -121,7 +121,7 @@ public class IntFunction3 {
 
         byte[] tmp = new byte[ROW_SIZE];
         //496544
-        System.arraycopy(table, 496544 * ROW_SIZE, tmp, 0, ROW_SIZE);
+        System.arraycopy(table, 463232 * ROW_SIZE, tmp, 0, ROW_SIZE);
         System.out.println(Arrays.toString(tmp));
 
         //System.out.println(getData(0));
