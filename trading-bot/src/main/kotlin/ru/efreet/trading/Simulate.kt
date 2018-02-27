@@ -78,7 +78,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         saveState()
 
         val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
-        logic.loadState(cmd.logicPropertiesPath!!)
+        logic.loadState(cmd.settings!!)
 
         println(logic.logState())
 
@@ -109,7 +109,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                 val trainStart = state.getTime().minusDays(state.trainDays)
                 val (params, stats) = CdmBotTrainer().getBestParams(exchange, state.instrument, state.interval,
                         cmd.logicName,
-                        cmd.logicPropertiesPath!!,
+                        cmd.settings!!,
                         cmd.seedType,
                         state.population, arrayListOf(Pair(trainStart, state.getTime())), logic.getParams())
 

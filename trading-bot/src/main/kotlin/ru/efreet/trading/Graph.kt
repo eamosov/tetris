@@ -50,7 +50,7 @@ class Graph {
             val exchange = Exchange.getExchange(cmd.exchange)
 
             val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-            logic.loadState(cmd.logicPropertiesPath!!)
+            logic.loadState(cmd.settings!!)
 
             val historyStart =cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
             val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)

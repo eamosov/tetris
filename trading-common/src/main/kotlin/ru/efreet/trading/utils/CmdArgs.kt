@@ -16,15 +16,18 @@ data class CmdArgs(var stoploss: Double? = null,
                    var resetUsd: Boolean = false,
                    var train: Int? = null,
                    var exchange: String = "binance",
-                   var instrument: Instrument = Instrument("BTC", "USDT"),
+                   var instruments: List<Instrument> = arrayListOf(Instrument("BTC", "USDT")),
                    var barInterval: BarInterval = BarInterval.ONE_MIN,
                    var testOnly: Boolean = false,
                    var usdLimit: Double? = null,
                    var trainPeriod: Long? = null,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
-                   var logicPropertiesPath: String? = null, // = "bot.properties",
+                   var settings: String? = null, // = "bot.properties",
                    var seedType: SeedType = SeedType.RANDOM) {
+
+    val instrument: Instrument
+        get() = instruments.first()
 
     companion object {
 
@@ -111,8 +114,7 @@ data class CmdArgs(var stoploss: Double? = null,
             cmd.getOptionValue('x')?.let { cmdArgs.exchange = it }
 
             cmd.getOptionValue('i')?.let {
-                val n = it.split("_")
-                cmdArgs.instrument = Instrument(n[0], n[1])
+                cmdArgs.instruments =  it.split(",").map { Instrument.parse(it) }
             }
 
             cmd.getOptionValue('t')?.let { cmdArgs.barInterval = BarInterval.valueOf(it) }
@@ -120,7 +122,7 @@ data class CmdArgs(var stoploss: Double? = null,
             cmd.getOptionValue('g')?.let { cmdArgs.logicName = it }
             cmd.getOptionValue('c')?.let { cmdArgs.cachePath = it }
 
-            cmd.getOptionValue('f')?.let { cmdArgs.logicPropertiesPath = it }
+            cmd.getOptionValue('f')?.let { cmdArgs.settings = it }
             cmd.getOptionValue('d')?.let { cmdArgs.seedType = SeedType.valueOf(it) }
 
             return cmdArgs

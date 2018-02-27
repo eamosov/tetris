@@ -1,6 +1,7 @@
 package ru.efreet.trading.bot
 
 import ru.efreet.trading.bars.checkBars
+import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.Instrument
@@ -10,6 +11,7 @@ import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.Periodical
+import ru.efreet.trading.utils.loadFromJson
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -27,7 +29,6 @@ class Main {
 
             val exchange = Exchange.getExchange(cmd.exchange)
             val barsCache = BarsCache(cmd.cachePath)
-            val instruments = arrayListOf(cmd.instrument)
             val baseName = "USDT"
 
             exchange.logBalance(baseName)
@@ -37,34 +38,35 @@ class Main {
 
             val bots = hashMapOf<Instrument, TradeBot>()
 
-            val usdLimit = cmd.usdLimit ?: 0.5
-            val testOnly = cmd.testOnly
-            val population = cmd.population ?: 50
-            val interval = cmd.barInterval
-            val trainPeriod = cmd.trainPeriod ?: 1L
+            //val population = cmd.population ?: 50
+            //val trainPeriod = cmd.trainPeriod ?: 1L
+
+            val botConfiguration:BotConfiguration = loadFromJson("bot.js")
+
+            val cache = BarsCache(cmd.cachePath)
+
+            for (bot in botConfiguration.bots) {
+
+                val instrument = Instrument.parse(bot.instrument)
+                val interval = BarInterval.valueOf(bot.interval)
+
+                val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(bot.logic, instrument, interval)
+                logic.loadState(bot.settings)
 
 
-            for (i in 0 until instruments.size) {
-                val instrument = instruments[i]
-
-                val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-                logic.loadState(cmd.logicPropertiesPath!!)
-
-                val cache = BarsCache(cmd.cachePath)
-
-                val lastCachedBar = cache.getLast(exchange.getName(), cmd.instrument, cmd.barInterval)
+                val lastCachedBar = cache.getLast(exchange.getName(), instrument, interval)
                 println("Updating cache from ${lastCachedBar.endTime}...")
-                val newCachedBars = exchange.loadBars(cmd.instrument, cmd.barInterval, lastCachedBar.endTime.minusHours(1), ZonedDateTime.now())
+                val newCachedBars = exchange.loadBars(instrument, interval, lastCachedBar.endTime.minusHours(1), ZonedDateTime.now())
                 cache.saveBars(exchange.getName(), cmd.instrument, newCachedBars.filter { it.timePeriod == cmd.barInterval.duration })
 
 
                 for (days in arrayOf(56, 28, 14, 7)){
-                    val historyStart = ZonedDateTime.now().minusDays(days.toLong()).minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
-                    val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, ZonedDateTime.now())
+                    val historyStart = ZonedDateTime.now().minusDays(days.toLong()).minus(interval.duration.multipliedBy(logic.historyBars))
+                    val bars = cache.getBars(exchange.getName(), instrument, interval, historyStart, ZonedDateTime.now())
                     bars.checkBars()
 
-                    val tradeHistory = ProfitCalculator().tradeHistory(cmd.logicName,
-                            logic.getParams()!!, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
+                    val tradeHistory = ProfitCalculator().tradeHistory(bot.logic,
+                            logic.getParams()!!, instrument, interval, exchange.getFee(), bars,
                             listOf(Pair(ZonedDateTime.now().minusDays(days.toLong()), ZonedDateTime.now())),
                             true)
 
@@ -72,8 +74,7 @@ class Main {
                     println("Stats for last ${days} days: $tradesStats")
                 }
 
-
-                val bot = TradeBot(exchange, barsCache, usdLimit / instruments.size, testOnly, instrument, logic, interval, { bot, order ->
+                val bot = TradeBot(exchange, barsCache, bot.limit / bots.size, cmd.testOnly, instrument, logic, interval, { bot, order ->
 //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
                 })
@@ -105,7 +106,7 @@ class Main {
                 bot.logState()
             }
 
-            val trainerTimer = Periodical(Duration.ofHours(trainPeriod))
+            //val trainerTimer = Periodical(Duration.ofHours(trainPeriod))
             val balanceTimer = Periodical(Duration.ofMinutes(5))
 
             while (true) {

@@ -12,5 +12,10 @@ data class Instrument(var asset: String?, var base: String?) {
 
     companion object {
         val BTC_USDT = Instrument("BTC", "USDT")
+
+        fun parse(name: String): Instrument {
+            val n = name.split("_")
+            return Instrument(n[0], n[1])
+        }
     }
 }

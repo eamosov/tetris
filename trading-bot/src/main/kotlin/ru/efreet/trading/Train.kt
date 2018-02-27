@@ -40,7 +40,7 @@ class Train {
             val (sp, stats) = CdmBotTrainer().getBestParams(
                     cache, cmd.instrument, cmd.barInterval,
                     cmd.logicName,
-                    cmd.logicPropertiesPath!!,
+                    cmd.settings!!,
                     cmd.seedType,
                     cmd.population ?: 10,
                     //ts.times.map { Pair(ZonedDateTime.parse(it.first), ZonedDateTime.parse(it.second)) },
@@ -48,7 +48,7 @@ class Train {
                     null as AbstractBotLogicParams?)
 
             println(sp.toJson())
-            val savePath = cmd.logicPropertiesPath + ".out"
+            val savePath = cmd.settings + ".out"
             println("Saving logic's properties to ${savePath}")
 
             val logic: BotLogic<AbstractBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
