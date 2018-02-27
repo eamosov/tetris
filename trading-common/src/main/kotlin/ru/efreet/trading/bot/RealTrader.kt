@@ -3,6 +3,7 @@ package ru.efreet.trading.bot
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
 import java.time.Duration
+import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
@@ -126,11 +127,13 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
         return null
     }
 
-    override fun history(): TradeHistory {
+    override fun history(start: ZonedDateTime, end: ZonedDateTime): TradeHistory {
         return TradeHistory(startUsd, startAsset, startFunds, usd, asset, funds, trades, indicators, arrayListOf(),
                 startPrice,
                 lastPrice,
                 minPrice,
-                maxPrice)
+                maxPrice,
+                start,
+                end)
     }
 }

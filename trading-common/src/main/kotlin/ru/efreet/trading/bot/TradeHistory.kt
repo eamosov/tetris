@@ -20,7 +20,9 @@ data class TradeHistory(val startUsd: Double,
                         val startPrice: Double,
                         val endPrice: Double,
                         val minPrice: Double,
-                        val maxPrice: Double) {
+                        val maxPrice: Double,
+                        val start: ZonedDateTime,
+                        val end: ZonedDateTime) {
 
 }
 

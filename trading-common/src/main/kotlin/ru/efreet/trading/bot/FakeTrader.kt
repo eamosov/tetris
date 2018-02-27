@@ -72,7 +72,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
         }
     }
 
-    override fun history(): TradeHistory {
+    override fun history(start:ZonedDateTime, end:ZonedDateTime): TradeHistory {
         return TradeHistory(startUsd,
                 startAsset,
                 funds(startUsd, startAsset, startPrice),
@@ -85,7 +85,9 @@ class FakeTrader(var startUsd: Double = 1000.0,
                 startPrice,
                 lastPrice,
                 minPrice,
-                maxPrice)
+                maxPrice,
+                start,
+                end)
     }
 
     override fun availableUsd(instrument: Instrument): Double {

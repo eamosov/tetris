@@ -51,8 +51,8 @@ class StatsCalculator {
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                profits.firstOrNull()?.first,
-                profits.lastOrNull()?.first
+                history.start,
+                history.end
         )
     }
 }

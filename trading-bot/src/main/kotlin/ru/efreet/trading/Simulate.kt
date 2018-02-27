@@ -1,16 +1,17 @@
 package ru.efreet.trading
 
-import ru.efreet.trading.exchange.*
-import ru.efreet.trading.logic.*
-import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bot.FakeTrader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradeHistory
-import ru.efreet.trading.bot.TradesStats
-import ru.efreet.trading.bot.FakeTrader
+import ru.efreet.trading.exchange.BarInterval
+import ru.efreet.trading.exchange.Exchange
+import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
+import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.impl.LogicFactory
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.trainer.getBestParams
 import ru.efreet.trading.utils.*
@@ -28,8 +29,7 @@ data class State(var name: String,
                  var trainDays: Long = 0,
                  var tradeHistory: TradeHistory? = null,
                  val tradeDuration: Duration = Duration.ofDays(1),
-                 var population: Int = 20,
-                 var summary: TradesStats? = null
+                 var population: Int = 20
 ) {
 
     fun getTime(): ZonedDateTime {
@@ -93,16 +93,21 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true)
 
-        var eod = state.getTime().truncatedTo(ChronoUnit.DAYS).plusDays(1)
+
+        var startStatsTime = state.getTime().truncatedTo(ChronoUnit.DAYS)
+        //var endStatsTime = state.getTime().truncatedTo(ChronoUnit.DAYS).plusDays(1)
+
+        fun logDayStats() {
+            val stats = StatsCalculator().stats(trader.history(startStatsTime, state.getTime()))
+            trader.clearHistory()
+            println("STATS: ${state.getTime()}:  ${stats}")
+        }
 
         while (state.getTime().plus(state.tradeDuration).isBefore(end)) {
 
-            if (state.getTime().isAfter(eod)) {
-                eod = state.getTime().truncatedTo(ChronoUnit.DAYS).plusDays(1)
-
-                val stats = StatsCalculator().stats(trader.history())
-                trader.clearHistory()
-                println("STATS: ${state.getTime()}:  ${stats}")
+            if (state.getTime().isAfter(startStatsTime.plusDays(1))) {
+                startStatsTime = state.getTime().truncatedTo(ChronoUnit.DAYS)
+                logDayStats()
             }
 
             if (state.trainDays > 0) {
@@ -147,12 +152,10 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             }
 
             state.setTime(state.getTime().plus(state.tradeDuration))
-            state.summary = StatsCalculator().stats(trader.history())
             saveState()
         }
 
-        val stats = StatsCalculator().stats(trader.history())
-        print("summary: ${stats}")
+        logDayStats()
     }
 
     fun saveState() {
