@@ -10,8 +10,8 @@ import kotlin.reflect.KMutableProperty1
 
 data class PropRef<T>(val cls: KClass<*>, var propRef: PropRef<T>? = null, var const: Any? = null, var value: String) {
 
-    fun get(receiver: T): Any? {
-        return propRef?.get(receiver) ?: const
+    fun get(receiver: T?): Any? {
+        return receiver?.let { propRef?.get(it) } ?: const
     }
 }
 
@@ -74,15 +74,20 @@ data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
         return properties
     }
 
-    fun toLogicParams(properties: Properties): T {
+    fun toLogicParams(properties: Properties): T? {
         val prop = cls.java.newInstance()
-
+        var propsSetted = 0
         for (gene in genes) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
+                propsSetted++
             }
         }
-        return prop
+
+        return if (propsSetted == 0){
+            null
+        }else
+            prop
     }
 
     fun random(): T {
@@ -112,10 +117,10 @@ data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
         return prop
     }
 
-    fun log(params: T): String {
+    fun log(params: T?): String {
         val sb = StringBuffer()
         for (gene in genes.sortedBy { it.key }) {
-            sb.append("${gene.kprop.name}: value=${gene.kprop.get(params)} min=${gene.getMin(params)} max=${gene.getMax(params)} step=${gene.getStep(params)} hardBounds=${gene.getHardBounds(params)}\n")
+            sb.append("${gene.kprop.name}: value=${params?.let { gene.kprop.get(it) }} min =${gene.getMin(params)} max =${gene.getMax(params)} step =${gene.getStep(params)} hardBounds =${gene.getHardBounds(params)}\n")
         }
         return sb.toString()
     }

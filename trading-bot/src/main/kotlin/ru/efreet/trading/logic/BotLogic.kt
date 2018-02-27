@@ -40,7 +40,7 @@ interface BotLogic<P> {
 
     fun copyParams(src: P): P
 
-    fun getParams(): P
+    fun getParams(): P?
 
     fun setParams(params: P)
 

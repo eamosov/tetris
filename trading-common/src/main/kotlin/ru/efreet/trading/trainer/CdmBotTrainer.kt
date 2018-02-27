@@ -34,7 +34,7 @@ class CdmBotTrainer : BotTrainer {
 
         println("TOP RESULTS:")
 
-        for (i in minOf(population.size - 5, 0) until population.size ){
+        for (i in maxOf(population.size - 5, 0) until population.size ){
             println(population[i])
         }
 

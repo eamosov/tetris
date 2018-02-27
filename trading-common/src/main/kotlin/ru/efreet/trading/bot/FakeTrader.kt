@@ -45,7 +45,6 @@ class FakeTrader(var startUsd: Double = 1000.0,
 
         super.executeAdvice(advice)
 
-
         if (fillCash) {
             cash.add(Pair(advice.time, usd + asset * advice.price))
         }

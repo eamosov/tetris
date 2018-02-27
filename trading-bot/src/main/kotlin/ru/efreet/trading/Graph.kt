@@ -56,7 +56,7 @@ class Graph {
             val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
             bars.checkBars()
 
-            val sp = logic.getParams()
+            val sp = logic.getParams()!!
 
             println(sp.toJson())
 

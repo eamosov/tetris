@@ -1,15 +1,15 @@
 package ru.efreet.trading.trainer
 
+import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.checkBars
+import ru.efreet.trading.bot.StatsCalculator
+import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.ProfitCalculator
-import ru.efreet.trading.bot.StatsCalculator
-import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.utils.SeedType
 import java.time.ZonedDateTime
 
@@ -32,10 +32,14 @@ fun <P : AbstractBotLogicParams> BotTrainer.getBestParams(exchange: Exchange, in
         logic.setMinMax(origin, 40.0, true)
     }
 
+    //logic.getParamsAsProperties()
+
     val population = logic.seed(seedType, trainingSize)
     if (origin != null)
         population.add(origin)
-
+    else {
+        logic.getParams()?.let { population.add(it) }
+    }
 
     val startSearchTime = times.first().first
     val finishSearchTime = times.last().second

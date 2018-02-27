@@ -20,19 +20,19 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
                                        val hardBounds: Boolean) {
 
 
-    fun getMin(obj: T): R {
+    fun getMin(obj: T?): R {
         return (propRefMin.get(obj) ?: min) as R
     }
 
-    fun getMax(obj: T): R {
+    fun getMax(obj: T?): R {
         return (propRefMax.get(obj) ?: max) as R
     }
 
-    fun getStep(obj: T): R {
+    fun getStep(obj: T?): R {
         return (propRefStep.get(obj) ?: step) as R
     }
 
-    fun getHardBounds(obj: T): Boolean {
+    fun getHardBounds(obj: T?): Boolean {
         return (hardBoundsRef.get(obj) ?: hardBounds) as Boolean
     }
 

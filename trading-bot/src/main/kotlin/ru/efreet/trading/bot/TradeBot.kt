@@ -107,7 +107,8 @@ class TradeBot(val exchange: Exchange,
 
     fun fetchTradesHistory() {
 
-        val lastBars = exchange.loadBars(
+        val lastBars = barsCache.getBars(
+                exchange.getName(),
                 instrument,
                 barInterval,
                 ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.maxBars.toLong())), ZonedDateTime.now())

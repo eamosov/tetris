@@ -3,12 +3,12 @@ package ru.efreet.trading.logic
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bars.indexOf
+import ru.efreet.trading.bot.Advice
+import ru.efreet.trading.bot.Trader
+import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
-import ru.efreet.trading.bot.TradesStats
-import ru.efreet.trading.bot.Advice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.PropertyEditorFactory
 import ru.efreet.trading.utils.SeedType
@@ -53,7 +53,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun logState(): String {
-        return properties.log(_params)
+        return properties.log(getParams())
     }
 
     override fun copyParams(orig: P): P {
@@ -117,8 +117,12 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         }
     }
 
-    override fun getParams(): P {
-        return _params
+    override fun getParams(): P? {
+        return try {
+            _params
+        } catch (e: kotlin.UninitializedPropertyAccessException) {
+            null
+        }
     }
 
     override fun setParams(params: P) {
@@ -139,7 +143,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun setParamsAsProperties(params: Properties) {
-        setParams(properties.toLogicParams(params))
+        properties.toLogicParams(params)?.let { setParams(it) } ?: println("params haven't been set")
     }
 
     private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
