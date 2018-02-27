@@ -112,18 +112,18 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
 
-//        return when {
-//            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
-//            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
-//            else -> null
-//        }
-
         return when {
             price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
-            /*price > sma + sd * _params.deviation!! -> OrderSide.SELL||*/ dayMacd < daySignal -> OrderSide.SELL
-            //(price > sma + sd * _params.deviation!! / 10.0 && macd > signalEma) || dayMacd < daySignal -> OrderSide.SELL
+            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
             else -> null
         }
+
+//        return when {
+//            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
+//            /*price > sma + sd * _params.deviation!! -> OrderSide.SELL||*/ dayMacd < daySignal -> OrderSide.SELL
+//            //(price > sma + sd * _params.deviation!! / 10.0 && macd > signalEma) || dayMacd < daySignal -> OrderSide.SELL
+//            else -> null
+//        }
 
     }
 
