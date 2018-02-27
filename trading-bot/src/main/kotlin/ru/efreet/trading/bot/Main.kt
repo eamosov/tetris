@@ -2,9 +2,9 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.exchange.BarInterval
-import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
@@ -12,6 +12,7 @@ import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.loadFromJson
+import ru.efreet.trading.utils.round2
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -41,7 +42,7 @@ class Main {
             //val population = cmd.population ?: 50
             //val trainPeriod = cmd.trainPeriod ?: 1L
 
-            val botConfiguration:BotConfiguration = loadFromJson("bot.js")
+            val botConfiguration: BotConfiguration = loadFromJson("bot.js")
 
             for (bot in botConfiguration.bots) {
 
@@ -58,7 +59,7 @@ class Main {
                 cache.saveBars(exchange.getName(), instrument, newCachedBars.filter { it.timePeriod == interval.duration })
 
 
-                for (days in arrayOf(56, 28, 14, 7)){
+                for (days in arrayOf(56, 28, 14, 7)) {
                     val historyStart = ZonedDateTime.now().minusDays(days.toLong()).minus(interval.duration.multipliedBy(logic.historyBars))
                     val bars = cache.getBars(exchange.getName(), instrument, interval, historyStart, ZonedDateTime.now())
                     bars.checkBars()
@@ -69,14 +70,13 @@ class Main {
                             true)
 
                     val tradesStats = StatsCalculator().stats(tradeHistory)
-                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: $tradesStats")
+                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}")
                 }
 
-                val bot = TradeBot(exchange, cache, bot.limit / bots.size, cmd.testOnly, instrument, logic, interval, { bot, order ->
-//                    botSettings.addTrade(bot.instrument, order)
+                bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, logic, interval, { _, _ ->
+                    //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
-                })
-                bots.put(instrument, bot)
+                }))
 
                 /*val params = botSettings.getParams(instrument) ?: CdmBotTrainer().getBestParams(exchange, instrument, interval,
                         cmd.logicName,
