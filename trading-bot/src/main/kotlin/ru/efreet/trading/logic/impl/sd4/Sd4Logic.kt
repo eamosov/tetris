@@ -49,12 +49,18 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd4.stopLoss", 0.1, 10.0, 0.5, true)
 
-        of(SimpleBotLogicParams::f3Index, "logic.sd4.f3Index", 0, IntFunction3.size()-1, 1, true)
+        of(SimpleBotLogicParams::f3Index, "logic.sd4.f3Index", 0, IntFunction3.size() - 1, 1, true)
     }
 
     override fun metrica(stats: TradesStats): Double {
 
-        return foo(stats.trades.toDouble(), 100.0, 4.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
+        val minTrades = if (stats.firstTrade != null) {
+            Duration.between(stats.firstTrade, stats.lastTrade).toHours() / 12.0
+        } else {
+            5.0
+        }
+
+        return foo(stats.trades.toDouble(), 100.0, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
