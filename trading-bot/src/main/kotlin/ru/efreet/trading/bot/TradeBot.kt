@@ -62,12 +62,12 @@ class TradeBot(val exchange: Exchange,
             try {
                 barsCache.saveBar(exchange.getName(), instrument, it)
             }catch (e:Exception){
-                println
+                println("Exception while saving bar to cache: $e")
             }
         }
 
         if (logic.barsCount() > 0 && tradeTimeStamp.isBefore(logic.lastBar().endTime)) {
-            println("Skip event $tradeTimeStamp")
+            //println("Skip event $tradeTimeStamp")
             return null
         }
 
