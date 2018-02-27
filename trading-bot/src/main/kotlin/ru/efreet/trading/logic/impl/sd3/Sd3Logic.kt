@@ -68,7 +68,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val minTrades = maxOf(Duration.between(stats.start, stats.end).toHours() / 6.0, 5.0)
 
-        return foo(stats.trades.toDouble(), minTrades, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
+        return /*foo(stats.trades.toDouble(), minTrades, 4.0) +*/ foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
