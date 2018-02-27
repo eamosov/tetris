@@ -10,6 +10,8 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
+import ru.efreet.trading.utils.IntFunction3
 import ru.efreet.trading.utils.SeedType
 import java.time.ZonedDateTime
 
@@ -61,7 +63,14 @@ fun <P : AbstractBotLogicParams> BotTrainer.calcProfit(instrument: Instrument, i
     val st = System.currentTimeMillis()
     try {
         val history = ProfitCalculator().tradeHistory(logicName, params, instrument, interval, feeP, bars, times, false)
-        return StatsCalculator().stats(history)
+
+        val stats =  StatsCalculator().stats(history)
+
+        if (stats.profit > 1.0 && params is SimpleBotLogicParams && (params as SimpleBotLogicParams).f3Index !=null){
+            IntFunction3.incCounter(params.f3Index!!)
+        }
+
+        return stats;
     } finally {
         //println("calcProfit took ${System.currentTimeMillis()-st}")
     }

@@ -64,7 +64,7 @@ class CdmBotTrainer : BotTrainer {
                         println("CDM: NEW BEST ${population[it]}")
                     }
 
-                    print("CDM: (${(finished * 100.0 / population.size).round2()} %)\r")
+                    print("CDM: (${(finished * 100.0 / population.size).round2()} %): $finished\r")
 
                 } catch (e: Exception) {
                     println("WARNING: Exception ${e.message} for ${population[it]}")

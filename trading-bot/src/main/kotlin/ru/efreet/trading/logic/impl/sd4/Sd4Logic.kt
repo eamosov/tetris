@@ -91,6 +91,14 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         daySignalEma.prepare()
     }
 
+//    override fun seedRandom(size: Int): MutableList<SimpleBotLogicParams> {
+//        val list = mutableListOf<SimpleBotLogicParams>()
+//        for (i in 0 until IntFunction3.size() - 1) {
+//            list.addAll(super.seedRandom(size).map { it.f3Index = i; it })
+//        }
+//        return list
+//    }
+
     override fun getAdvice(index: Int, bar: XExtBar): OrderSide? {
 
         val sd = sd.getValue(index, bar)
@@ -118,7 +126,7 @@ class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             else -> 1
         }
 
-        val f = IntFunction3.get(_params.f3Index!!, _sd, _macd, _dayMacd)
+        val f = IntFunction3.get(_params.f3Index!!, _sd, _macd, _dayMacd).toInt()
 
         return when (f) {
             0 -> OrderSide.BUY
