@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by fluder on 26/02/2018.
@@ -18,9 +21,11 @@ public class IntFunction3 {
     private static byte[] table;
     private static int tableIndex = 0;
 
+    public static final String path = "IntFunction3.table";
+
     static {
         try {
-            table = Files.readAllBytes(Paths.get("IntFunction3.table"));
+            table = Files.readAllBytes(Paths.get(path));
         } catch (IOException e) {
             table = new byte[TABLE_SIZE * ROW_SIZE];
             gen(new byte[ROW_SIZE], 0);
@@ -31,7 +36,7 @@ public class IntFunction3 {
             public void run() {
                 try {
                     printCounters();
-                    Files.write(Paths.get("IntFunction3.table"), table, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
+                    Files.write(Paths.get(path), table, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -91,6 +96,7 @@ public class IntFunction3 {
     public static void printCounters() {
         int sum = 0;
         int count = 0;
+        final List<Integer[]> top = new ArrayList<Integer[]>();
         for (int i = 0; i < TABLE_SIZE; i++) {
             int v = getCounter(i);
             sum += v;
@@ -98,9 +104,14 @@ public class IntFunction3 {
                 count ++;
                 //System.out.println(String.format("%d:%d", i, getCounter(i)));
             }
+            top.add(new Integer[]{i, v});
         }
+        Collections.sort(top, (a, b) -> -a[1].compareTo(b[1]));
 
         System.out.println(String.format("IntFunction3: registered %d profits for %d functions", sum, count));
+        for (int i=0; i<Math.min(100, top.size()); i++){
+            System.out.println(String.format("%d: %d (%g %%)", top.get(i)[0], top.get(i)[1], top.get(i)[1] * 100.0 / sum));
+        }
     }
 
     public static void main(String args[]) throws IOException {
