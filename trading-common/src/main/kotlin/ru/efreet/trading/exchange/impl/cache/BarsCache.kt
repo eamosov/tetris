@@ -101,20 +101,24 @@ class BarsCache(val path: String) {
     }
 
     fun saveBar(exchange: String, instrument: Instrument, bar: XBar): Int {
-        conn.createStatement().use { statement ->
-            return statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+        synchronized(this) {
+            conn.createStatement().use { statement ->
+                return statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+            }
         }
     }
 
     fun saveBars(exchange: String, instrument: Instrument, bars: List<XBar>) {
 
-        conn.autoCommit = false
-        conn.createStatement().use { statement ->
-            bars.forEach { bar ->
-                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+        synchronized(this) {
+            conn.autoCommit = false
+            conn.createStatement().use { statement ->
+                bars.forEach { bar ->
+                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+                }
             }
+            conn.commit()
         }
-        conn.commit()
     }
 
     companion object {
