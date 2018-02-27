@@ -1,6 +1,7 @@
 package ru.efreet.trading
 
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.FakeTrader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradeHistory
@@ -10,8 +11,10 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
+import ru.efreet.trading.trainer.BotTrainer
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.trainer.getBestParams
 import ru.efreet.trading.utils.*
@@ -112,16 +115,42 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
             if (state.trainDays > 0) {
                 val trainStart = state.getTime().minusDays(state.trainDays)
-                val (params, stats) = CdmBotTrainer().getBestParams(exchange, state.instrument, state.interval,
-                        cmd.logicName,
-                        cmd.settings!!,
-                        cmd.seedType,
-                        state.population, arrayListOf(Pair(trainStart, state.getTime())), logic.getParams())
+//                val (params, stats) = CdmBotTrainer().getBestParams(exchange, state.instrument, state.interval,
+//                        cmd.logicName,
+//                        cmd.settings!!,
+//                        cmd.seedType,
+//                        state.population, arrayListOf(Pair(trainStart, state.getTime())), logic.getParams())
+
+////
+                val tmpLogic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+                tmpLogic.setMinMax(logic.getParams()!!, 20.0, false)
+                val population = tmpLogic.seed(cmd.seedType, state.population)
+                population.add(logic.getParams()!!)
+
+                val bars = exchange.loadBars(state.instrument, state.interval, trainStart.minus(state.interval.duration.multipliedBy(logic.historyBars)).truncatedTo(state.interval), state.getTime().truncatedTo(state.interval))
+                println("Searching best strategy for ${state.instrument} population=${population.size}, start=${trainStart} end=${state.getTime()}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
+                bars.checkBars()
+
+
+                val (params, stats) = CdmBotTrainer().getBestParams(tmpLogic.genes, population,
+                        {
+                            val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.getTime())), false)
+                            val stats =  StatsCalculator().stats(history)
+
+//                            if (stats.profit > 1.0 && params is SimpleBotLogicParams && (params as SimpleBotLogicParams).f3Index !=null){
+//                                IntFunction3.incCounter(params.f3Index!!)
+//                            }
+
+                            stats
+                        },
+                        { args, stats -> logic.metrica(stats) },
+                        { logic.copyParams(it) })
+
+////
 
                 logic.setParams(params)
-                logic.setMinMax(params, 20.0, false)
-                println(logic.logState())
-
+                //logic.setMinMax(params, 20.0, false)
+                //println(logic.logState())
                 println("STRATEGY: ${logic.getParams()} $stats")
             }
 
