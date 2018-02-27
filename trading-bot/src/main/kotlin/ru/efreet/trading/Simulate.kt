@@ -122,6 +122,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 //                        state.population, arrayListOf(Pair(trainStart, state.getTime())), logic.getParams())
 
 ////
+                //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
                 val tmpLogic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
                 tmpLogic.setMinMax(logic.getParams()!!, 20.0, false)
                 val population = tmpLogic.seed(cmd.seedType, state.population)
