@@ -66,9 +66,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override fun metrica(stats: TradesStats): Double {
         //foo(stats.sma, 0.8) +
 
-        val minTrades = maxOf(Duration.between(stats.start, stats.end).toHours() / 6.0, 5.0)
+        //val minTrades = maxOf(Duration.between(stats.start, stats.end).toHours() / 6.0, 5.0)
 
-        return /*foo(stats.trades.toDouble(), minTrades, 4.0) +*/ foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
+        return foo(stats.trades.toDouble(), 100.0, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
@@ -112,11 +112,19 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
 
+//        return when {
+//            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
+//            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
+//            else -> null
+//        }
+
         return when {
-            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
-            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
+            price < sma - sd * _params.deviation!! / 10.0 && macd < signalEma && dayMacd > daySignal -> OrderSide.BUY
+            price > sma + sd * _params.deviation!! -> OrderSide.SELL
+            //(price > sma + sd * _params.deviation!! / 10.0 && macd > signalEma) || dayMacd < daySignal -> OrderSide.SELL
             else -> null
         }
+
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
