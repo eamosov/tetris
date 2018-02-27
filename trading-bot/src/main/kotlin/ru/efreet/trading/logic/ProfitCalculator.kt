@@ -50,7 +50,7 @@ class ProfitCalculator {
 
         }
 
-        return trader.history()
+        return trader.history(times.first().first, times.last().second)
     }
 
 }

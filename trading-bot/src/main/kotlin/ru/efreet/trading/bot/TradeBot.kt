@@ -51,7 +51,6 @@ class TradeBot(val exchange: Exchange,
         println("interval: $barInterval")
         println("testOnly: $testOnly")
         println("baseLimit: $baseLimit")
-        println("stats: ${StatsCalculator().stats(trader.history())}")
     }
 
     fun addTrade(trade: AggTrade): XBar? {
