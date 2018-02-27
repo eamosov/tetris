@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,6 +118,12 @@ public class IntFunction3 {
     public static void main(String args[]) throws IOException {
 
         printCounters();
+
+        byte[] tmp = new byte[ROW_SIZE];
+        //496544
+        System.arraycopy(table, 496544 * ROW_SIZE, tmp, 0, ROW_SIZE);
+        System.out.println(Arrays.toString(tmp));
+
         //System.out.println(getData(0));
         //setData(0, 12345);
         //System.out.println(getData(0) == 0xFFFFFFFF);

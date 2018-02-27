@@ -8,6 +8,7 @@ import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
+import ru.efreet.trading.utils.IntFunction3
 import java.time.Duration
 
 /**
@@ -112,12 +113,36 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
 
-        return when {
-            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
-            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
-            else -> null
+//        return when {
+//            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
+//            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd < daySignal -> OrderSide.SELL
+//            else -> null
+//        }
+
+
+        val _sd = when {
+            price < sma - sd * _params.deviation!! / 10.0 -> 0
+            price > sma + sd * _params.deviation!! / 10.0 -> 1
+            else -> 2
         }
 
+        val _macd = when {
+            macd > signalEma -> 0
+            else -> 1
+        }
+
+        val _dayMacd = when {
+            dayMacd > daySignal -> 0
+            else -> 1
+        }
+
+        val f = IntFunction3.get(496544, _sd, _macd, _dayMacd).toInt()
+
+        return when (f) {
+            0 -> OrderSide.BUY
+            1 -> OrderSide.SELL
+            else -> null
+        }
 //        return when {
 //            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd > daySignal -> OrderSide.BUY
 //            /*price > sma + sd * _params.deviation!! -> OrderSide.SELL||*/ dayMacd < daySignal -> OrderSide.SELL
