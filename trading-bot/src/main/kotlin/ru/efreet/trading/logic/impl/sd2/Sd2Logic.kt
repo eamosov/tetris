@@ -49,11 +49,6 @@ class Sd2Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         //add(SimpleBotLogicParams::mainRation, 10, 100, 1, false)
     }
 
-    override fun metrica(stats: TradesStats): Double {
-        return /*foo(stats.sma, 0.8) +*/ foo(stats.trades.toDouble(), 20.0, 4.0) + foo(stats.goodTrades, 1.3, 5.0) + foo(stats.profit, 1.0) + stats.profit
-
-    }
-
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
         return orig.copy()
     }

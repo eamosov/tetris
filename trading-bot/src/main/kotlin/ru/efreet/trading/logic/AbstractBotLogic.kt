@@ -44,6 +44,10 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return properties.of(kprop, key, min, max, step, hardBounds)
     }
 
+    inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, value: R): PropertyEditor<P, R> {
+        return properties.of(kprop, key, value)
+    }
+
     fun of(kprop: KMutableProperty1<P, Int?>, key: String, min: Duration, max: Duration, step: Duration, hardBounds: Boolean): PropertyEditor<P, Int?> {
         return properties.of(kprop, key,
                 Math.max(1, (min.toMillis() / barInterval.duration.toMillis()).toInt()),
@@ -206,7 +210,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun metrica(stats: TradesStats): Double {
-        return foo(stats.trades.toDouble(), 4.0) + 2 * foo(stats.goodTrades, 0.7) + foo(stats.profit, 1.0) + stats.profit
+        return foo(stats.trades.toDouble(), 50.0, 4.0) + foo((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 10.0) + foo(stats.profit, 1.0) + stats.profit
     }
 
     override fun isProfitable(stats: TradesStats): Boolean {

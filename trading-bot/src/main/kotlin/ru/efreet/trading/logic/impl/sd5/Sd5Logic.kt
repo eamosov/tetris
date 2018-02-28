@@ -1,7 +1,6 @@
 package ru.efreet.trading.logic.impl.sd5
 
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
@@ -46,13 +45,8 @@ class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::daySignal, "logic.sd4.daySignal", Duration.ofHours(13), Duration.ofHours(26), Duration.ofMinutes(15), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd4.stopLoss", 0.1, 10.0, 0.5, true)
-    }
 
-    override fun metrica(stats: TradesStats): Double {
-
-        val minTrades = minOf(Duration.between(stats.start, stats.end).toHours() / 2.0, 5.0)
-
-        return foo(stats.trades.toDouble(), 100.0, 4.0) + foo(stats.avrProfitPerTrade, 1.01, 1000.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 5.0) + foo(stats.profit, 1.0) + stats.profit
+        of(SimpleBotLogicParams::f3Index, "logic.sd4.f3Index", -1)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
@@ -120,7 +114,7 @@ class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             else -> 1
         }
 
-        val f = IntFunction3.get(496544, _sd, _macd, _dayMacd).toInt()
+        val f = IntFunction3.get(_params.f3Index!!, _sd, _macd, _dayMacd).toInt()
 
         return when (f) {
             0 -> OrderSide.BUY
