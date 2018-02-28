@@ -1,5 +1,6 @@
 package ru.efreet.trading.exchange
 
+import java.io.Serializable
 import java.time.ZonedDateTime
 
 /**
@@ -17,6 +18,6 @@ data class TradeRecord(val time: ZonedDateTime,
                        val assetBefore: Double = 0.0,
                        val usdAfter: Double = 0.0,
                        val assetAfter: Double = 0.0,
-                       val fundsAfter: Double = 0.0) {
+                       val fundsAfter: Double = 0.0) : Serializable {
 
 }

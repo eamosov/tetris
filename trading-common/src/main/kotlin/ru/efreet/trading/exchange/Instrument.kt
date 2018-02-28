@@ -1,9 +1,11 @@
 package ru.efreet.trading.exchange
 
+import java.io.Serializable
+
 /**
  * Created by fluder on 08/02/2018.
  */
-data class Instrument(var asset: String?, var base: String?) {
+data class Instrument(var asset: String?, var base: String?) : Serializable {
     constructor() : this(null, null)
 
     override fun toString(): String {

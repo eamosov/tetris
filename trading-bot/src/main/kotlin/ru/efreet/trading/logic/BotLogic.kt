@@ -101,4 +101,11 @@ interface BotLogic<P> {
     fun seed(seedType: SeedType, size: Int): MutableList<P>
 
     fun logState(): String
+
+    companion object {
+        fun fine(x: Double, min: Double, base: Double = 2.0): Double {
+            return -Math.pow(base, (-(x - min))) + 1.0
+        }
+    }
+
 }

@@ -108,16 +108,16 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
             prop
     }
 
-    fun random(): T {
-        val prop = cls.java.newInstance()
+    fun random(orig:T, copy: (T) -> T): T {
+        val prop = copy(orig)
 
         for (gene in genes) {
             gene.setRandom(prop)
         }
 
-        for (gene in consts) {
-            gene.setValue(prop, gene.getMin(prop))
-        }
+//        for (gene in consts) {
+//            gene.setValue(prop, gene.getMin(prop))
+//        }
 
         return prop
     }
@@ -131,13 +131,13 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return p
     }
 
-    fun copy(orig: T): T {
-        val prop = cls.java.newInstance()
-        for (gene in genes) {
-            gene.kprop.set(prop, gene.kprop.get(orig))
-        }
-        return prop
-    }
+//    fun copy(orig: T): T {
+//        val prop = cls.java.newInstance()
+//        for (gene in genes) {
+//            gene.kprop.set(prop, gene.kprop.get(orig))
+//        }
+//        return prop
+//    }
 
     fun log(params: T?): String {
         val sb = StringBuffer()

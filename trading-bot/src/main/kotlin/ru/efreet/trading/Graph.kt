@@ -12,14 +12,16 @@ import org.jfree.data.time.Minute
 import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.ui.ApplicationFrame
 import org.jfree.ui.RefineryUtilities
-import ru.efreet.trading.exchange.*
+import ru.efreet.trading.bars.checkBars
+import ru.efreet.trading.bot.StatsCalculator
+import ru.efreet.trading.bot.TradeHistory
+import ru.efreet.trading.exchange.Exchange
+import ru.efreet.trading.exchange.OrderSide
+import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
-import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
-import ru.efreet.trading.bars.checkBars
-import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.toJson
 import java.awt.Color
@@ -31,6 +33,140 @@ import java.util.*
  * Created by fluder on 15/02/2018.
  */
 class Graph {
+
+    fun drawHistory(history: TradeHistory) {
+
+        val stats = StatsCalculator().stats(history)
+
+        println("STATS:  ${stats}")
+
+        val dataset = TimeSeriesCollection()
+
+        for ((iName, iValues) in history.indicators) {
+            if (iName.contains("macd", true) || iName.contains("sd", true))
+                continue
+
+            val ts = org.jfree.data.time.TimeSeries(iName)
+
+            for (v in iValues) {
+                try {
+                    ts.add(Minute(Date.from(v.first.toInstant())), v.second)
+                } catch (e: SeriesException) {
+                    println("dup: $v")
+                }
+            }
+
+            dataset.addSeries(ts)
+        }
+
+        val cashDataset = TimeSeriesCollection()
+        val cashSeries = org.jfree.data.time.TimeSeries("usd")
+
+        for (c in history.cash) {
+            cashSeries.add(Minute(Date.from(c.first.toInstant())), c.second)
+        }
+
+        cashDataset.addSeries(cashSeries)
+
+        ///
+//        val profitDataset = TimeSeriesCollection()
+//
+//            if (stats.profitStats !=null){
+//                for ((s, l) in stats.profitStats){
+//                    val profitSeries = org.jfree.data.time.TimeSeries(s)
+//
+//                    for (c in l) {
+//                        profitSeries.addOrUpdate(Minute(Date.from(c.first.toInstant())), c.second)
+//                    }
+//
+//                    profitDataset.addSeries(profitSeries)
+//                }
+//            }
+        ///
+
+        val chart = ChartFactory.createTimeSeriesChart(
+                "poloniex", // title
+                "Date", // x-axis label
+                "Price Per Unit", // y-axis label
+                dataset, // data
+                true, // create legend?
+                true, // generate tooltips?
+                false // generate URLs?
+        )
+        val plot = chart.plot as XYPlot
+        val axis = plot.domainAxis as DateAxis
+        axis.dateFormatOverride = SimpleDateFormat("yyyy-MM-dd")
+
+
+        // Adding markers to plot
+        for (trade in history.trades) {
+            // Buy signal
+
+            val signalBarTime = Minute(Date.from(trade.time.toInstant())).firstMillisecond.toDouble()
+            val marker = ValueMarker(signalBarTime)
+            if (trade.side == OrderSide.BUY) {
+                marker.paint = Color.GREEN
+                marker.label = "B"
+            } else {
+                marker.paint = Color.RED
+                marker.label = "S"
+            }
+//                if (trade.profit != null)
+//                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"
+            plot.addDomainMarker(marker)
+        }
+
+        /*if (history.indicators.containsKey("macdrule")) {
+            var prevmacd: Double? = null
+            for ((time, macd) in history.indicators["macdrule"]!!) {
+                if (macd > 0 && (prevmacd == null || prevmacd < 0)) {
+                    val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
+                    val marker = ValueMarker(signalBarTime)
+                    marker.paint = Color.ORANGE
+                    marker.label = "MACD(B)"
+                    plot.addDomainMarker(marker)
+                } else if (macd < 0 && (prevmacd == null || prevmacd > 0)) {
+                    val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
+                    val marker = ValueMarker(signalBarTime)
+                    marker.paint = Color.BLACK
+                    marker.label = "MACD(S)"
+                    plot.addDomainMarker(marker)
+                }
+                prevmacd = macd
+            }
+        }*/
+
+        val cashAxis = NumberAxis("cash")
+        cashAxis.autoRangeIncludesZero = false
+        plot.setRangeAxis(1, cashAxis)
+        plot.setDataset(1, cashDataset)
+        plot.mapDatasetToRangeAxis(1, 1)
+        val cashFlowRenderer = StandardXYItemRenderer()
+        cashFlowRenderer.setSeriesPaint(0, Color.blue)
+        plot.setRenderer(1, cashFlowRenderer)
+
+
+//        val profitAxis = NumberAxis("profit")
+//        profitAxis.autoRangeIncludesZero = false
+//        plot.setRangeAxis(2, profitAxis)
+//        plot.setDataset(2, profitDataset)
+//        plot.mapDatasetToRangeAxis(2, 2)
+//        val profitFlowRenderer = StandardXYItemRenderer()
+//        profitFlowRenderer.setSeriesPaint(0, Color.MAGENTA)
+//        plot.setRenderer(2, profitFlowRenderer)
+
+
+        val panel = ChartPanel(chart)
+        panel.fillZoomRectangle = true
+        panel.isMouseWheelEnabled = true
+        panel.preferredSize = java.awt.Dimension(500, 270)
+        // Application frame
+        val frame = ApplicationFrame("Ta4j example - Indicators to chart")
+        frame.contentPane = panel
+        frame.pack()
+        RefineryUtilities.centerFrameOnScreen(frame)
+        frame.isVisible = true
+    }
 
     companion object {
         @JvmStatic
@@ -49,10 +185,10 @@ class Graph {
 
             val exchange = Exchange.getExchange(cmd.exchange)
 
-            val logic:BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.loadState(cmd.settings!!)
 
-            val historyStart =cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
+            val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
             val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
             bars.checkBars()
 
@@ -63,144 +199,9 @@ class Graph {
             val history = ProfitCalculator().tradeHistory(cmd.logicName,
                     sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
                     listOf(Pair(cmd.start!!, ZonedDateTime.now())),
-//                    listOf(
-//                            Pair(ZonedDateTime.parse("2017-12-17T00:00Z[GMT]"), ZonedDateTime.parse("2017-12-22T00:00Z[GMT]")),
-//                            Pair(ZonedDateTime.parse("2017-12-27T00:00Z[GMT]"), ZonedDateTime.parse("2017-12-30T00:00Z[GMT]")),
-//                            Pair(ZonedDateTime.parse("2018-01-07T00:00Z[GMT]"), ZonedDateTime.parse("2018-01-18T00:00Z[GMT]"))
-//                    ),
                     true)
 
-            val stats = StatsCalculator().stats(history)
-
-            println("calcProfit $sp ${stats}")
-
-            val dataset = TimeSeriesCollection()
-
-            for ((iName, iValues) in history.indicators) {
-                if (iName == "macd" || iName == "sd")
-                    continue
-
-                val ts = org.jfree.data.time.TimeSeries(iName)
-
-                for (v in iValues) {
-                    try {
-                        ts.add(Minute(Date.from(v.first.toInstant())), v.second)
-                    }catch (e: SeriesException){
-                        println("dup: $v")
-                    }
-                }
-
-                dataset.addSeries(ts)
-            }
-
-            val cashDataset = TimeSeriesCollection()
-            val cashSeries = org.jfree.data.time.TimeSeries("usd")
-
-            for (c in history.cash) {
-                cashSeries.add(Minute(Date.from(c.first.toInstant())), c.second)
-            }
-
-            cashDataset.addSeries(cashSeries)
-
-            ///
-            val profitDataset = TimeSeriesCollection()
-
-//            if (stats.profitStats !=null){
-//                for ((s, l) in stats.profitStats){
-//                    val profitSeries = org.jfree.data.time.TimeSeries(s)
-//
-//                    for (c in l) {
-//                        profitSeries.addOrUpdate(Minute(Date.from(c.first.toInstant())), c.second)
-//                    }
-//
-//                    profitDataset.addSeries(profitSeries)
-//                }
-//            }
-            ///
-
-            val chart = ChartFactory.createTimeSeriesChart(
-                    "poloniex", // title
-                    "Date", // x-axis label
-                    "Price Per Unit", // y-axis label
-                    dataset, // data
-                    true, // create legend?
-                    true, // generate tooltips?
-                    false // generate URLs?
-            )
-            val plot = chart.plot as XYPlot
-            val axis = plot.domainAxis as DateAxis
-            axis.dateFormatOverride = SimpleDateFormat("yyyy-MM-dd")
-
-
-            // Adding markers to plot
-            for (trade in history.trades) {
-                // Buy signal
-
-                val signalBarTime = Minute(Date.from(trade.time.toInstant())).firstMillisecond.toDouble()
-                val marker = ValueMarker(signalBarTime)
-                if (trade.side == OrderSide.BUY) {
-                    marker.paint = Color.GREEN
-                    marker.label = "B"
-                } else {
-                    marker.paint = Color.RED
-                    marker.label = "S"
-                }
-//                if (trade.profit != null)
-//                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"
-                plot.addDomainMarker(marker)
-            }
-
-            /*if (history.indicators.containsKey("macdrule")) {
-                var prevmacd: Double? = null
-                for ((time, macd) in history.indicators["macdrule"]!!) {
-                    if (macd > 0 && (prevmacd == null || prevmacd < 0)) {
-                        val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
-                        val marker = ValueMarker(signalBarTime)
-                        marker.paint = Color.ORANGE
-                        marker.label = "MACD(B)"
-                        plot.addDomainMarker(marker)
-                    } else if (macd < 0 && (prevmacd == null || prevmacd > 0)) {
-                        val signalBarTime = Minute(Date.from(time.toInstant())).firstMillisecond.toDouble()
-                        val marker = ValueMarker(signalBarTime)
-                        marker.paint = Color.BLACK
-                        marker.label = "MACD(S)"
-                        plot.addDomainMarker(marker)
-                    }
-                    prevmacd = macd
-                }
-            }*/
-
-            val cashAxis = NumberAxis("cash")
-            cashAxis.autoRangeIncludesZero = false
-            plot.setRangeAxis(1, cashAxis)
-            plot.setDataset(1, cashDataset)
-            plot.mapDatasetToRangeAxis(1, 1)
-            val cashFlowRenderer = StandardXYItemRenderer()
-            cashFlowRenderer.setSeriesPaint(0, Color.blue)
-            plot.setRenderer(1, cashFlowRenderer)
-
-
-            val profitAxis = NumberAxis("profit")
-            profitAxis.autoRangeIncludesZero = false
-            plot.setRangeAxis(2, profitAxis)
-            plot.setDataset(2, profitDataset)
-            plot.mapDatasetToRangeAxis(2, 2)
-            val profitFlowRenderer = StandardXYItemRenderer()
-            profitFlowRenderer.setSeriesPaint(0, Color.MAGENTA)
-            plot.setRenderer(2, profitFlowRenderer)
-
-
-            val panel = ChartPanel(chart)
-            panel.fillZoomRectangle = true
-            panel.isMouseWheelEnabled = true
-            panel.preferredSize = java.awt.Dimension(500, 270)
-            // Application frame
-            val frame = ApplicationFrame("Ta4j example - Indicators to chart")
-            frame.contentPane = panel
-            frame.pack()
-            RefineryUtilities.centerFrameOnScreen(frame)
-            frame.isVisible = true
-
+            Graph().drawHistory(history)
         }
     }
 }

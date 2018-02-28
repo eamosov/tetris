@@ -1,6 +1,7 @@
 package ru.efreet.trading.bot
 
 import ru.efreet.trading.exchange.TradeRecord
+import java.io.Serializable
 import java.time.ZonedDateTime
 
 /**
@@ -22,7 +23,7 @@ data class TradeHistory(val startUsd: Double,
                         val minPrice: Double,
                         val maxPrice: Double,
                         val start: ZonedDateTime,
-                        val end: ZonedDateTime) {
+                        val end: ZonedDateTime) : Serializable {
 
 }
 

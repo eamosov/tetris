@@ -60,9 +60,9 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return properties.log(getParams())
     }
 
-    override fun copyParams(orig: P): P {
-        return properties.copy(orig)
-    }
+//    override fun copyParams(orig: P): P {
+//        return properties.copy(orig)
+//    }
 
     private fun seedByCell(population: MutableList<P>, trainingSize: Int, proto: P, propIndex: Int) {
 
@@ -106,7 +106,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     open protected fun seedRandom(size: Int): MutableList<P> {
-        return (0 until size).map { properties.random() } as MutableList<P>
+        return (0 until size).map { properties.random(_params, { copyParams(it) }) } as MutableList<P>
     }
 
     override fun indexOf(time: ZonedDateTime): Int {
@@ -155,6 +155,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         var advice = if (stats == null || isProfitable(stats)) {
             getAdvice(index, bar)
         } else {
+            println("Dangerous statistic, SELL all")
             OrderSide.SELL
         }
 
@@ -205,16 +206,13 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return indicators().mapValues { it.value.getValue(index, bar) }
     }
 
-    fun foo(x: Double, min: Double, base: Double = 2.0): Double {
-        return -Math.pow(base, (-(x - min))) + 1.0
-    }
-
     override fun metrica(stats: TradesStats): Double {
-        return foo(stats.trades.toDouble(), 50.0, 4.0) + foo((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ foo(stats.sma5, 1.0, 10.0) + foo(stats.profit, 1.0) + stats.profit
+        return BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0) + BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma5, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
 
     override fun isProfitable(stats: TradesStats): Boolean {
-        return stats.trades > 4 && stats.goodTrades > 0.6 && stats.profit > 1.0
+        //return stats.trades > 4 && stats.goodTrades > 0.6 && stats.profit > 1.0
+        return stats.profit > 1.0
     }
 
     override fun getBarIndex(time: ZonedDateTime): Int {
