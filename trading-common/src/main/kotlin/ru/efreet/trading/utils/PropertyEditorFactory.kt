@@ -92,7 +92,10 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
                 propsSetted++
-            } ?: Unit.also { gene.setRandom(prop); println("Set ${gene.kprop.name} to random value ${gene.kprop.get(prop)}") }
+            } ?: Unit.also {
+                gene.setRandom(prop);
+                //println("Set ${gene.kprop.name} to random value ${gene.kprop.get(prop)}")
+            }
         }
 
         for (gene in consts) {

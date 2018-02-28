@@ -36,7 +36,7 @@ data class State(var name: String,
                  var train: Boolean = false,
                  var minTrainTrades: Int = 10,
                  var maxParamsDeviation: Double = 10.0,
-                 val tradeDuration: Duration = Duration.ofHours(6),
+                 val tradeDuration: Duration = Duration.ofHours(24),
                  var population: Int = 20
 ) {
 
@@ -187,10 +187,10 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
-        tmpLogic.loadState(cmd.settings!!)
-        tmpLogic.setMinMax(tmpLogic.getParams()!!, state.maxParamsDeviation, true)
-        //tmpLogic.setParams(logic.getParams()!!)
-        //tmpLogic.setMinMax(logic.getParams()!!, 5.0, true)
+        //tmpLogic.loadState(cmd.settings!!)
+        //tmpLogic.setMinMax(tmpLogic.getParams()!!, state.maxParamsDeviation, true)
+        tmpLogic.setParams(curParams)
+        tmpLogic.setMinMax(curParams, 5.0, true)
         val population = tmpLogic.seed(cmd.seedType, state.population)
         population.add(curParams)
 
