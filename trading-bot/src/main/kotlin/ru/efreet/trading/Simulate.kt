@@ -35,6 +35,7 @@ data class State(var name: String,
                  var instrument: Instrument,
                  var interval: BarInterval,
                  var minTrainTrades: Int = 10,
+                 var minStatsProfit: Double = 1.1,
                  var maxParamsDeviation: Double = 10.0,
                  var hardBounds: Boolean = true,
                  var useLastProps: Boolean = false,
@@ -133,19 +134,19 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     val (params, _stats) = tuneParams(state.trainDays, logic.getParams()!!)
 //                val (params, _stats) = tuneParams(cmd.train!!.toLong(), logic.getParams()!!)
 
-                    if (_stats.trades < state.minTrainTrades || _stats.profit < 1.1) {
-                        state.trainDays++
-                    } else if (_stats.trades > state.minTrainTrades) {
-                        state.trainDays--
-                    }
+                    val gootStats = _stats.trades >= state.minTrainTrades && _stats.profit >= state.minStatsProfit
 
-                    if (_stats.trades >= state.minTrainTrades && _stats.profit >= 1.1) {
+                    if (!gootStats) {
+                        state.trainDays++
+                    } else {
+
+                        if (_stats.trades > state.minTrainTrades)
+                            state.trainDays--
+
                         logic.setParams(params)
                         stats = _stats
                         println("STRATEGY: ${logic.getParams()} $stats")
                         break
-                    } else {
-                        continue
                     }
                 }
             }
