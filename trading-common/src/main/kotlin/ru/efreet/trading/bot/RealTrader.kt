@@ -81,7 +81,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
         if (advice.orderSide == OrderSide.BUY && advice.amount > 0) {
 
-            if (advice.amount >= 0.001) {
+            if (advice.amount * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]!!
                 val assetBefore = balanceResult.balances[advice.instrument.asset]!!

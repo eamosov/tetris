@@ -91,20 +91,25 @@ class BarsCache(val path: String) {
     }
 
     fun createTable(exchange: String, instrument: Instrument, interval: BarInterval) {
-        conn.createStatement().use {
-            try {
-                it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
-            } catch (e: SQLiteException) {
+        synchronized(this) {
+            conn.createStatement().use {
+                try {
+                    it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
+                } catch (e: SQLiteException) {
 
+                }
             }
+            conn.commit()
         }
     }
 
     fun saveBar(exchange: String, instrument: Instrument, bar: XBar): Int {
-        synchronized(this) {
-            conn.createStatement().use { statement ->
-                return statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+        return synchronized(this) {
+            val ret = conn.createStatement().use { statement ->
+                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
             }
+            conn.commit()
+            ret
         }
     }
 

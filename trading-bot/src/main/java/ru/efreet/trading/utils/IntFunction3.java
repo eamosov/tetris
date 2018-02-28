@@ -121,7 +121,7 @@ public class IntFunction3 {
 
         byte[] tmp = new byte[ROW_SIZE];
         //496544
-        System.arraycopy(table, 236114 * ROW_SIZE, tmp, 0, ROW_SIZE);
+        System.arraycopy(table, 380456 * ROW_SIZE, tmp, 0, ROW_SIZE);
         System.out.println(Arrays.toString(tmp));
 
         //System.out.println(getData(0));
