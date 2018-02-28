@@ -31,9 +31,9 @@ data class State(var name: String,
                  var startTime: String = time,
                  var usd: Double = 1000.0,
                  var asset: Double = 0.0,
+                 var trainDays: Long = 10,
                  var instrument: Instrument,
                  var interval: BarInterval,
-                 var train: Boolean = false,
                  var minTrainTrades: Int = 10,
                  var maxParamsDeviation: Double = 10.0,
                  val tradeDuration: Duration = Duration.ofHours(24),
@@ -91,7 +91,6 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         state.interval = cmd.barInterval
 
 
-        cmd.train?.let { state.train = true }
         cmd.population?.let { state.population = it }
 
         saveState()
@@ -122,7 +121,6 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             }
         })
 
-        var trainDays: Long = 1
         var stats: TradesStats? = null
 
         while (state.getTime().plus(state.tradeDuration).isBefore(end)) {
@@ -130,13 +128,13 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             if (cmd.train!! > 0) {
 
                 while (true) {
-                    val (params, _stats) = tuneParams(trainDays, logic.getParams()!!)
+                    val (params, _stats) = tuneParams(state.trainDays, logic.getParams()!!)
 //                val (params, _stats) = tuneParams(cmd.train!!.toLong(), logic.getParams()!!)
 
                     if (_stats.trades < state.minTrainTrades) {
-                        trainDays++
+                        state.trainDays++
                     } else if (_stats.trades > state.minTrainTrades) {
-                        trainDays--
+                        state.trainDays--
                     }
 
                     if (_stats.trades >= state.minTrainTrades) {
