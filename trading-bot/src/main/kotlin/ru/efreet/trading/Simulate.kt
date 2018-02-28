@@ -188,7 +188,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         //tmpLogic.loadState(cmd.settings!!)
         //tmpLogic.setMinMax(tmpLogic.getParams()!!, state.maxParamsDeviation, true)
         tmpLogic.setParams(curParams)
-        tmpLogic.setMinMax(curParams, 5.0, true)
+        tmpLogic.setMinMax(curParams, state.maxParamsDeviation, true)
         val population = tmpLogic.seed(cmd.seedType, state.population)
         population.add(curParams)
 
