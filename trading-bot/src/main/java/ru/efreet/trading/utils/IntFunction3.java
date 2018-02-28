@@ -25,24 +25,27 @@ public class IntFunction3 {
     public static final String path = "IntFunction3.table";
 
     static {
-        try {
-            table = Files.readAllBytes(Paths.get(path));
-        } catch (IOException e) {
-            table = new byte[TABLE_SIZE * ROW_SIZE];
-            gen(new byte[ROW_SIZE], 0);
-        }
+        table = new byte[TABLE_SIZE * ROW_SIZE];
+        gen(new byte[ROW_SIZE], 0);
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    //printCounters();
-                    Files.write(Paths.get(path), table, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        try {
+//            table = Files.readAllBytes(Paths.get(path));
+//        } catch (IOException e) {
+//            table = new byte[TABLE_SIZE * ROW_SIZE];
+//            gen(new byte[ROW_SIZE], 0);
+//        }
+//
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            @Override
+//            public void run() {
+//                try {
+//                    //printCounters();
+//                    Files.write(Paths.get(path), table, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
 
     }
 

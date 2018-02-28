@@ -33,12 +33,12 @@ class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     init {
 
-        of(SimpleBotLogicParams::deviation, "logic.sd4.deviation", 8, 40, 1, true)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd4.deviationTimeFrame", Duration.ofMinutes(20), Duration.ofMinutes(100), Duration.ofSeconds(1), true)
+        of(SimpleBotLogicParams::deviation, "logic.sd4.deviation", 8, 40, 1, false)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd4.deviationTimeFrame", Duration.ofMinutes(20), Duration.ofMinutes(100), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd4.short", Duration.ofMinutes(10), Duration.ofMinutes(60), Duration.ofSeconds(1), true)
-        of(SimpleBotLogicParams::long, "logic.sd4.long", Duration.ofMinutes(20), Duration.ofMinutes(160), Duration.ofSeconds(1), true)
-        of(SimpleBotLogicParams::signal, "logic.sd4.signal", Duration.ofMinutes(10), Duration.ofMinutes(300), Duration.ofSeconds(1), true)
+        of(SimpleBotLogicParams::short, "logic.sd4.short", Duration.ofMinutes(10), Duration.ofMinutes(60), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::long, "logic.sd4.long", Duration.ofMinutes(20), Duration.ofMinutes(160), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::signal, "logic.sd4.signal", Duration.ofMinutes(10), Duration.ofMinutes(300), Duration.ofSeconds(1), false)
 
         of(SimpleBotLogicParams::dayShort, "logic.sd4.dayShort", Duration.ofHours(10), Duration.ofHours(20), Duration.ofMinutes(15), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd4.dayLong", Duration.ofHours(15), Duration.ofHours(30), Duration.ofMinutes(15), false)
