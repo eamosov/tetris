@@ -127,7 +127,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         while (state.getTime().plus(state.tradeDuration).isBefore(end)) {
 
-            if (state.train) {
+            if (cmd.train!! > 0) {
 
 //                while (true) {
 //                    val (params, _stats) = tuneParams(trainDays, logic.getParams()!!)

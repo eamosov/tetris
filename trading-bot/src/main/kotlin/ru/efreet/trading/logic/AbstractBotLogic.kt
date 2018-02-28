@@ -207,7 +207,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun metrica(stats: TradesStats): Double {
-        return BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0) + BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) + /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma5, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+        return BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) +*/ /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma10, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
 
     override fun isProfitable(stats: TradesStats): Boolean {
