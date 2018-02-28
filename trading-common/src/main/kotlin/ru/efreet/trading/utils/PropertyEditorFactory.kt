@@ -87,28 +87,30 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
 
     fun toLogicParams(properties: Properties): T? {
         val prop = cls.java.newInstance()
-        var propsSetted = 0
+        //var propsSetted = 0
         for (gene in genes) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
-                propsSetted++
-            } ?: Unit.also {
+                //propsSetted++
+            } /*?: Unit.also {
                 gene.setRandom(prop);
                 //println("Set ${gene.kprop.name} to random value ${gene.kprop.get(prop)}")
-            }
+            }*/
         }
 
         for (gene in consts) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
-                propsSetted++
+                //propsSetted++
             }
         }
 
-        return if (propsSetted == 0) {
-            null
-        } else
-            prop
+        return prop
+
+//        return if (propsSetted == 0) {
+//            null
+//        } else
+//            prop
     }
 
     fun random(orig: T, copy: (T) -> T): T {
@@ -132,6 +134,10 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
             p.setProperty(gene.key, gene.kprop.get(value).toString())
         }
         return p
+    }
+
+    fun isInitialized(value: T): Boolean {
+        return genes.none { it.kprop.get(value) == null }
     }
 
 //    fun copy(orig: T): T {

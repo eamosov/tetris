@@ -138,7 +138,8 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             }
             _params = params
             paramsInited = true
-            prepare()
+            if (properties.isInitialized(_params))
+                prepare()
         }
     }
 
