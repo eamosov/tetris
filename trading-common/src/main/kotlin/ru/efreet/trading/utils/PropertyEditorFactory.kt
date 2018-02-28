@@ -85,7 +85,7 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return properties
     }
 
-    fun toLogicParams(properties: Properties): T? {
+    fun toLogicParams(properties: Properties): T {
         val prop = cls.java.newInstance()
         //var propsSetted = 0
         for (gene in genes) {

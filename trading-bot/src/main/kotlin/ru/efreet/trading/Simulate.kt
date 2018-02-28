@@ -36,6 +36,8 @@ data class State(var name: String,
                  var interval: BarInterval,
                  var minTrainTrades: Int = 10,
                  var maxParamsDeviation: Double = 10.0,
+                 var hardBounds: Boolean = true,
+                 var useLastProps: Boolean = false,
                  val tradeDuration: Duration = Duration.ofHours(24),
                  var population: Int = 20
 ) {
@@ -185,10 +187,16 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
-        //tmpLogic.loadState(cmd.settings!!)
-        //tmpLogic.setMinMax(tmpLogic.getParams()!!, state.maxParamsDeviation, true)
-        tmpLogic.setParams(curParams)
-        tmpLogic.setMinMax(curParams, state.maxParamsDeviation, true)
+
+
+        if (state.useLastProps) {
+            tmpLogic.setParams(curParams)
+            tmpLogic.setMinMax(curParams, state.maxParamsDeviation, state.hardBounds)
+        } else {
+            tmpLogic.loadState(cmd.settings!!)
+            tmpLogic.setMinMax(tmpLogic.getParams(), state.maxParamsDeviation, state.hardBounds)
+        }
+
         val population = tmpLogic.seed(cmd.seedType, state.population)
         population.add(curParams)
 
@@ -204,7 +212,9 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     stats
                 },
                 { args, stats ->
-                    BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) + BotLogic.fine(stats.sma5, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+                    //tmpLogic.metrica(stats)
+                    //BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+                    BotLogic.fine(stats.sma10, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
                 },
                 { tmpLogic.copyParams(it) })
     }

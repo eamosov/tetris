@@ -6,6 +6,7 @@ import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
 import java.time.Duration
@@ -63,9 +64,11 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 0.1, 10.0, 0.5, true)
     }
 
-    override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
-        return orig.copy()
+    override fun metrica(stats: TradesStats): Double {
+        return BotLogic.fine(stats.trades.toDouble(), 200.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) +*/ /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
+
+    override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
 
     override fun prepare() {
 
