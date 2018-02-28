@@ -179,7 +179,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             saveState()
         }
 
-        println("TRADE STATS: ${StatsCalculator().stats(trader.history(ZonedDateTime.parse(state.startTime), state.getTime()))}")
+        Graph().drawHistory(trader.history(ZonedDateTime.parse(state.startTime), state.getTime()))
     }
 
     fun tuneParams(trainDays: Long, curParams: SimpleBotLogicParams): Pair<SimpleBotLogicParams, TradesStats> {

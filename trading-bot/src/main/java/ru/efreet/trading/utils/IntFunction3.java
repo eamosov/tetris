@@ -36,7 +36,7 @@ public class IntFunction3 {
             @Override
             public void run() {
                 try {
-                    printCounters();
+                    //printCounters();
                     Files.write(Paths.get(path), table, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
                 } catch (IOException e) {
                     e.printStackTrace();
