@@ -212,9 +212,9 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     stats
                 },
                 { args, stats ->
-                    //tmpLogic.metrica(stats)
+                    tmpLogic.metrica(stats)
                     //BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
-                    BotLogic.fine(stats.sma10, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+                    //BotLogic.fine(stats.sma10, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
                 },
                 { tmpLogic.copyParams(it) })
     }

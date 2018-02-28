@@ -65,7 +65,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     }
 
     override fun metrica(stats: TradesStats): Double {
-        return BotLogic.fine(stats.trades.toDouble(), 200.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) +*/ /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+        val hours = Duration.between(stats.start, stats.end).toHours()
+        return BotLogic.fine(stats.trades.toDouble(), hours / 2.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) +*/ /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
