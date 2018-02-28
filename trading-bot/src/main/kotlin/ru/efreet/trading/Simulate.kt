@@ -147,7 +147,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 //                    } else {
 //                        continue
 //                    }
-                }
+//                }
             }
 
             saveState()
