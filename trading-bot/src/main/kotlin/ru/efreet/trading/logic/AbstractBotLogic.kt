@@ -33,8 +33,9 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override val genes: List<PropertyEditor<P, Any?>>
         get() = properties.genes
 
-    var _params:P = paramsCls.java.newInstance()
-    private var paramsInited: Boolean = false
+    protected var _params: P = paramsCls.java.newInstance()
+
+    protected var barsIsPrepared = false
 
     override var maxBars = 3000
 
@@ -130,16 +131,14 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun setParams(params: P) {
-        if (!paramsInited || params != _params) {
-            if (paramsInited) {
+        if (params != _params && properties.isInitialized(_params)) {
+            if (barsIsPrepared) {
                 for (i in 0 until bars.size) {
                     bars[i] = XExtBar(bars[i].bar)
                 }
             }
-            _params = params
-            paramsInited = true
-            if (properties.isInitialized(_params))
-                prepare()
+            prepare()
+            barsIsPrepared = true
         }
     }
 
