@@ -131,7 +131,9 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun setParams(params: P) {
-        if (params != _params && properties.isInitialized(_params)) {
+        val oldP = _params
+        _params = params
+        if (oldP != _params && properties.isInitialized(_params)) {
             if (barsIsPrepared) {
                 for (i in 0 until bars.size) {
                     bars[i] = XExtBar(bars[i].bar)
