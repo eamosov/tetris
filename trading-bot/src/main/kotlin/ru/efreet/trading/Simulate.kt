@@ -129,23 +129,24 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
             if (state.train) {
 
-                while (true) {
-                    val (params, _stats) = tuneParams(trainDays, logic.getParams()!!)
+//                while (true) {
+//                    val (params, _stats) = tuneParams(trainDays, logic.getParams()!!)
+                val (params, _stats) = tuneParams(cmd.train!!.toLong(), logic.getParams()!!)
 
-                    if (_stats.trades < state.minTrainTrades) {
-                        trainDays++
-                    } else if (_stats.trades > state.minTrainTrades) {
-                        trainDays--
-                    }
+//                    if (_stats.trades < state.minTrainTrades) {
+//                        trainDays++
+//                    } else if (_stats.trades > state.minTrainTrades) {
+//                        trainDays--
+//                    }
 
-                    if (_stats.trades >= state.minTrainTrades) {
+//                    if (_stats.trades >= state.minTrainTrades) {
                         logic.setParams(params)
                         stats = _stats
                         println("STRATEGY: ${logic.getParams()} $stats")
-                        break
-                    } else {
-                        continue
-                    }
+//                        break
+//                    } else {
+//                        continue
+//                    }
                 }
             }
 
