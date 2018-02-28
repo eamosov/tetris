@@ -33,7 +33,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override val genes: List<PropertyEditor<P, Any?>>
         get() = properties.genes
 
-    lateinit var _params: P
+    var _params:P = paramsCls.java.newInstance()
     private var paramsInited: Boolean = false
 
     override var maxBars = 3000
