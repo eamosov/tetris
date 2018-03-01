@@ -143,7 +143,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         var advice = if (stats == null || isProfitable(stats)) {
             getAdvice(index, bar)
         } else {
-            println("Dangerous statistic, SELL all")
+            //println("Dangerous statistic, SELL all")
             OrderSide.SELL
         }
 

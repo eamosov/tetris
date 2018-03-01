@@ -92,6 +92,7 @@ class BarsCache(val path: String) {
 
     fun createTable(exchange: String, instrument: Instrument, interval: BarInterval) {
         synchronized(this) {
+            conn.autoCommit = true
             conn.createStatement().use {
                 try {
                     it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
@@ -99,16 +100,15 @@ class BarsCache(val path: String) {
 
                 }
             }
-            conn.commit()
         }
     }
 
     fun saveBar(exchange: String, instrument: Instrument, bar: XBar): Int {
         return synchronized(this) {
+            conn.autoCommit = true
             val ret = conn.createStatement().use { statement ->
                 statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
             }
-            conn.commit()
             ret
         }
     }

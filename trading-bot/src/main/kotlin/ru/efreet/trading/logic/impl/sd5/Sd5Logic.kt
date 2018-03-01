@@ -1,10 +1,12 @@
 package ru.efreet.trading.logic.impl.sd5
 
 import ru.efreet.trading.bars.XExtBar
+import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
 import ru.efreet.trading.utils.IntFunction3
@@ -48,6 +50,12 @@ class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         of(SimpleBotLogicParams::f3Index, "logic.sd4.f3Index", -1)
     }
+
+    override fun metrica(stats: TradesStats): Double {
+        val hours = Duration.between(stats.start, stats.end).toHours()
+        return BotLogic.fine(stats.trades.toDouble(), hours / 6.0, 4.0) + BotLogic.fine(stats.goodTrades, 0.6, 10.0) + BotLogic.fine(stats.sma10, 0.7, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+    }
+
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
         return orig.copy()
