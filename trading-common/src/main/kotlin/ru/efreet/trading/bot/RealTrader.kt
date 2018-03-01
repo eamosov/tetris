@@ -2,6 +2,7 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
+import ru.efreet.trading.utils.roundAmount
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -85,7 +86,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
                 val usdBefore = balanceResult.balances[baseName]!!
                 val assetBefore = balanceResult.balances[advice.instrument.asset]!!
-                val order = exchange.buy(advice.instrument, advice.amount, advice.price, OrderType.LIMIT)
+                val order = exchange.buy(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
 
                 updateBalance(true)
 
@@ -102,11 +103,11 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
                 return lastTrade
             }
         } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
-            if (advice.amount > 0.001) {
+            if (advice.amount * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]
                 val assetBefore = balanceResult.balances[advice.instrument.asset]
-                val order = exchange.sell(advice.instrument, advice.amount, advice.price, OrderType.LIMIT)
+                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
 
                 updateBalance(true)
 

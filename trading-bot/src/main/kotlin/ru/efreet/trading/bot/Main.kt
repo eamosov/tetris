@@ -65,7 +65,7 @@ class Main {
                     bars.checkBars()
 
                     val tradeHistory = ProfitCalculator().tradeHistory(bot.logic,
-                            logic.getParams()!!, instrument, interval, exchange.getFee(), bars,
+                            logic.getParams(), instrument, interval, exchange.getFee(), bars,
                             listOf(Pair(ZonedDateTime.now().minusDays(days.toLong()), ZonedDateTime.now())),
                             true)
 

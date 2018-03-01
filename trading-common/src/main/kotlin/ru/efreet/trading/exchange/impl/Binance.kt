@@ -4,10 +4,9 @@ import com.webcerebrium.binance.api.BinanceApi
 import com.webcerebrium.binance.datatype.*
 import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterAggTrades
 import org.eclipse.jetty.websocket.api.Session
-import ru.efreet.trading.exchange.*
-import ru.efreet.trading.exchange.TradeRecord
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
+import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.round
 import java.math.BigDecimal
 import java.time.Duration
