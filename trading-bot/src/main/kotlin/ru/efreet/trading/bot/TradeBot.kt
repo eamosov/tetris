@@ -1,11 +1,11 @@
 package ru.efreet.trading.bot
 
-import ru.efreet.trading.exchange.*
-import ru.efreet.trading.logic.*
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBarsAggregator
+import ru.efreet.trading.exchange.*
 import ru.efreet.trading.exchange.impl.cache.BarsCache
+import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.Periodical
 import java.time.Duration
 import java.time.Instant
@@ -60,7 +60,7 @@ class TradeBot(val exchange: Exchange,
         secondsBarAgg.addBar(trade.asSecondsBar())?.let {
             try {
                 barsCache.saveBar(exchange.getName(), instrument, it)
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 println("Exception while saving bar to cache: $e")
             }
         }
@@ -91,6 +91,7 @@ class TradeBot(val exchange: Exchange,
                 println("no trade")
             }
         } catch (e: Exception) {
+            println("ERROR")
             e.printStackTrace()
         }
     }

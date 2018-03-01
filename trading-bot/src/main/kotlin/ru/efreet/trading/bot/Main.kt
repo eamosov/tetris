@@ -70,7 +70,7 @@ class Main {
                             true)
 
                     val tradesStats = StatsCalculator().stats(tradeHistory)
-                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}")
+                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}, last=${tradeHistory.trades.last().time}")
                 }
 
                 bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, logic, interval, { _, _ ->
