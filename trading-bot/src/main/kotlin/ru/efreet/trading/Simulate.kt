@@ -130,25 +130,29 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
             if (cmd.train!! > 0) {
 
-                while (true) {
-                    val (params, _stats) = tuneParams(state.trainDays, logic.getParams()!!)
-//                val (params, _stats) = tuneParams(cmd.train!!.toLong(), logic.getParams()!!)
+                val (params, _stats) = tuneParams(cmd.train!!.toLong(), logic.getParams())
+                logic.setParams(params)
+                stats = _stats
+                println("STRATEGY: ${logic.getParams()} $stats")
 
-                    val gootStats = _stats.trades >= state.minTrainTrades && _stats.profit >= state.minStatsProfit
-
-                    if (!gootStats) {
-                        state.trainDays++
-                    } else {
-
-                        if (_stats.trades > state.minTrainTrades)
-                            state.trainDays--
-
-                        logic.setParams(params)
-                        stats = _stats
-                        println("STRATEGY: ${logic.getParams()} $stats")
-                        break
-                    }
-                }
+//                while (true) {
+//                    val (params, _stats) = tuneParams(state.trainDays, logic.getParams()!!)
+//
+//                    val gootStats = _stats.trades >= state.minTrainTrades && _stats.profit >= state.minStatsProfit
+//
+//                    if (!gootStats) {
+//                        state.trainDays++
+//                    } else {
+//
+//                        if (_stats.trades > state.minTrainTrades)
+//                            state.trainDays--
+//
+//                        logic.setParams(params)
+//                        stats = _stats
+//                        println("STRATEGY: ${logic.getParams()} $stats")
+//                        break
+//                    }
+//                }
             }
 
             saveState()
