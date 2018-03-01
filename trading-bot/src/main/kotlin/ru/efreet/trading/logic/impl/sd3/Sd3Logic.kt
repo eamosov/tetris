@@ -33,22 +33,17 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var daySignalEma: XEMAIndicator<XExtBar>
 
     init {
-
-        //_params = SimpleBotLogicParams()
-        /**
-         * Best strategy: TrainItem(args=SimpleBotLogicParams(short=59, long=74, signal=35, deviationTimeFrame=48, deviation=26, dayShort=1408, dayLong=842, daySignal=1166, stopLoss=9.314348758746558), result=TradesStats(trades=118, goodTrades=0.8389830508474576, profit=5.538901702193952, avrProfitPerTrade=1.0171860580536856, sdProfitPerTrade=0.028404997651252876, sma=0.9915254237288136, profitStats=null))
-        {
-        "short": 59,
-        "long": 74,
-        "signal": 35,
-        "deviationTimeFrame": 48,
-        "deviation": 26,
-        "dayShort": 1408,
-        "dayLong": 842,
-        "daySignal": 1166,
-        "stopLoss": 9.314348758746558
-        }
-         */
+        _params = SimpleBotLogicParams(
+                short = 52,
+                long = 121,
+                signal = 89,
+                deviationTimeFrame = 10,
+                deviation = 10,
+                dayShort = 321,
+                dayLong = 1769,
+                daySignal = 453,
+                stopLoss = 5.8
+        )
 
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 8, 12, 1, false)
         of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofMinutes(1), false)
@@ -66,7 +61,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     override fun metrica(stats: TradesStats): Double {
         val hours = Duration.between(stats.start, stats.end).toHours()
-        return BotLogic.fine(stats.trades.toDouble(), hours / 4.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) */ + BotLogic.fine(stats.goodTrades, 0.7, 10.0) + BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
+        return BotLogic.fine(stats.trades.toDouble(), hours / 6.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) */ +BotLogic.fine(stats.goodTrades, 0.7, 10.0) + BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()

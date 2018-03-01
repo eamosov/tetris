@@ -35,6 +35,8 @@ class Train {
             logic.loadState(cmd.settings!!)
 
             val population = logic.seed(cmd.seedType, cmd.population ?: 10)
+            if (logic.isInitialized())
+                population.add(logic.getParams().copy())
 
             val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval))
             println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${cmd.start!!} end=${cmd.end!!}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${logic.logState()}")

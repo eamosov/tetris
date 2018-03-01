@@ -44,6 +44,8 @@ interface BotLogic<P> {
 
     fun setParams(params: P)
 
+    fun isInitialized(): Boolean
+
     fun getParamsAsProperties(): Properties
 
     fun setParamsAsProperties(params: Properties)

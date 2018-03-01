@@ -118,17 +118,19 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return _params
     }
 
+    override fun isInitialized(): Boolean = properties.isInitialized(_params)
+
     override fun setParams(params: P) {
         val oldP = _params
         _params = params
-        if (oldP != _params && properties.isInitialized(_params)) {
+        if ((_params != oldP && isInitialized()) || (isInitialized() && !barsIsPrepared)) {
             if (barsIsPrepared) {
                 for (i in 0 until bars.size) {
                     bars[i] = XExtBar(bars[i].bar)
                 }
             }
-            prepare()
             barsIsPrepared = true
+            prepare()
         }
     }
 
@@ -145,7 +147,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             OrderSide.SELL
         }
 
-        var amount =  0.0
+        var amount = 0.0
 
         val availableAsset = trader.availableAsset(instrument)
 
