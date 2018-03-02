@@ -107,7 +107,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
-        val daySignal2 = daySignalEma.getValue(index, bar)
+        val daySignal2 = daySignal2Ema.getValue(index, bar)
 
 //        return when {
 //            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal -> OrderSide.BUY
