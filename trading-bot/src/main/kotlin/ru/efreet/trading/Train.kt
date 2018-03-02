@@ -2,7 +2,9 @@ package ru.efreet.trading
 
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
+import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
+import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
@@ -13,6 +15,8 @@ import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.IntFunction3
 import ru.efreet.trading.utils.toJson
+import java.time.ZonedDateTime
+import kotlin.reflect.jvm.internal.impl.protobuf.Internal
 
 /**
  * Created by fluder on 08/02/2018.
@@ -29,6 +33,13 @@ class Train {
             val cmd = CmdArgs.parse(args)
 
             val realExchange = Exchange.getExchange(cmd.exchange)
+
+
+            //realExchange.loadBars(Ins)
+//            val cache = BarsCache(cmd.cachePath)
+//            var bars = cache.getBars("binance", Instrument.BTC_USDT, BarInterval.ONE_SECOND, ZonedDateTime.now().minusDays(10), ZonedDateTime.now())
+
+
             val exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
 
             val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)

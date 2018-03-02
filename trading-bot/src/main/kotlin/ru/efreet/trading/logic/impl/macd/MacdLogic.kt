@@ -1,11 +1,11 @@
 package ru.efreet.trading.logic.impl.macd
 
+import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
-import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XEMAIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
@@ -25,13 +25,18 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
     lateinit var emaMacd: XEMAIndicator<XExtBar>
 
     init {
-//        add(SimpleBotLogicParams::short, 135, 406, 1, false)
-//        add(SimpleBotLogicParams::long, 197, 592, 1, false)
-//        add(SimpleBotLogicParams::signal, 11, 34, 1, false)
-
-        of(SimpleBotLogicParams::short, "logic.macd.short", Duration.ofSeconds(1), Duration.ofDays(14), Duration.ofSeconds(1), true)
-        of(SimpleBotLogicParams::long, "logic.macd.long", Duration.ofSeconds(1), Duration.ofDays(14), Duration.ofSeconds(1), true)
-        of(SimpleBotLogicParams::signal, "logic.macd.signal", Duration.ofSeconds(1), Duration.ofDays(14), Duration.ofSeconds(1), true)
+        _params = SimpleBotLogicParams(
+                short = 322,
+                long = 1414,
+                signal = 2806,
+                stopLoss = 6.75,
+                persist = 5
+        )
+        of(SimpleBotLogicParams::short, "logic.macd.short", Duration.ofMinutes(257), Duration.ofMinutes(387), Duration.ofMinutes(1), false)
+        of(SimpleBotLogicParams::long, "logic.macd.long", Duration.ofMinutes(1131), Duration.ofMinutes(1697), Duration.ofMinutes(1), false)
+        of(SimpleBotLogicParams::signal, "logic.macd.signal", Duration.ofMinutes(2244), Duration.ofMinutes(3368), Duration.ofMinutes(1), false)
+        of(SimpleBotLogicParams::persist, "logic.macd.persist", 4, 6, 1, false)
+        of(SimpleBotLogicParams::stopLoss, "logic.macd.stopLoss", 5.25, 8.25, 0.25, true)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams {
@@ -52,10 +57,29 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
         emaMacd.prepare()
     }
 
+    fun upTrend(index: Int, bar: XExtBar): Boolean {
+        //println("uptrend: $index")
+        return macd.getValue(index, bars[index]) > emaMacd.getValue(index, bar)
+    }
+
+    fun downTrend(index: Int, bar: XExtBar): Boolean {
+        return macd.getValue(index, bars[index]) < emaMacd.getValue(index, bar)
+    }
+
+    fun upTrend(index: Int, bar: XExtBar, period: Int): Boolean {
+        //println("all uptrend: $index $period")
+        return (maxOf(0, index - period + 1)..index).all { upTrend(it, bar) }
+    }
+
+    fun downTrend(index: Int, bar: XExtBar, period: Int): Boolean {
+        return (maxOf(0, index - period + 1)..index).all { downTrend(it, bar) }
+    }
+
     override fun getAdvice(index: Int, bar: XExtBar): OrderSide? {
         return when {
-            macd.getValue(index, bar) > emaMacd.getValue(index, bar) -> OrderSide.BUY
-            else -> OrderSide.SELL
+            upTrend(index, bar, _params.persist!!) -> OrderSide.BUY
+            downTrend(index, bar, _params.persist!!) -> OrderSide.SELL
+            else -> null
         }
     }
 
