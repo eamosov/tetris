@@ -102,8 +102,15 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val sd = sd.getValue(index, bar)
         val sma = sma.getValue(index, bar)
         val price = closePrice.getValue(index, bar)
+
+
+        fun localUpTrend(index: Int, bar: XExtBar): Boolean {
+            return macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index])
+        }
+
         val macd = macd.getValue(index, bar)
         val signalEma = signalEma.getValue(index, bar)
+
 
         fun dayUpTrend2(index: Int, bar: XExtBar): Boolean {
             return dayMacd.getValue(index, bars[index]) > daySignal2Ema.getValue(index, bars[index])
@@ -114,60 +121,20 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         }
 
 
-        //val dayMacd = dayMacd.getValue(index, bar)
-        //val daySignal = daySignalEma.getValue(index, bar)
-        //val daySignal2 = daySignal2Ema.getValue(index, bar)
-
-//        return when {
-//            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal -> OrderSide.BUY
-//            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) || dayMacd > daySignal -> OrderSide.SELL
-//            else -> null
-//        }
-
-
-        if ((maxOf(0, index - 5 + 1)..index).all { dayUpTrend2(it, bar) }) {
+        if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
+            //Всегда покупать на установившемся восходящем тренде
             return OrderSide.BUY
         } else {
-
+            //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
-                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma &&
-                        (maxOf(0, index - 2 + 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY
+                price < sma - sd * _params.deviation!! / 10.0 &&
+                        (maxOf(0, index - 10)..index).all { localUpTrend(it, bar) } &&
+                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY
 
                 price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
                 else -> null
             }
-
         }
-
-//        if (dayMacd > daySignal2) {
-//            return OrderSide.BUY
-//        }else if (dayMacd < daySignal){
-//            return when {
-//                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma -> OrderSide.BUY
-//                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
-//                else -> null
-//            }
-//        }else {
-//            return OrderSide.SELL
-//        }
-
-
-//            return when {
-//                (dayMacd > daySignal2) -> OrderSide.BUY
-//                (dayMacd < daySignal2) -> OrderSide.SELL
-//                else -> null
-//            }
-
-//        } else {
-//
-//            return when {
-//                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma -> OrderSide.BUY
-//                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
-//                else -> null
-//            }
-//
-//        }
-
 
     }
 
