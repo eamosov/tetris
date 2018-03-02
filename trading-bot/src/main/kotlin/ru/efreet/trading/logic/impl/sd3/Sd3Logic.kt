@@ -128,8 +128,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
                 price < sma - sd * _params.deviation!! / 10.0 &&
-                        (maxOf(0, index - 10)..index).all { localUpTrend(it, bar) } &&
-                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY
+                        (maxOf(0, index - 9)..index).all { localUpTrend(it, bar) } && //проверять последние 10 баров
+                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY //проверять последние 2 бара
 
                 price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
                 else -> null
