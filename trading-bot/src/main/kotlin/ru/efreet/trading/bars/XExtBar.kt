@@ -97,6 +97,7 @@ data class XExtBar(val bar: XBar) : XBar {
         var _dayShortEma = BarGetterSetter<XExtBar>({ o, v -> o.dayShortEma = v }, { it.dayShortEma })
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
+        var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignalEma })
     }
 
     var shortEma1: Double = Double.MAX_VALUE
@@ -117,4 +118,5 @@ data class XExtBar(val bar: XBar) : XBar {
     var dayShortEma: Double = Double.MAX_VALUE
     var dayLongEma: Double = Double.MAX_VALUE
     var daySignalEma: Double = Double.MAX_VALUE
+    var daySignal2Ema: Double = Double.MAX_VALUE
 }

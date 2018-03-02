@@ -14,6 +14,7 @@ data class SimpleBotLogicParams(var short: Int? = null,
                                 var dayShort: Int? = null,
                                 var dayLong: Int? = null,
                                 var daySignal: Int? = null,
+                                var daySignal2: Int? = null,
 
                                 var f3Index: Int? = null,
 

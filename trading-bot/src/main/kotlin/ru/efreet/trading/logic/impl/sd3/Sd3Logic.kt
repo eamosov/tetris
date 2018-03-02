@@ -31,6 +31,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var dayLongEma: XEMAIndicator<XExtBar>
     lateinit var dayMacd: XMACDIndicator<XExtBar>
     lateinit var daySignalEma: XEMAIndicator<XExtBar>
+    lateinit var daySignal2Ema: XEMAIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
@@ -42,6 +43,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 dayShort = 283,
                 dayLong = 1749,
                 daySignal = 540,
+                daySignal2 = 540,
                 stopLoss = 5.72
         )
 
@@ -55,6 +57,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(226), Duration.ofMinutes(340), Duration.ofMinutes(1), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1399), Duration.ofMinutes(2099), Duration.ofMinutes(1), false)
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(432), Duration.ofMinutes(648), Duration.ofMinutes(1), false)
+        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(432), Duration.ofMinutes(648), Duration.ofMinutes(1), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 4.0, 7.0, 0.25, true)
     }
@@ -80,6 +83,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
         daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
+        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal!!)
 
         shortEma.prepare()
         longEma.prepare()
@@ -90,6 +94,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayShortEma.prepare()
         dayLongEma.prepare()
         daySignalEma.prepare()
+        daySignal2Ema.prepare()
     }
 
     override fun getAdvice(index: Int, bar: XExtBar): OrderSide? {
@@ -102,6 +107,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val dayMacd = dayMacd.getValue(index, bar)
         val daySignal = daySignalEma.getValue(index, bar)
+        val daySignal2 = daySignalEma.getValue(index, bar)
 
 //        return when {
 //            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal -> OrderSide.BUY
@@ -110,7 +116,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 //        }
 
         return when {
-            (price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal) || dayMacd > daySignal -> OrderSide.BUY
+            (price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal) || dayMacd > daySignal2 -> OrderSide.BUY
             price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
             else -> null
         }
