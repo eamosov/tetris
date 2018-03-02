@@ -105,9 +105,18 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val macd = macd.getValue(index, bar)
         val signalEma = signalEma.getValue(index, bar)
 
-        val dayMacd = dayMacd.getValue(index, bar)
-        val daySignal = daySignalEma.getValue(index, bar)
-        val daySignal2 = daySignal2Ema.getValue(index, bar)
+        fun dayUpTrend2(index: Int, bar: XExtBar): Boolean {
+            return dayMacd.getValue(index, bars[index]) > daySignal2Ema.getValue(index, bars[index])
+        }
+
+        fun dayLowTrend(index: Int, bar: XExtBar): Boolean {
+            return dayMacd.getValue(index, bars[index]) < daySignalEma.getValue(index, bars[index])
+        }
+
+
+        //val dayMacd = dayMacd.getValue(index, bar)
+        //val daySignal = daySignalEma.getValue(index, bar)
+        //val daySignal2 = daySignal2Ema.getValue(index, bar)
 
 //        return when {
 //            price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal -> OrderSide.BUY
@@ -115,17 +124,33 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 //            else -> null
 //        }
 
-        if (dayMacd > daySignal2) {
+
+        if ((maxOf(0, index - 5 + 1)..index).all { dayUpTrend2(it, bar) }) {
             return OrderSide.BUY
-        }else{
+        } else {
 
             return when {
-                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal -> OrderSide.BUY
+                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma &&
+                        (maxOf(0, index - 2 + 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY
+
                 price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
                 else -> null
             }
 
         }
+
+//        if (dayMacd > daySignal2) {
+//            return OrderSide.BUY
+//        }else if (dayMacd < daySignal){
+//            return when {
+//                price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma -> OrderSide.BUY
+//                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
+//                else -> null
+//            }
+//        }else {
+//            return OrderSide.SELL
+//        }
+
 
 //            return when {
 //                (dayMacd > daySignal2) -> OrderSide.BUY
