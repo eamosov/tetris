@@ -117,7 +117,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         return when {
             (price < sma - sd * _params.deviation!! / 10.0 && macd > signalEma && dayMacd < daySignal) || dayMacd > daySignal2 -> OrderSide.BUY
-            price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
+            (price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma) && dayMacd < daySignal2 -> OrderSide.SELL
             else -> null
         }
 
