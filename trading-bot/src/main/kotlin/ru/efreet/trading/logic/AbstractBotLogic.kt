@@ -139,8 +139,9 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override fun setParamsAsProperties(params: Properties) = setParams(properties.toLogicParams(params))
 
     var uptrendStartedAt: ZonedDateTime? = null
-    var stopLossAt: ZonedDateTime? = null
-    var tsl: Double? = null
+//    var stopLossAt: ZonedDateTime? = null
+//    var stopLossPrice: Double? = null
+//    var tsl: Double? = null
 
     private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
 
@@ -162,35 +163,98 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
         var amount = 0.0
 
-        val availableAsset = trader.availableAsset(instrument)
-
-        if (tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > tsl!!) {
-            tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-        }
-
+        //val availableAsset = trader.availableAsset(instrument)
         val lastTrade = trader.lastTrade()
 
-        if (lastTrade != null
-                && lastTrade.side == OrderSide.BUY
-                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price) || (tsl != null && bar.closePrice < tsl!!))
-                && availableAsset > 0) {
-
-            advice = OrderSide.SELL
-            tsl = null
-            amount = availableAsset
-            stopLossAt = bar.endTime
-        } else if (advice == OrderSide.BUY && (stopLossAt == null || stopLossAt!!.isBefore(uptrendStartedAt))) {
-            amount = trader.availableUsd(instrument).div(bar.closePrice)
-
-            if (long && tsl == null)
-                tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-
-        } else if (advice == OrderSide.SELL) {
-            amount = availableAsset
-            tsl = null
+        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
+            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
         }
 
-        return Advice(bar.endTime, advice, long, instrument, bar.closePrice, amount, bar, if (fillIndicators) getIndicators(index, bar) else null)
+        val indicators = if (fillIndicators) getIndicators(index, bar) else null
+
+        //Проверка на SL/TSL
+        if (lastTrade != null
+                && lastTrade.side == OrderSide.BUY
+                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price) || (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!))
+                ) {
+
+            val sl = bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price
+            val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
+
+            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
+
+            return Advice(bar.endTime,
+                    OrderSide.SELL,
+                    lastTrade.long,
+                    sl,
+                    tsl,
+                    null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableAsset(instrument),
+                    bar,
+                    indicators)
+
+        }
+
+        //Если SELL, то безусловно продаем
+        if (advice == OrderSide.SELL) {
+
+            //println("${bar.endTime} SELL ${bar.closePrice}")
+
+            return Advice(bar.endTime,
+                    OrderSide.SELL,
+                    lastTrade?.long ?: false,
+                    false,
+                    false,
+                    null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableAsset(instrument),
+                    bar,
+                    indicators)
+        }
+
+        if (advice == OrderSide.BUY) {
+            //Не надо покупать в текущем uptrend, если продали по (T)SL
+            if (lastTrade != null &&
+                    lastTrade.side == OrderSide.SELL &&
+                    (lastTrade.sellBySl || lastTrade.sellByTsl) &&
+                    uptrendStartedAt !=null && lastTrade.time.isAfter(uptrendStartedAt)) {
+
+                //println("${bar.endTime} NOT BUY AFTER (T)SL")
+
+                return Advice(bar.endTime,
+                        null,
+                        false,
+                        false,
+                        false,
+                        null,
+                        instrument,
+                        bar.closePrice,
+                        0.0,
+                        bar,
+                        indicators)
+            }
+
+            //println("${bar.endTime} BUY ${bar.closePrice}")
+
+            return Advice(bar.endTime,
+                    OrderSide.BUY,
+                    long,
+                    false,
+                    false,
+                    if (long) {
+                        (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
+                    } else null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableUsd(instrument) / bar.closePrice,
+                    bar,
+                    indicators)
+        }
+
+        return Advice(bar.endTime, null, false, false, false, null, instrument, bar.closePrice, 0.0, bar, indicators)
     }
 
     override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {

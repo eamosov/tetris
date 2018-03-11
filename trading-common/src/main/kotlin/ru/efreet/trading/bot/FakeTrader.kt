@@ -55,7 +55,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
             val assetBefore = asset
             usd -= advice.price * advice.amount
             asset += advice.amount - fee
-            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, advice.long, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price)
+            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
             trades.add(lastTrade!!)
             return lastTrade
         } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
@@ -64,7 +64,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
             val assetBefore = asset
             usd += advice.price * (advice.amount - fee)
             asset -= advice.amount
-            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, advice.long, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price)
+            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
             trades.add(lastTrade!!)
             return lastTrade
         } else {

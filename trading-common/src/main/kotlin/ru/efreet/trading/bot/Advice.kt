@@ -11,6 +11,9 @@ import java.time.ZonedDateTime
 data class Advice(val time: ZonedDateTime,
                   val orderSide: OrderSide?,
                   val long: Boolean,
+                  val sellBySl: Boolean,
+                  val sellByTsl: Boolean,
+                  val tsl:Double?, //for BUY
                   val instrument: Instrument,
                   val price: Double,
                   val amount: Double,

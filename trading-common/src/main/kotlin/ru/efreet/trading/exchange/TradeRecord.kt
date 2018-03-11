@@ -11,7 +11,6 @@ data class TradeRecord(val time: ZonedDateTime,
                        val instrument: Instrument,
                        val price: Double,
                        val side: OrderSide,
-                       val long: Boolean,
                        val type: OrderType,
                        val amount: Double, /*of asset*/
                        val fee: Double = 0.0, /*of asset*/
@@ -19,6 +18,11 @@ data class TradeRecord(val time: ZonedDateTime,
                        val assetBefore: Double = 0.0,
                        val usdAfter: Double = 0.0,
                        val assetAfter: Double = 0.0,
-                       val fundsAfter: Double = 0.0) : Serializable {
+                       val fundsAfter: Double = 0.0,
+                       val long: Boolean = false, /* is it a long BUY?*/
+                       var tsl: Double? = null,
+                       val sellByTsl: Boolean = false,
+                       val sellBySl: Boolean = false
+) : Serializable {
 
 }

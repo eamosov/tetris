@@ -60,7 +60,6 @@ class Poloniex() : Exchange {
                 instrument,
                 _price.toDouble(),
                 OrderSide.BUY,
-                false,
                 type,
                 _amount.toDouble())
     }
@@ -81,7 +80,6 @@ class Poloniex() : Exchange {
                 instrument,
                 _price.toDouble(),
                 OrderSide.SELL,
-                false,
                 type,
                 _amount.toDouble())
 
