@@ -121,6 +121,11 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             return dayMacd.getValue(index, bars[index]) < daySignalEma.getValue(index, bars[index])
         }
 
+        val threeBlackCrowsIndicator = index >=2 && bar.isBearish() && bars[index-1].isBearish() && bars[index-2].isBearish()
+
+        if (threeBlackCrowsIndicator)
+            return OrderSide.SELL
+
 
         if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
             //Всегда покупать на установившемся восходящем тренде
