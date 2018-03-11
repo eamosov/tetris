@@ -61,7 +61,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(2244), Duration.ofMinutes(3368), Duration.ofMinutes(1), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 4.0, 7.0, 0.25, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 2.0, 0.2, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 3.0, 0.1, true)
     }
 
     override fun metrica(stats: TradesStats): Double {
