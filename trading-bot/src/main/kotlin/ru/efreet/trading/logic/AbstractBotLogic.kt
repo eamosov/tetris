@@ -145,15 +145,15 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
 
-        var _advice = if (stats == null || isProfitable(stats)) {
+        val _advice = if (stats == null || isProfitable(stats)) {
             getAdvice(index, bar)
         } else {
             //println("Dangerous statistic, SELL all")
             Pair(OrderSide.SELL, false)
         }
 
-        var advice = _advice?.first
-        var long = _advice?.second ?: false
+        val advice = _advice?.first
+        val long = _advice?.second ?: false
 
         if (advice == OrderSide.BUY && uptrendStartedAt == null) {
             uptrendStartedAt = bar.endTime
@@ -161,11 +161,9 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             uptrendStartedAt = null
         }
 
-        var amount = 0.0
-
-        //val availableAsset = trader.availableAsset(instrument)
         val lastTrade = trader.lastTrade()
 
+        //Повышаем TSL, если надо
         if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
             lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
         }
