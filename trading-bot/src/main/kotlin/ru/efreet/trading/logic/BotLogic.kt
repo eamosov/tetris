@@ -92,7 +92,7 @@ interface BotLogic<P> {
 
     fun indicators(): Map<String, XIndicator<XExtBar>>
 
-    fun getAdvice(index: Int, bar: XExtBar): OrderSide?
+    fun getAdvice(index: Int, bar: XExtBar): Pair<OrderSide, Boolean>?
 
     fun setMinMax(settings: Properties)
 

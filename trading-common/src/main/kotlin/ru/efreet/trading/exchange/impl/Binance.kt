@@ -71,6 +71,7 @@ class Binance() : Exchange {
                 instrument,
                 order.price.toDouble(),
                 OrderSide.BUY,
+                false,
                 type,
                 order.origQty.toDouble())
     }
@@ -88,6 +89,7 @@ class Binance() : Exchange {
                 instrument,
                 order.price.toDouble(),
                 OrderSide.SELL,
+                false,
                 type,
                 order.origQty.toDouble())
     }

@@ -90,7 +90,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, advice.long, order.type, order.amount,
                         0.0,
                         usdBefore,
                         assetBefore,
@@ -111,7 +111,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, advice.long, order.type, order.amount,
                         0.0,
                         usdBefore!!,
                         assetBefore!!,

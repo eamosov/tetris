@@ -44,7 +44,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 dayLong = 1749,
                 daySignal = 540,
                 daySignal2 = 2806,
-                stopLoss = 5.72
+                stopLoss = 5.72,
+                tStopLoss = 1.5
         )
 
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 8, 12, 1, false)
@@ -60,12 +61,13 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(2244), Duration.ofMinutes(3368), Duration.ofMinutes(1), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 4.0, 7.0, 0.25, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 2.0, 0.2, true)
     }
 
     override fun metrica(stats: TradesStats): Double {
         val hours = Duration.between(stats.start, stats.end).toHours()
         //return BotLogic.fine(stats.trades.toDouble(), hours / 12.0, 4.0) + BotLogic.fine(stats.goodTrades, 2.0, 10.0) + BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit / 5.0
-        return BotLogic.fine(stats.goodTrades * 1.34, 1.0, 2.0) + BotLogic.fine(stats.profit * 0.3125, 1.0, 2.0)  +  /*stats.trades.toDouble() * 0.00538 +*/ stats.goodTrades * 1.34 + stats.profit * 0.3125
+        return BotLogic.fine(stats.goodTrades * 1.34, 1.0, 2.0) + BotLogic.fine(stats.profit * 0.3125, 1.0, 2.0) + /*stats.trades.toDouble() * 0.00538 +*/ stats.goodTrades * 1.34 + stats.profit * 0.3125
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
@@ -98,7 +100,11 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         daySignal2Ema.prepare()
     }
 
-    override fun getAdvice(index: Int, bar: XExtBar): OrderSide? {
+//    fun blackCrows(index: Int): Boolean {
+//        return index >= 3 && (0..3).all { bars[index - it].isBearish() }
+//    }
+
+    override fun getAdvice(index: Int, bar: XExtBar): Pair<OrderSide, Boolean>? {
 
         val sd = sd.getValue(index, bar)
         val sma = sma.getValue(index, bar)
@@ -121,23 +127,32 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             return dayMacd.getValue(index, bars[index]) < daySignalEma.getValue(index, bars[index])
         }
 
-        val threeBlackCrowsIndicator = index >=2 && bar.isBearish() && bars[index-1].isBearish() && bars[index-2].isBearish()
-
-        if (threeBlackCrowsIndicator)
-            return OrderSide.SELL
+//        val threeBlackCrowsIndicator = index >=5 && bar.isBearish() && bars[index-1].isBearish() && bars[index-2].isBearish() && bars[index-3].isBearish() && bars[index-4].isBearish() && bars[index-5].isBearish()
+//
+//        if (threeBlackCrowsIndicator) {
+//            println("${bar.endTime}: threeBlackCrowsIndicator")
+//            return OrderSide.SELL
+//        }
 
 
         if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
             //Всегда покупать на установившемся восходящем тренде
-            return OrderSide.BUY
+            //println("${bar.endTime}: uptrend")
+            //if (!(0..100).any { blackCrows(index - it) })
+                return Pair(OrderSide.BUY, true)
+//            else
+//                return OrderSide.SELL
         } else {
+//            println("${bar.endTime}: downtrend")
+            //return Pair(OrderSide.SELL, false)
+
             //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
                 price < sma - sd * _params.deviation!! / 10.0 &&
                         (maxOf(0, index - 9)..index).all { localUpTrend(it, bar) } && //проверять последние 10 баров
-                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSide.BUY //проверять последние 2 бара
+                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> Pair(OrderSide.BUY, false) //проверять последние 2 бара
 
-                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSide.SELL
+                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> Pair(OrderSide.SELL, false)
                 else -> null
             }
         }

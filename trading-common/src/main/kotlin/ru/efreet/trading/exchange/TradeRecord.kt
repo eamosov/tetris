@@ -11,6 +11,7 @@ data class TradeRecord(val time: ZonedDateTime,
                        val instrument: Instrument,
                        val price: Double,
                        val side: OrderSide,
+                       val long: Boolean,
                        val type: OrderType,
                        val amount: Double, /*of asset*/
                        val fee: Double = 0.0, /*of asset*/

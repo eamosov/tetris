@@ -10,6 +10,7 @@ import java.time.ZonedDateTime
  */
 data class Advice(val time: ZonedDateTime,
                   val orderSide: OrderSide?,
+                  val long: Boolean,
                   val instrument: Instrument,
                   val price: Double,
                   val amount: Double,

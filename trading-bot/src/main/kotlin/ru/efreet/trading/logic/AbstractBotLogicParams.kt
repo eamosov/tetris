@@ -5,4 +5,5 @@ package ru.efreet.trading.logic
  */
 interface AbstractBotLogicParams {
     var stopLoss: Double
+    var tStopLoss: Double
 }
