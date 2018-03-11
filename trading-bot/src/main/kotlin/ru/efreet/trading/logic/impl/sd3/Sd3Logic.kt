@@ -68,7 +68,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val hours = Duration.between(stats.start, stats.end).toHours()
         //return BotLogic.fine(stats.trades.toDouble(), hours / 12.0, 4.0) + BotLogic.fine(stats.goodTrades, 2.0, 10.0) + BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit / 5.0
 
-        val targetGoodTrades = 1.0
+        val targetGoodTrades = 2.0
         val targetProfit = 4.0
         return BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) + BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) + /*stats.trades.toDouble() * 0.00538 +*/ stats.goodTrades * (1.0 / targetGoodTrades) + stats.profit * (1.0 / targetProfit)
     }
