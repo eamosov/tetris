@@ -1,5 +1,9 @@
 package ru.efreet.trading.bot
 
+import com.j256.ormlite.dao.Dao
+import com.j256.ormlite.dao.DaoManager
+import com.j256.ormlite.jdbc.JdbcConnectionSource
+import com.j256.ormlite.table.TableUtils
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
@@ -9,7 +13,7 @@ import java.time.ZonedDateTime
 /**
  * Created by fluder on 23/02/2018.
  */
-class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String, val assetName: String) : AbstractTrader() {
+class RealTrader(tradesDbPath:String, val exchange: Exchange, val limit: Double, exchangeName: String, instrument: Instrument) : AbstractTrader(exchangeName, instrument) {
 
     var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
@@ -17,10 +21,15 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
     val startUsd: Double
     val startAsset: Double
     val startFunds: Double
+    val baseName = instrument.base!!
+    val assetName = instrument.asset!!
 
     var usd: Double
     var asset: Double
     var funds: Double
+
+    private val dao: Dao<TradeRecord, String>
+    private var lastTrade: TradeRecord? = null
 
     init {
 
@@ -38,6 +47,11 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
         lastPrice = balanceResult.ticker[Instrument(assetName, baseName)]!!.highestBid
         minPrice = lastPrice
         maxPrice = lastPrice
+
+
+        val jdbcConn = JdbcConnectionSource("jdbc:sqlite:" + tradesDbPath)
+        TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
+        dao = DaoManager.createDao(jdbcConn, TradeRecord::class.java)
     }
 
     fun updateBalance(force: Boolean = false) {
@@ -76,6 +90,9 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
     override fun executeAdvice(advice: Advice): TradeRecord? {
         super.executeAdvice(advice)
 
+        if (lastTrade !=null)
+            dao.update(lastTrade)
+
         usd = balanceResult.balances[baseName]!!
         funds = balanceResult.toBase["total"]!!
         asset = balanceResult.balances[assetName]!!
@@ -90,7 +107,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price, order.side, order.type, order.amount,
                         0.0,
                         usdBefore,
                         assetBefore,
@@ -101,6 +118,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
                 )
 
                 trades.add(lastTrade!!)
+                dao.create(lastTrade)
                 return lastTrade
             }
         } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
@@ -112,7 +130,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.time, order.orderId, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price, order.side, order.type, order.amount,
                         0.0,
                         usdBefore!!,
                         assetBefore!!,
@@ -123,6 +141,7 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
                 )
 
                 trades.add(lastTrade!!)
+                dao.create(lastTrade)
                 return lastTrade
             }
         }
@@ -138,5 +157,16 @@ class RealTrader(val exchange: Exchange, val limit: Double, val baseName: String
                 maxPrice,
                 start,
                 end)
+    }
+
+    override fun lastTrade(): TradeRecord? {
+        if (lastTrade == null){
+            var qb = dao.queryBuilder()
+            qb.setWhere(qb.where().eq("instrument", instrument.toString()).and().eq("exchange", exchangeName))
+            qb.limit(1)
+            qb.orderBy("time", false)
+            lastTrade = qb.iterator().first()
+        }
+        return lastTrade
     }
 }

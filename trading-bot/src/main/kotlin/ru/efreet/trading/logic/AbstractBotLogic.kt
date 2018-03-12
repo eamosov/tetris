@@ -173,17 +173,17 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         //Проверка на SL/TSL
         if (lastTrade != null
                 && lastTrade.side == OrderSide.BUY
-                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price) || (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!))
+                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!) || (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!))
                 ) {
 
-            val sl = bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price
+            val sl = bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!
             val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
 
             //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
 
             return Advice(bar.endTime,
                     OrderSide.SELL,
-                    lastTrade.long,
+                    lastTrade.long ?: false,
                     sl,
                     tsl,
                     null,
@@ -217,8 +217,8 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             //Не надо покупать в текущем uptrend, если продали по (T)SL
             if (lastTrade != null &&
                     lastTrade.side == OrderSide.SELL &&
-                    (lastTrade.sellBySl || lastTrade.sellByTsl) &&
-                    uptrendStartedAt !=null && lastTrade.time.isAfter(uptrendStartedAt)) {
+                    ((lastTrade.sellBySl ?: false) || (lastTrade.sellByTsl ?: false)) &&
+                    uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
 
                 //println("${bar.endTime} NOT BUY AFTER (T)SL")
 

@@ -16,6 +16,7 @@ import java.time.ZonedDateTime
  * Created by fluder on 06/02/2018.
  */
 class TradeBot(val exchange: Exchange,
+               tradesDbPath:String,
                var barsCache: BarsCache,
                var baseLimit: Double,
                val testOnly: Boolean,
@@ -35,8 +36,8 @@ class TradeBot(val exchange: Exchange,
     private var logStateTimer = Periodical(Duration.ofMinutes(5))
 
     val trader = when {
-        testOnly == true -> FakeTrader(1000.0, 0.0, 0.02, true)
-        else -> RealTrader(exchange, baseLimit, instrument.base!!, instrument.asset!!)
+        testOnly == true -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
+        else -> RealTrader(tradesDbPath, exchange, baseLimit, exchange.getName(), instrument)
     }
 
     val asset get() = instrument.asset!!

@@ -112,7 +112,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         val end = cache.getLast(exchange.getName(), state.instrument, state.interval).endTime
 
-        val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true)
+        val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true, exchange.getName(), state.instrument)
 
         Runtime.getRuntime().addShutdownHook(object : Thread() {
             override fun run() {

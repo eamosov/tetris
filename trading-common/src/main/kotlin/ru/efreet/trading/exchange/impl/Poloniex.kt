@@ -55,9 +55,10 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(ZonedDateTime.now(),
-                result.orderNumber.toString(),
-                instrument,
+        return TradeRecord(result.orderNumber.toString(),
+                ZonedDateTime.now(),
+                getName(),
+                instrument.toString(),
                 _price.toDouble(),
                 OrderSide.BUY,
                 type,
@@ -75,9 +76,10 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(ZonedDateTime.now(),
-                result.orderNumber.toString(),
-                instrument,
+        return TradeRecord(result.orderNumber.toString(),
+                ZonedDateTime.now(),
+                getName(),
+                instrument.toString(),
                 _price.toDouble(),
                 OrderSide.SELL,
                 type,

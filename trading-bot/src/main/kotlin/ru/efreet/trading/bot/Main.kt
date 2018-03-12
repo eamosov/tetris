@@ -73,7 +73,7 @@ class Main {
                     println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}, last=${tradeHistory.trades.last().time}")
                 }
 
-                bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, logic, interval, { _, _ ->
+                bots.put(instrument, TradeBot(exchange, cmd.tradesPath, cache, bot.limit, cmd.testOnly, instrument, logic, interval, { _, _ ->
                     //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
                 }))

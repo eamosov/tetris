@@ -28,6 +28,9 @@ data class CmdArgs(var stoploss: Double? = null,
     val instrument: Instrument
         get() = instruments.first()
 
+    val tradesPath: String
+        get() = cachePath
+
     companion object {
 
         fun parseTime(time: String): ZonedDateTime {
@@ -111,7 +114,7 @@ data class CmdArgs(var stoploss: Double? = null,
             cmd.getOptionValue('x')?.let { cmdArgs.exchange = it }
 
             cmd.getOptionValue('i')?.let {
-                cmdArgs.instruments =  it.split(",").map { Instrument.parse(it) }
+                cmdArgs.instruments = it.split(",").map { Instrument.parse(it) }
             }
 
             cmd.getOptionValue('t')?.let { cmdArgs.barInterval = BarInterval.valueOf(it) }

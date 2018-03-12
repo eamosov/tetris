@@ -102,7 +102,7 @@ class Graph {
         for (trade in history.trades) {
             // Buy signal
 
-            val signalBarTime = Minute(Date.from(trade.time.toInstant())).firstMillisecond.toDouble()
+            val signalBarTime = Minute(Date.from(trade.time!!.toInstant())).firstMillisecond.toDouble()
             val marker = ValueMarker(signalBarTime)
             if (trade.side == OrderSide.BUY) {
                 marker.paint = Color.GREEN
@@ -182,6 +182,8 @@ class Graph {
 //            cmd.logicName = "sd3"
 
             val cache = BarsCache(cmd.cachePath)
+
+
 
             val exchange = Exchange.getExchange(cmd.exchange)
 

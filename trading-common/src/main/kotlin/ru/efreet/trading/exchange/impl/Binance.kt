@@ -66,9 +66,10 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
         return TradeRecord(
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
                 order.orderId.toString(),
-                instrument,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
+                getName(),
+                instrument.toString(),
                 order.price.toDouble(),
                 OrderSide.BUY,
                 type,
@@ -83,9 +84,10 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
         return TradeRecord(
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
                 order.orderId.toString(),
-                instrument,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
+                getName(),
+                instrument.toString(),
                 order.price.toDouble(),
                 OrderSide.SELL,
                 type,

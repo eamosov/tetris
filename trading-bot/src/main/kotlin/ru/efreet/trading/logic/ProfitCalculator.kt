@@ -28,7 +28,7 @@ class ProfitCalculator {
         val logic: BotLogic<P> = LogicFactory.getLogic(logicName, instrument, interval, XExtBar.of(bars))
         logic.setParams(params)
 
-        val trader = FakeTrader(feeP = feeP, fillCash = fillIndicators)
+        val trader = FakeTrader(feeP = feeP, fillCash = fillIndicators, exchangeName = "", instrument = instrument);
 
         for (ti in times) {
 

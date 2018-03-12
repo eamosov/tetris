@@ -1,12 +1,13 @@
 package ru.efreet.trading.bot
 
+import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.TradeRecord
 import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
  */
-abstract class AbstractTrader() : Trader {
+abstract class AbstractTrader(val exchangeName:String, val instrument: Instrument) : Trader {
 
     protected val trades = mutableListOf<TradeRecord>()
     protected val indicators = mutableMapOf<String, MutableList<Pair<ZonedDateTime, Double>>>()
@@ -15,7 +16,6 @@ abstract class AbstractTrader() : Trader {
     protected var startPrice: Double = 0.0
 
     protected var lastPrice: Double = 0.0
-    protected var lastTrade: TradeRecord? = null
 
     override fun executeAdvice(advice: Advice): TradeRecord? {
 
@@ -40,8 +40,4 @@ abstract class AbstractTrader() : Trader {
         return null
     }
 
-
-    override fun lastTrade(): TradeRecord? {
-        return lastTrade
-    }
 }

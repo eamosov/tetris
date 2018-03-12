@@ -5,6 +5,7 @@ import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.exchange.OrderType
 import ru.efreet.trading.exchange.TradeRecord
 import java.time.ZonedDateTime
+import java.util.*
 
 /**
  * Created by fluder on 23/02/2018.
@@ -12,9 +13,13 @@ import java.time.ZonedDateTime
 class FakeTrader(var startUsd: Double = 1000.0,
                  var startAsset: Double = 0.0,
                  val feeP: Double = 0.02,
-                 val fillCash: Boolean = false) : AbstractTrader() {
+                 val fillCash: Boolean = false,
+                 exchangeName: String,
+                 instrument: Instrument) : AbstractTrader(exchangeName, instrument) {
 
     private val cash = mutableListOf<Pair<ZonedDateTime, Double>>()
+    private var lastTrade: TradeRecord? = null
+
     var usd = startUsd
     var asset = startAsset
 
@@ -55,7 +60,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
             val assetBefore = asset
             usd -= advice.price * advice.amount
             asset += advice.amount - fee
-            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+            lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
             trades.add(lastTrade!!)
             return lastTrade
         } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
@@ -64,7 +69,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
             val assetBefore = asset
             usd += advice.price * (advice.amount - fee)
             asset -= advice.amount
-            lastTrade = TradeRecord(advice.time, "", advice.instrument, advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+            lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
             trades.add(lastTrade!!)
             return lastTrade
         } else {
@@ -72,7 +77,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
         }
     }
 
-    override fun history(start:ZonedDateTime, end:ZonedDateTime): TradeHistory {
+    override fun history(start: ZonedDateTime, end: ZonedDateTime): TradeHistory {
         return TradeHistory(startUsd,
                 startAsset,
                 funds(startUsd, startAsset, startPrice),
@@ -96,5 +101,9 @@ class FakeTrader(var startUsd: Double = 1000.0,
 
     override fun availableAsset(instrument: Instrument): Double {
         return asset
+    }
+
+    override fun lastTrade(): TradeRecord? {
+        return lastTrade
     }
 }
