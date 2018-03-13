@@ -2,7 +2,12 @@ package ru.efreet.trading.bot
 
 import com.j256.ormlite.dao.Dao
 import com.j256.ormlite.dao.DaoManager
+import com.j256.ormlite.db.DatabaseType
+import com.j256.ormlite.db.SqliteDatabaseType
+import com.j256.ormlite.jdbc.JdbcDatabaseConnection
 import com.j256.ormlite.jdbc.JdbcSingleConnectionSource
+import com.j256.ormlite.support.ConnectionSource
+import com.j256.ormlite.support.DatabaseConnection
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
@@ -48,8 +53,55 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
         minPrice = lastPrice
         maxPrice = lastPrice
 
+        val jc = JdbcDatabaseConnection(jdbcConnection)
 
-        val jdbcConn = JdbcSingleConnectionSource("jdbc:sqlite:" + tradesDbPath, jdbcConnection)
+        val jdbcConn = object : ConnectionSource{
+            override fun getReadOnlyConnection(tableName: String?): DatabaseConnection {
+                return jc
+            }
+
+            override fun getDatabaseType(): DatabaseType {
+                return SqliteDatabaseType()
+            }
+
+            override fun saveSpecialConnection(connection: DatabaseConnection?): Boolean {
+                return false
+            }
+
+            override fun getReadWriteConnection(tableName: String?): DatabaseConnection {
+                return jc
+            }
+
+            override fun isOpen(tableName: String?): Boolean {
+                return true
+            }
+
+            override fun isSingleConnection(tableName: String?): Boolean {
+                return true
+            }
+
+            override fun closeQuietly() {
+
+            }
+
+            override fun close() {
+
+            }
+
+            override fun releaseConnection(connection: DatabaseConnection?) {
+
+            }
+
+            override fun clearSpecialConnection(connection: DatabaseConnection?) {
+
+            }
+
+            override fun getSpecialConnection(tableName: String?): DatabaseConnection {
+                return jc
+            }
+        }
+
+        //JdbcSingleConnectionSource("jdbc:sqlite:" + tradesDbPath, jdbcConnection)
         //TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
         dao = DaoManager.createDao(jdbcConn, TradeRecord::class.java)
     }
