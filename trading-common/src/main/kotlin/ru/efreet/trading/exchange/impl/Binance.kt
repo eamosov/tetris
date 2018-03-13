@@ -24,10 +24,10 @@ class Binance() : Exchange {
 
     private val api = BinanceApi()
 
-    init {
-        api.setBaseUrl("https://us.binance.com/api/")
-        api.setBaseWapiUrl("https://us.binance.com/wapi/")
-    }
+//    init {
+//        api.setBaseUrl("https://us.binance.com/api/")
+//        api.setBaseWapiUrl("https://us.binance.com/wapi/")
+//    }
 
     override fun getName(): String = "binance"
 
