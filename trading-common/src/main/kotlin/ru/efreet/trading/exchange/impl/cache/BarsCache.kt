@@ -31,6 +31,8 @@ class BarsCache(val path: String) {
         conn = DriverManager.getConnection(url, prop)
     }
 
+    fun getConnection(): Connection = conn
+
     fun getFirst(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
 
         conn.createStatement().use { statement ->

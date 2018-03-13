@@ -2,18 +2,18 @@ package ru.efreet.trading.bot
 
 import com.j256.ormlite.dao.Dao
 import com.j256.ormlite.dao.DaoManager
-import com.j256.ormlite.jdbc.JdbcConnectionSource
-import com.j256.ormlite.table.TableUtils
+import com.j256.ormlite.jdbc.JdbcSingleConnectionSource
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
+import java.sql.Connection
 import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
  */
-class RealTrader(tradesDbPath:String, val exchange: Exchange, val limit: Double, exchangeName: String, instrument: Instrument) : AbstractTrader(exchangeName, instrument) {
+class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange: Exchange, val limit: Double, exchangeName: String, instrument: Instrument) : AbstractTrader(exchangeName, instrument) {
 
     var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
@@ -49,8 +49,8 @@ class RealTrader(tradesDbPath:String, val exchange: Exchange, val limit: Double,
         maxPrice = lastPrice
 
 
-        val jdbcConn = JdbcConnectionSource("jdbc:sqlite:" + tradesDbPath)
-        TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
+        val jdbcConn = JdbcSingleConnectionSource("jdbc:sqlite:" + tradesDbPath, jdbcConnection)
+        //TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
         dao = DaoManager.createDao(jdbcConn, TradeRecord::class.java)
     }
 
@@ -90,7 +90,7 @@ class RealTrader(tradesDbPath:String, val exchange: Exchange, val limit: Double,
     override fun executeAdvice(advice: Advice): TradeRecord? {
         super.executeAdvice(advice)
 
-        if (lastTrade !=null)
+        if (lastTrade != null)
             dao.update(lastTrade)
 
         usd = balanceResult.balances[baseName]!!
@@ -160,7 +160,7 @@ class RealTrader(tradesDbPath:String, val exchange: Exchange, val limit: Double,
     }
 
     override fun lastTrade(): TradeRecord? {
-        if (lastTrade == null){
+        if (lastTrade == null) {
             var qb = dao.queryBuilder()
             qb.setWhere(qb.where().eq("instrument", instrument.toString()).and().eq("exchange", exchangeName))
             qb.limit(1)
