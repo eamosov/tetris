@@ -38,6 +38,10 @@ class Graph {
 
         val stats = StatsCalculator().stats(history)
 
+        for (trade in history.trades){
+            println("TRADE: ${trade}")
+        }
+
         println("STATS:  ${stats}")
 
         val dataset = TimeSeriesCollection()

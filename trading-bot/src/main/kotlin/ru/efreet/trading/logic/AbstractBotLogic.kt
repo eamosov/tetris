@@ -138,7 +138,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     override fun setParamsAsProperties(params: Properties) = setParams(properties.toLogicParams(params))
 
-    var uptrendStartedAt: ZonedDateTime? = null
+//    var uptrendStartedAt: ZonedDateTime? = null
 //    var stopLossAt: ZonedDateTime? = null
 //    var stopLossPrice: Double? = null
 //    var tsl: Double? = null
@@ -154,12 +154,6 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
         val advice = _advice?.first
         val long = _advice?.second ?: false
-
-        if (advice == OrderSide.BUY && uptrendStartedAt == null) {
-            uptrendStartedAt = bar.endTime
-        } else if (advice == OrderSide.SELL && uptrendStartedAt != null) {
-            uptrendStartedAt = null
-        }
 
         val lastTrade = trader.lastTrade()
 
@@ -217,22 +211,38 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             //Не надо покупать в текущем uptrend, если продали по (T)SL
             if (lastTrade != null &&
                     lastTrade.side == OrderSide.SELL &&
-                    ((lastTrade.sellBySl ?: false) || (lastTrade.sellByTsl ?: false)) &&
-                    uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
+                    ((lastTrade.sellBySl ?: false) || (lastTrade.sellByTsl ?: false))
+            /* && uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)*/) {
+
+
+                var lastBuyIndex = index - 1;
+                while (lastBuyIndex > 0 && getAdvice(lastBuyIndex, bars[lastBuyIndex])?.first == OrderSide.BUY) {
+                    lastBuyIndex--
+                }
+
+                val uptrendStartedAt = bars[lastBuyIndex + 1].endTime
+
+//                if (advice == OrderSide.BUY && uptrendStartedAt == null) {
+//                    uptrendStartedAt = bar.endTime
+//                } else if (advice == OrderSide.SELL && uptrendStartedAt != null) {
+//                    uptrendStartedAt = null
+//                }
+
 
                 //println("${bar.endTime} NOT BUY AFTER (T)SL")
 
-                return Advice(bar.endTime,
-                        null,
-                        false,
-                        false,
-                        false,
-                        null,
-                        instrument,
-                        bar.closePrice,
-                        0.0,
-                        bar,
-                        indicators)
+                if (lastTrade.time!!.isAfter(uptrendStartedAt))
+                    return Advice(bar.endTime,
+                            null,
+                            false,
+                            false,
+                            false,
+                            null,
+                            instrument,
+                            bar.closePrice,
+                            0.0,
+                            bar,
+                            indicators)
             }
 
             //println("${bar.endTime} BUY ${bar.closePrice}")
