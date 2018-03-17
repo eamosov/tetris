@@ -169,7 +169,12 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 Pair("macd", XMinusIndicator(macd, signalEma)),
                 Pair("dayShortEma", dayShortEma),
                 Pair("dayLongEma", dayLongEma),
-                Pair("sl", tslIndicator)
+                Pair("tsl", tslIndicator),
+                Pair("sl", object: XIndicator<XExtBar>{
+                    override fun getValue(index: Int, bar: XExtBar): Double {
+                        return trendStart.getValue(index, bar).closePrice
+                    }
+                })
         )
     }
 
