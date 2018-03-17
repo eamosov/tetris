@@ -2,7 +2,7 @@ package ru.efreet.trading.exchange.impl
 
 import com.webcerebrium.binance.api.BinanceApi
 import com.webcerebrium.binance.datatype.*
-import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterAggTrades
+import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterKline
 import org.eclipse.jetty.websocket.api.Session
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
@@ -128,13 +128,20 @@ class Binance() : Exchange {
             api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
 
 
-    override fun startTrade(instrument: Instrument, consumer: (AggTrade) -> Unit) {
+    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
 
-        session = api.websocketTrades(symbol(instrument), object : BinanceWebSocketAdapterAggTrades() {
-            override fun onMessage(message: BinanceEventAggTrade) {
+        session = api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
+            override fun onMessage(message: BinanceEventKline) {
 
-                consumer(AggTrade(message.eventTime, message.price.toDouble(), message.quantity.toDouble()))
+                val bar = XBaseBar(Duration.ofMillis(message.endTime - message.startTime + 1),
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(message.endTime), ZoneId.of("GMT")),
+                        message.open.toDouble(),
+                        message.high.toDouble(),
+                        message.low.toDouble(),
+                        message.close.toDouble(),
+                        message.volume.toDouble())
 
+                consumer(bar, message.isFinal)
             }
         })
     }

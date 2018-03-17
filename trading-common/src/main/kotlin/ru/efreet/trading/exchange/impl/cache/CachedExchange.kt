@@ -33,7 +33,7 @@ class CachedExchange(val _name:String, val _fee:Double, val interval: BarInterva
         return arrayListOf()
     }
 
-    override fun startTrade(instrument: Instrument, consumer: (AggTrade) -> Unit) {
+    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
