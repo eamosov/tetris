@@ -38,6 +38,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     lateinit var trend: XLastTrendIndicator<XExtBar>
     lateinit var trendStart: XTrendStartIndicator<XExtBar>
+    lateinit var tslIndicator: XTslIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
@@ -100,6 +101,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
         trend = XLastTrendIndicator(bars, XExtBar._trend, { index, bar -> getTrend(index, bar) })
         trendStart = XTrendStartIndicator(bars, XExtBar._trendStart, trend)
+        tslIndicator = XTslIndicator(bars, trend, closePrice)
 
         shortEma.prepare()
         longEma.prepare()
@@ -209,8 +211,6 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         //Проверяем StopLoss
         if (bar.closePrice < (1.0 - _params.stopLoss / 100.0) * trendStart.closePrice) {
 
-            println("STOPLOSS")
-
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     true,
@@ -226,24 +226,26 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val lastTrade = trader.lastTrade()
 
-        //Повышаем TSL, если надо
-        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
-            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-        }
+//        //Повышаем TSL, если надо
+//        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
+//            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
+//        }
 
         //Проверка на SL/TSL
         if (lastTrade != null
                 && lastTrade.side == OrderSide.BUY
-                && (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)) {
+                //&& (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)
+                && (lastTrade.tsl != null && bar.closePrice < tslIndicator.getValue(index, bar))
+                ) {
 
-            val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
+            //val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
 
             //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
 
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, lastTrade.long ?: false),
                     false,
-                    tsl,
+                    true,
                     null,
                     instrument,
                     bar.closePrice,
