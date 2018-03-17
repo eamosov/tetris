@@ -110,7 +110,8 @@ class Binance() : Exchange {
                         it.high.toDouble(),
                         it.low.toDouble(),
                         it.close.toDouble(),
-                        it.volume.toDouble())
+                        it.volume.toDouble(),
+                        it.numberOfTrades.toInt())
 
                 bars.add(bar)
             }
@@ -139,7 +140,8 @@ class Binance() : Exchange {
                         message.high.toDouble(),
                         message.low.toDouble(),
                         message.close.toDouble(),
-                        message.volume.toDouble())
+                        message.volume.toDouble(),
+                        message.numberOfTrades.toInt())
 
                 consumer(bar, message.isFinal)
             }

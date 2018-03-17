@@ -49,11 +49,6 @@ data class XExtBar(val bar: XBar) : XBar {
         set(value) {
             bar.trades = value
         }
-    override var amount: Double
-        get() = bar.amount
-        set(value) {
-            bar.amount = value
-        }
     override var timePeriod: Duration
         get() = bar.timePeriod
         set(value) {
