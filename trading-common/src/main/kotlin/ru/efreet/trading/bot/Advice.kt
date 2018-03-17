@@ -13,8 +13,6 @@ data class OrderSideExt (val side:OrderSide, val long: Boolean)
 data class Advice(val time: ZonedDateTime,
                   val orderSide: OrderSideExt?,
                   val sellBySl: Boolean,
-                  val sellByTsl: Boolean,
-                  val tsl:Double?, //for BUY
                   val instrument: Instrument,
                   val price: Double,
                   val amount: Double,

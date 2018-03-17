@@ -61,7 +61,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
                 val assetBefore = asset
                 usd -= advice.price * advice.amount
                 asset += advice.amount - fee
-                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.sellBySl)
                 trades.add(lastTrade!!)
                 return lastTrade
             }
@@ -72,7 +72,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
                 val assetBefore = asset
                 usd += advice.price * (advice.amount - fee)
                 asset -= advice.amount
-                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.sellBySl)
                 trades.add(lastTrade!!)
                 return lastTrade
             }

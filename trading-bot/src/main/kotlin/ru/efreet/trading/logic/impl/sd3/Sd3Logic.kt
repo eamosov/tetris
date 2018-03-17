@@ -187,16 +187,6 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val bar = getBar(index)
         val orderSide = lastTrendIndicator.getValue(index, bar)
 
-//        val _advice = if (stats == null || isProfitable(stats)) {
-//            getAdvice(index, bar)
-//        } else {
-//            //println("Dangerous statistic, SELL all")
-//            Pair(OrderSide.SELL, false)
-//        }
-//
-//        val advice = _advice?.first
-//        val long = _advice?.second ?: false
-
         val indicators = if (fillIndicators) getIndicators(index, bar) else null
 
         //Если SELL, то безусловно продаем
@@ -207,8 +197,6 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     false,
-                    false,
-                    null,
                     instrument,
                     bar.closePrice,
                     trader.availableAsset(instrument),
@@ -220,8 +208,6 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     true,
-                    true,
-                    null,
                     instrument,
                     bar.closePrice,
                     trader.availableAsset(instrument),
@@ -229,84 +215,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     indicators)
         }
 
-//        val trendStart = trendStart.getValue(index, bar)
-//
-//        //Проверяем StopLoss
-//        if (bar.closePrice < (1.0 - _params.stopLoss / 100.0) * trendStart.closePrice) {
-//
-//            return Advice(bar.endTime,
-//                    OrderSideExt(OrderSide.SELL, false),
-//                    true,
-//                    false,
-//                    null,
-//                    instrument,
-//                    bar.closePrice,
-//                    trader.availableAsset(instrument),
-//                    bar,
-//                    indicators)
-//        }
-//
-//
-//        val lastTrade = trader.lastTrade()
-//
-////        //Повышаем TSL, если надо
-////        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
-////            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-////        }
-//
-//        //Проверка на SL/TSL
-//        if (lastTrade != null
-//                && lastTrade.side == OrderSide.BUY
-//                //&& (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)
-//                && (lastTrade.long == true && bar.closePrice < tslIndicator.getValue(index, bar) * (1.0 - _params.tStopLoss / 100.0))
-//                ) {
-//
-//            //val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
-//
-//            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
-//
-//            return Advice(bar.endTime,
-//                    OrderSideExt(OrderSide.SELL, lastTrade.long ?: false),
-//                    false,
-//                    true,
-//                    null,
-//                    instrument,
-//                    bar.closePrice,
-//                    trader.availableAsset(instrument),
-//                    bar,
-//                    indicators)
-//
-//        }
-//
-//
-//        //Не надо покупать в текущем uptrend, если продали по (T)SL
-//        if (lastTrade != null &&
-//                lastTrade.side == OrderSide.SELL &&
-//                ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true)) &&
-//                lastTrade.time!!.isAfter(trendStart.endTime)) {
-//
-//            return Advice(bar.endTime,
-//                    null,
-//                    false,
-//                    false,
-//                    null,
-//                    instrument,
-//                    bar.closePrice,
-//                    0.0,
-//                    bar,
-//                    indicators)
-//        }
-
-        //если пред бар - продажа, то этот бар - начало покупок
-
-
         return Advice(bar.endTime,
                 orderSide,
                 false,
-                false,
-                if (orderSide.long) {
-                    (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-                } else null,
                 instrument,
                 bar.closePrice,
                 trader.availableUsd(instrument) / bar.closePrice,

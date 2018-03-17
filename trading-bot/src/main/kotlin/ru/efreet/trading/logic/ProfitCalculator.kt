@@ -40,7 +40,7 @@ class ProfitCalculator {
 
                 if (!advice.time.isBefore(ti.second)) {
                     if (trader.lastTrade()?.side == OrderSide.BUY) {
-                        trader.executeAdvice(Advice(ti.second.minusSeconds(1), OrderSideExt(OrderSide.SELL, false), false, false, null, instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
+                        trader.executeAdvice(Advice(ti.second.minusSeconds(1), OrderSideExt(OrderSide.SELL, false), false, instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
                     }
                     break
                 }

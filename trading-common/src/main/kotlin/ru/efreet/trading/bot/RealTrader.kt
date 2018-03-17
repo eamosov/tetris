@@ -166,7 +166,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
                         balanceResult.toBase["total"]!!,
-                        advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl
+                        advice.orderSide.long, advice.sellBySl
                 )
 
                 trades.add(lastTrade!!)
@@ -189,7 +189,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
                         balanceResult.toBase["total"]!!,
-                        advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl
+                        advice.orderSide.long, advice.sellBySl
                 )
 
                 trades.add(lastTrade!!)

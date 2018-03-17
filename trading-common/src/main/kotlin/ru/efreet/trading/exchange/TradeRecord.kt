@@ -60,12 +60,6 @@ data class TradeRecord(
         val long: Boolean? = null, /* is it a long BUY?*/
 
         @DatabaseField
-        var tsl: Double? = null,
-
-        @DatabaseField
-        val sellByTsl: Boolean? = null,
-
-        @DatabaseField
         val sellBySl: Boolean? = null
 ) : Serializable {
 

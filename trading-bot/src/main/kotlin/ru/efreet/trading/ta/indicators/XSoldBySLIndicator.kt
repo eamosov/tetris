@@ -21,7 +21,7 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
             return false
 
         val prevValue = if (index > 0) getValue(index - 1, bars[index - 1]) else false
-        if (prevValue == true)
+        if (prevValue)
             return prevValue
 
         if (bar.closePrice < xTrendStartIndicator.getValue(index, bar).closePrice * (1.0 - sl / 100.0))
