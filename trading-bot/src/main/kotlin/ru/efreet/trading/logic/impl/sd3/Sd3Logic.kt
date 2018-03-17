@@ -39,6 +39,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var trend: XLastTrendIndicator<XExtBar>
     lateinit var trendStart: XTrendStartIndicator<XExtBar>
     lateinit var tslIndicator: XTslIndicator<XExtBar>
+    lateinit var xSoldBySLIndicator: XSoldBySLIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
@@ -102,6 +103,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         trend = XLastTrendIndicator(bars, XExtBar._trend, { index, bar -> getTrend(index, bar) })
         trendStart = XTrendStartIndicator(bars, XExtBar._trendStart, trend)
         tslIndicator = XTslIndicator(bars, trend, closePrice)
+        xSoldBySLIndicator = XSoldBySLIndicator(bars, trend, tslIndicator, trendStart, _params.stopLoss, _params.tStopLoss)
+
 
         shortEma.prepare()
         longEma.prepare()
@@ -206,45 +209,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     indicators)
         }
 
-        val trendStart = trendStart.getValue(index, bar)
-
-        //Проверяем StopLoss
-        if (bar.closePrice < (1.0 - _params.stopLoss / 100.0) * trendStart.closePrice) {
-
+        if (xSoldBySLIndicator.getValue(index, bar)){
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     true,
-                    false,
-                    null,
-                    instrument,
-                    bar.closePrice,
-                    trader.availableAsset(instrument),
-                    bar,
-                    indicators)
-        }
-
-
-        val lastTrade = trader.lastTrade()
-
-//        //Повышаем TSL, если надо
-//        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
-//            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-//        }
-
-        //Проверка на SL/TSL
-        if (lastTrade != null
-                && lastTrade.side == OrderSide.BUY
-                //&& (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)
-                && (lastTrade.tsl != null && bar.closePrice < tslIndicator.getValue(index, bar) * (1.0 - _params.tStopLoss / 100.0))
-                ) {
-
-            //val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
-
-            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
-
-            return Advice(bar.endTime,
-                    OrderSideExt(OrderSide.SELL, lastTrade.long ?: false),
-                    false,
                     true,
                     null,
                     instrument,
@@ -252,27 +220,75 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     trader.availableAsset(instrument),
                     bar,
                     indicators)
-
         }
 
-
-        //Не надо покупать в текущем uptrend, если продали по (T)SL
-        if (lastTrade != null &&
-                lastTrade.side == OrderSide.SELL &&
-                ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true)) &&
-                lastTrade.time!!.isAfter(trendStart.endTime)) {
-
-            return Advice(bar.endTime,
-                    null,
-                    false,
-                    false,
-                    null,
-                    instrument,
-                    bar.closePrice,
-                    0.0,
-                    bar,
-                    indicators)
-        }
+//        val trendStart = trendStart.getValue(index, bar)
+//
+//        //Проверяем StopLoss
+//        if (bar.closePrice < (1.0 - _params.stopLoss / 100.0) * trendStart.closePrice) {
+//
+//            return Advice(bar.endTime,
+//                    OrderSideExt(OrderSide.SELL, false),
+//                    true,
+//                    false,
+//                    null,
+//                    instrument,
+//                    bar.closePrice,
+//                    trader.availableAsset(instrument),
+//                    bar,
+//                    indicators)
+//        }
+//
+//
+//        val lastTrade = trader.lastTrade()
+//
+////        //Повышаем TSL, если надо
+////        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
+////            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
+////        }
+//
+//        //Проверка на SL/TSL
+//        if (lastTrade != null
+//                && lastTrade.side == OrderSide.BUY
+//                //&& (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)
+//                && (lastTrade.long == true && bar.closePrice < tslIndicator.getValue(index, bar) * (1.0 - _params.tStopLoss / 100.0))
+//                ) {
+//
+//            //val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
+//
+//            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
+//
+//            return Advice(bar.endTime,
+//                    OrderSideExt(OrderSide.SELL, lastTrade.long ?: false),
+//                    false,
+//                    true,
+//                    null,
+//                    instrument,
+//                    bar.closePrice,
+//                    trader.availableAsset(instrument),
+//                    bar,
+//                    indicators)
+//
+//        }
+//
+//
+//        //Не надо покупать в текущем uptrend, если продали по (T)SL
+//        if (lastTrade != null &&
+//                lastTrade.side == OrderSide.SELL &&
+//                ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true)) &&
+//                lastTrade.time!!.isAfter(trendStart.endTime)) {
+//
+//            return Advice(bar.endTime,
+//                    null,
+//                    false,
+//                    false,
+//                    null,
+//                    instrument,
+//                    bar.closePrice,
+//                    0.0,
+//                    bar,
+//                    indicators)
+//        }
 
         //если пред бар - продажа, то этот бар - начало покупок
 
