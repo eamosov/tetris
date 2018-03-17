@@ -235,7 +235,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         if (lastTrade != null
                 && lastTrade.side == OrderSide.BUY
                 //&& (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!)
-                && (lastTrade.tsl != null && bar.closePrice < tslIndicator.getValue(index, bar))
+                && (lastTrade.tsl != null && bar.closePrice < tslIndicator.getValue(index, bar) * (1.0 - _params.tStopLoss / 100.0))
                 ) {
 
             //val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
