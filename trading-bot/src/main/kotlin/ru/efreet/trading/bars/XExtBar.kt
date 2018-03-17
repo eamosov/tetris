@@ -119,4 +119,6 @@ data class XExtBar(val bar: XBar) : XBar {
     var dayLongEma: Double = Double.MAX_VALUE
     var daySignalEma: Double = Double.MAX_VALUE
     var daySignal2Ema: Double = Double.MAX_VALUE
+
+    var uptrendStartedAt: ZonedDateTime? = null
 }

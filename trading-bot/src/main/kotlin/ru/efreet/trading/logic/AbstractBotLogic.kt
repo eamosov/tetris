@@ -141,6 +141,43 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 //    var stopLossPrice: Double? = null
 //    var tsl: Double? = null
 
+    private fun findNearestSellBar(index: Int): Int? {
+        var lastSellIndex = index - 1
+
+        //Найдем ближайший бар, на котором была продажа
+        while (true) {
+            return if (lastSellIndex >= 0) {
+                if (getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
+                    lastSellIndex--
+                    continue
+                } else {
+                    lastSellIndex
+                }
+            } else {
+                null
+            }
+        }
+    }
+
+    private fun findUptrendStartedAt(index: Int): ZonedDateTime? {
+        val lastSellIndex = findNearestSellBar(index) ?: return null
+
+        var buyIndex = lastSellIndex + 1
+
+        while (true) {
+            return if (buyIndex < bars.size) {
+                if (getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
+                    buyIndex++
+                    continue
+                } else {
+                    bars[buyIndex].endTime
+                }
+            } else {
+                null
+            }
+        }
+    }
+
     private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
 
         val _advice = if (stats == null || isProfitable(stats)) {
@@ -209,52 +246,24 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             //Не надо покупать в текущем uptrend, если продали по (T)SL
             if (lastTrade != null &&
                     lastTrade.side == OrderSide.SELL &&
-                    ((lastTrade.sellBySl ?: false) || (lastTrade.sellByTsl ?: false))
-            /* && uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)*/) {
+                    ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true))) {
 
-
-                var lastSellIndex = index - 1;
-                while (lastSellIndex > 0 && getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
-                    lastSellIndex--
+                val uptrendStartedAt = findUptrendStartedAt(index)
+                if (uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
+                    return Advice(bar.endTime,
+                            null,
+                            false,
+                            false,
+                            false,
+                            null,
+                            instrument,
+                            bar.closePrice,
+                            0.0,
+                            bar,
+                            indicators)
                 }
-
-                if (lastSellIndex >= 0) { //нашли последнюю точку продажи
-                    //найдем точку покупки
-                    var buyIndex = lastSellIndex + 1
-                    while (buyIndex < bars.size && getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
-                        buyIndex++
-                    }
-
-                    val uptrendStartedAt = bars[buyIndex].endTime
-
-                    if (lastTrade.time!!.isAfter(uptrendStartedAt))
-                        return Advice(bar.endTime,
-                                null,
-                                false,
-                                false,
-                                false,
-                                null,
-                                instrument,
-                                bar.closePrice,
-                                0.0,
-                                bar,
-                                indicators)
-
-                }
-
-
-//                if (advice == OrderSide.BUY && uptrendStartedAt == null) {
-//                    uptrendStartedAt = bar.endTime
-//                } else if (advice == OrderSide.SELL && uptrendStartedAt != null) {
-//                    uptrendStartedAt = null
-//                }
-
-
-                //println("${bar.endTime} NOT BUY AFTER (T)SL")
-
             }
 
-            //println("${bar.endTime} BUY ${bar.closePrice}")
 
             return Advice(bar.endTime,
                     OrderSide.BUY,
