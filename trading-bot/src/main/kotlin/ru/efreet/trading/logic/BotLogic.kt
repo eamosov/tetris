@@ -7,6 +7,7 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.bot.Advice
+import ru.efreet.trading.bot.OrderSideExt
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
@@ -16,7 +17,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.time.ZonedDateTime
 import java.util.*
-
 
 interface BotLogic<P> {
 
@@ -90,7 +90,7 @@ interface BotLogic<P> {
 
     fun indicators(): Map<String, XIndicator<XExtBar>>
 
-    fun getAdvice(index: Int, bar: XExtBar): Pair<OrderSide, Boolean>?
+    //fun getAdvice(index: Int, bar: XExtBar): OrderSideExt?
 
     fun setMinMax(settings: Properties)
 

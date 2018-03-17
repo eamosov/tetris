@@ -1,6 +1,9 @@
 package ru.efreet.trading.logic.impl.sd3
 
 import ru.efreet.trading.bars.XExtBar
+import ru.efreet.trading.bot.Advice
+import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -32,6 +35,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var dayMacd: XMACDIndicator<XExtBar>
     lateinit var daySignalEma: XEMAIndicator<XExtBar>
     lateinit var daySignal2Ema: XEMAIndicator<XExtBar>
+
+    lateinit var trend: XLastTrendIndicator<XExtBar>
+    lateinit var trendStart: XTrendStartIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
@@ -92,6 +98,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
         daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
         daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
+        trend = XLastTrendIndicator(bars, XExtBar._trend, { index, bar -> getTrend(index, bar) })
+        trendStart = XTrendStartIndicator(bars, XExtBar._trendStart, trend)
 
         shortEma.prepare()
         longEma.prepare()
@@ -103,9 +111,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayLongEma.prepare()
         daySignalEma.prepare()
         daySignal2Ema.prepare()
+        trendStart.prepare()
     }
 
-    override fun getAdvice(index: Int, bar: XExtBar): Pair<OrderSide, Boolean>? {
+    fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
 
         val sd = sd.getValue(index, bar)
         val sma = sma.getValue(index, bar)
@@ -130,16 +139,16 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
             //Всегда покупать на установившемся восходящем тренде
-            return Pair(OrderSide.BUY, true)
+            return OrderSideExt(OrderSide.BUY, true)
         } else {
 
             //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
                 price < sma - sd * _params.deviation!! / 10.0 &&
                         (maxOf(0, index - 9)..index).all { localUpTrend(it, bar) } && //проверять последние 10 баров
-                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> Pair(OrderSide.BUY, false) //проверять последние 2 бара
+                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSideExt(OrderSide.BUY, false) //проверять последние 2 бара
 
-                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> Pair(OrderSide.SELL, false)
+                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSideExt(OrderSide.SELL, false)
                 else -> null
             }
         }
@@ -160,5 +169,112 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override var historyBars: Long
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
+
+    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
+
+        val bar = getBar(index)
+        val orderSide = trend.getValue(index, bar)
+
+//        val _advice = if (stats == null || isProfitable(stats)) {
+//            getAdvice(index, bar)
+//        } else {
+//            //println("Dangerous statistic, SELL all")
+//            Pair(OrderSide.SELL, false)
+//        }
+//
+//        val advice = _advice?.first
+//        val long = _advice?.second ?: false
+
+        val lastTrade = trader.lastTrade()
+
+        //Повышаем TSL, если надо
+        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
+            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
+        }
+
+        val indicators = if (fillIndicators) getIndicators(index, bar) else null
+
+        //Проверка на SL/TSL
+        if (lastTrade != null
+                && lastTrade.side == OrderSide.BUY
+                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!) || (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!))
+                ) {
+
+            val sl = bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!
+            val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
+
+            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
+
+            return Advice(bar.endTime,
+                    OrderSideExt(OrderSide.SELL, lastTrade.long ?: false),
+                    sl,
+                    tsl,
+                    null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableAsset(instrument),
+                    bar,
+                    indicators)
+
+        }
+
+        //Если SELL, то безусловно продаем
+        if (orderSide.side == OrderSide.SELL) {
+
+            //println("${bar.endTime} SELL ${bar.closePrice}")
+
+            return Advice(bar.endTime,
+                    OrderSideExt(OrderSide.SELL, lastTrade?.long ?: false),
+                    false,
+                    false,
+                    null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableAsset(instrument),
+                    bar,
+                    indicators)
+        }
+
+        if (orderSide.side == OrderSide.BUY) {
+            //Не надо покупать в текущем uptrend, если продали по (T)SL
+            if (lastTrade != null &&
+                    lastTrade.side == OrderSide.SELL &&
+                    ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true))) {
+
+                val uptrendStartedAt = trendStart.getValue(index, bar).endTime
+
+                if (uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
+                    return Advice(bar.endTime,
+                            null,
+                            false,
+                            false,
+                            null,
+                            instrument,
+                            bar.closePrice,
+                            0.0,
+                            bar,
+                            indicators)
+                }
+            }
+
+            //если пред бар - продажа, то этот бар - начало покупок
+
+
+            return Advice(bar.endTime,
+                    orderSide,
+                    false,
+                    false,
+                    if (orderSide.long) {
+                        (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
+                    } else null,
+                    instrument,
+                    bar.closePrice,
+                    trader.availableUsd(instrument) / bar.closePrice,
+                    bar,
+                    indicators)
+        }
+
+        return Advice(bar.endTime, null, false, false, null, instrument, bar.closePrice, 0.0, bar, indicators)
+    }
 
 }

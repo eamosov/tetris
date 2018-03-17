@@ -1,6 +1,9 @@
 package ru.efreet.trading.bars
 
+import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.ta.indicators.BarGetterSetter
+import ru.efreet.trading.ta.indicators.BarGetterSetter2
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -98,6 +101,9 @@ data class XExtBar(val bar: XBar) : XBar {
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
         var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignal2Ema })
+
+        var _trend = BarGetterSetter2<XExtBar, OrderSideExt>({ o, v -> o.trend = v }, { it.trend })
+        var _trendStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.trendStart = v }, { it.trendStart })
     }
 
     var shortEma1: Double = Double.MAX_VALUE
@@ -120,5 +126,6 @@ data class XExtBar(val bar: XBar) : XBar {
     var daySignalEma: Double = Double.MAX_VALUE
     var daySignal2Ema: Double = Double.MAX_VALUE
 
-    var uptrendStartedAt: ZonedDateTime? = null
+    var trend : OrderSideExt? = null
+    var trendStart: XExtBar ? = null
 }

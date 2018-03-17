@@ -5,12 +5,13 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import java.time.ZonedDateTime
 
+data class OrderSideExt (val side:OrderSide, val long: Boolean)
+
 /**
  * Created by fluder on 25/02/2018.
  */
 data class Advice(val time: ZonedDateTime,
-                  val orderSide: OrderSide?,
-                  val long: Boolean,
+                  val orderSide: OrderSideExt?,
                   val sellBySl: Boolean,
                   val sellByTsl: Boolean,
                   val tsl:Double?, //for BUY

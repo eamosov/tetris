@@ -141,159 +141,53 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 //    var stopLossPrice: Double? = null
 //    var tsl: Double? = null
 
-    private fun findNearestSellBar(index: Int): Int? {
-        var lastSellIndex = index - 1
-
-        //Найдем ближайший бар, на котором была продажа
-        while (true) {
-            return if (lastSellIndex >= 0) {
-                if (getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
-                    lastSellIndex--
-                    continue
-                } else {
-                    lastSellIndex
-                }
-            } else {
-                null
-            }
-        }
-    }
-
-    private fun findUptrendStartedAt(index: Int): ZonedDateTime? {
-        val lastSellIndex = findNearestSellBar(index) ?: return null
-
-        var buyIndex = lastSellIndex + 1
-
-        while (true) {
-            return if (buyIndex < bars.size) {
-                if (getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
-                    buyIndex++
-                    continue
-                } else {
-                    bars[buyIndex].endTime
-                }
-            } else {
-                null
-            }
-        }
-    }
-
-    private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
-
-        val _advice = if (stats == null || isProfitable(stats)) {
-            getAdvice(index, bar)
-        } else {
-            //println("Dangerous statistic, SELL all")
-            Pair(OrderSide.SELL, false)
-        }
-
-        val advice = _advice?.first
-        val long = _advice?.second ?: false
-
-        val lastTrade = trader.lastTrade()
-
-        //Повышаем TSL, если надо
-        if (lastTrade?.tsl != null && (1.0 - _params.tStopLoss / 100.0) * bar.closePrice > lastTrade.tsl!!) {
-            lastTrade.tsl = (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-        }
-
-        val indicators = if (fillIndicators) getIndicators(index, bar) else null
-
-        //Проверка на SL/TSL
-        if (lastTrade != null
-                && lastTrade.side == OrderSide.BUY
-                && ((bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!) || (lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!))
-                ) {
-
-            val sl = bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price!!
-            val tsl = lastTrade.tsl != null && bar.closePrice < lastTrade.tsl!!
-
-            //println("${bar.endTime} SELL ${if (tsl) "TSL" else "SL"} ${bar.closePrice}")
-
-            return Advice(bar.endTime,
-                    OrderSide.SELL,
-                    lastTrade.long ?: false,
-                    sl,
-                    tsl,
-                    null,
-                    instrument,
-                    bar.closePrice,
-                    trader.availableAsset(instrument),
-                    bar,
-                    indicators)
-
-        }
-
-        //Если SELL, то безусловно продаем
-        if (advice == OrderSide.SELL) {
-
-            //println("${bar.endTime} SELL ${bar.closePrice}")
-
-            return Advice(bar.endTime,
-                    OrderSide.SELL,
-                    lastTrade?.long ?: false,
-                    false,
-                    false,
-                    null,
-                    instrument,
-                    bar.closePrice,
-                    trader.availableAsset(instrument),
-                    bar,
-                    indicators)
-        }
-
-        if (advice == OrderSide.BUY) {
-            //Не надо покупать в текущем uptrend, если продали по (T)SL
-            if (lastTrade != null &&
-                    lastTrade.side == OrderSide.SELL &&
-                    ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true))) {
-
-                val uptrendStartedAt = if (index > 0 && bars[index - 1].uptrendStartedAt != null) {
-                    bars[index - 1].uptrendStartedAt
-                } else {
-                    findUptrendStartedAt(index)
-                }
-
-                bars[index].uptrendStartedAt = uptrendStartedAt
-
-                if (uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
-                    return Advice(bar.endTime,
-                            null,
-                            false,
-                            false,
-                            false,
-                            null,
-                            instrument,
-                            bar.closePrice,
-                            0.0,
-                            bar,
-                            indicators)
-                }
-            }
-
-
-            return Advice(bar.endTime,
-                    OrderSide.BUY,
-                    long,
-                    false,
-                    false,
-                    if (long) {
-                        (1.0 - _params.tStopLoss / 100.0) * bar.closePrice
-                    } else null,
-                    instrument,
-                    bar.closePrice,
-                    trader.availableUsd(instrument) / bar.closePrice,
-                    bar,
-                    indicators)
-        }
-
-        return Advice(bar.endTime, null, false, false, false, null, instrument, bar.closePrice, 0.0, bar, indicators)
-    }
-
-    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
-        val bar = getBar(index)
-        return getAdvice(index, bar, stats, trader, fillIndicators)
-    }
+//    /**
+//     * Найти ближайший бар, на котором была продажа
+//     */
+//    private fun findNearestSellBar(index: Int): Int? {
+//        var lastSellIndex = index - 1
+//
+//        //Найдем ближайший бар, на котором была продажа
+//        while (true) {
+//            return if (lastSellIndex >= 0) {
+//                if (getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
+//                    lastSellIndex--
+//                    continue
+//                } else {
+//                    lastSellIndex
+//                }
+//            } else {
+//                null
+//            }
+//        }
+//    }
+//
+//    /**
+//     * Найти бар начала покупок
+//     */
+//    private fun findUptrendStartedAt(index: Int): ZonedDateTime? {
+//        val lastSellIndex = findNearestSellBar(index) ?: return null
+//
+//        var buyIndex = lastSellIndex + 1
+//
+//        while (true) {
+//            return if (buyIndex < bars.size) {
+//                if (getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
+//                    buyIndex++
+//                    continue
+//                } else {
+//                    bars[buyIndex].endTime
+//                }
+//            } else {
+//                null
+//            }
+//        }
+//    }
+//
+//    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
+//        val bar = getBar(index)
+//        return getAdvice(index, bar, stats, trader, fillIndicators)
+//    }
 
 
     override fun lastBar(): XExtBar = bars.last()
@@ -304,7 +198,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     override fun barsCount(): Int = bars.size
 
-    private fun getIndicators(index: Int, bar: XExtBar): Map<String, Double> =
+    protected fun getIndicators(index: Int, bar: XExtBar): Map<String, Double> =
             indicators().mapValues { it.value.getValue(index, bar) }
 
     override fun metrica(stats: TradesStats): Double {

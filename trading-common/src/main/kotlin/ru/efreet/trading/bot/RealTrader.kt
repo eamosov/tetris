@@ -149,7 +149,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
         funds = balanceResult.toBase["total"]!!
         asset = balanceResult.balances[assetName]!!
 
-        if (advice.orderSide == OrderSide.BUY && advice.amount > 0) {
+        if (advice.orderSide?.side == OrderSide.BUY && advice.amount > 0) {
 
             if (advice.amount * advice.price >= 10) {
 
@@ -166,14 +166,14 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
                         balanceResult.toBase["total"]!!,
-                        advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl
+                        advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl
                 )
 
                 trades.add(lastTrade!!)
                 dao.create(lastTrade)
                 return lastTrade
             }
-        } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
+        } else if (advice.orderSide?.side == OrderSide.SELL && advice.amount > 0) {
             if (advice.amount * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]
@@ -189,7 +189,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
                         balanceResult.toBase["total"]!!,
-                        advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl
+                        advice.orderSide.long, advice.tsl, advice.sellBySl, advice.sellByTsl
                 )
 
                 trades.add(lastTrade!!)
