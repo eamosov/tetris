@@ -65,12 +65,14 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     }
 
     override fun metrica(stats: TradesStats): Double {
-        val hours = Duration.between(stats.start, stats.end).toHours()
-        //return BotLogic.fine(stats.trades.toDouble(), hours / 12.0, 4.0) + BotLogic.fine(stats.goodTrades, 2.0, 10.0) + BotLogic.fine(stats.sma10, 0.8, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit / 5.0
 
-        val targetGoodTrades = 2.0
-        val targetProfit = 4.0
-        return BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) + BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) + /*stats.trades.toDouble() * 0.00538 +*/ stats.goodTrades * (1.0 / targetGoodTrades) + stats.profit * (1.0 / targetProfit)
+        val targetGoodTrades = 0.8
+        val targetProfit = 1.1
+
+        return BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
+                BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
+                stats.goodTrades * (1.0 / targetGoodTrades) +
+                stats.profit * (1.0 / targetProfit)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
@@ -103,10 +105,6 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         daySignal2Ema.prepare()
     }
 
-//    fun blackCrows(index: Int): Boolean {
-//        return index >= 3 && (0..3).all { bars[index - it].isBearish() }
-//    }
-
     override fun getAdvice(index: Int, bar: XExtBar): Pair<OrderSide, Boolean>? {
 
         val sd = sd.getValue(index, bar)
@@ -130,24 +128,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             return dayMacd.getValue(index, bars[index]) < daySignalEma.getValue(index, bars[index])
         }
 
-//        val threeBlackCrowsIndicator = index >=5 && bar.isBearish() && bars[index-1].isBearish() && bars[index-2].isBearish() && bars[index-3].isBearish() && bars[index-4].isBearish() && bars[index-5].isBearish()
-//
-//        if (threeBlackCrowsIndicator) {
-//            println("${bar.endTime}: threeBlackCrowsIndicator")
-//            return OrderSide.SELL
-//        }
-
-
         if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
             //Всегда покупать на установившемся восходящем тренде
-            //println("${bar.endTime}: uptrend")
-            //if (!(0..100).any { blackCrows(index - it) })
             return Pair(OrderSide.BUY, true)
-//            else
-//                return OrderSide.SELL
         } else {
-//            println("${bar.endTime}: downtrend")
-            //return Pair(OrderSide.SELL, false)
 
             //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
