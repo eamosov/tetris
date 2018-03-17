@@ -136,60 +136,6 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     override fun setParamsAsProperties(params: Properties) = setParams(properties.toLogicParams(params))
 
-//    var uptrendStartedAt: ZonedDateTime? = null
-//    var stopLossAt: ZonedDateTime? = null
-//    var stopLossPrice: Double? = null
-//    var tsl: Double? = null
-
-//    /**
-//     * Найти ближайший бар, на котором была продажа
-//     */
-//    private fun findNearestSellBar(index: Int): Int? {
-//        var lastSellIndex = index - 1
-//
-//        //Найдем ближайший бар, на котором была продажа
-//        while (true) {
-//            return if (lastSellIndex >= 0) {
-//                if (getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
-//                    lastSellIndex--
-//                    continue
-//                } else {
-//                    lastSellIndex
-//                }
-//            } else {
-//                null
-//            }
-//        }
-//    }
-//
-//    /**
-//     * Найти бар начала покупок
-//     */
-//    private fun findUptrendStartedAt(index: Int): ZonedDateTime? {
-//        val lastSellIndex = findNearestSellBar(index) ?: return null
-//
-//        var buyIndex = lastSellIndex + 1
-//
-//        while (true) {
-//            return if (buyIndex < bars.size) {
-//                if (getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
-//                    buyIndex++
-//                    continue
-//                } else {
-//                    bars[buyIndex].endTime
-//                }
-//            } else {
-//                null
-//            }
-//        }
-//    }
-//
-//    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
-//        val bar = getBar(index)
-//        return getAdvice(index, bar, stats, trader, fillIndicators)
-//    }
-
-
     override fun lastBar(): XExtBar = bars.last()
 
     override fun getBar(index: Int): XExtBar = bars[index]
