@@ -55,23 +55,27 @@ class FakeTrader(var startUsd: Double = 1000.0,
         }
 
         if (advice.orderSide == OrderSide.BUY && advice.amount > 0) {
-            val fee = advice.amount * feeRatio()
-            val usdBefore = usd
-            val assetBefore = asset
-            usd -= advice.price * advice.amount
-            asset += advice.amount - fee
-            lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
-            trades.add(lastTrade!!)
-            return lastTrade
+            if (advice.amount * advice.price >= 10) {
+                val fee = advice.amount * feeRatio()
+                val usdBefore = usd
+                val assetBefore = asset
+                usd -= advice.price * advice.amount
+                asset += advice.amount - fee
+                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+                trades.add(lastTrade!!)
+                return lastTrade
+            }
         } else if (advice.orderSide == OrderSide.SELL && advice.amount > 0) {
-            val fee = advice.amount * feeRatio()
-            val usdBefore = usd
-            val assetBefore = asset
-            usd += advice.price * (advice.amount - fee)
-            asset -= advice.amount
-            lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
-            trades.add(lastTrade!!)
-            return lastTrade
+            if (advice.amount * advice.price >= 10) {
+                val fee = advice.amount * feeRatio()
+                val usdBefore = usd
+                val assetBefore = asset
+                usd += advice.price * (advice.amount - fee)
+                asset -= advice.amount
+                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.long, advice.tsl, advice.sellBySl, advice.sellByTsl)
+                trades.add(lastTrade!!)
+                return lastTrade
+            }
         } else {
             return null
         }
