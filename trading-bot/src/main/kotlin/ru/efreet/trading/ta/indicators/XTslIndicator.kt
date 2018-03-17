@@ -7,11 +7,11 @@ import ru.efreet.trading.exchange.OrderSide
  * Created by fluder on 17/03/2018.
  */
 class XTslIndicator<B : XExtBar>(bars: List<B>,
+                                 prop: BarGetterSetter<B>,
                                  val xLastTrendIndicator: XLastTrendIndicator<B>,
-                                 val closePriceIndicator: XClosePriceIndicator) : XAbstractIndicator<B>(bars) {
+                                 val closePriceIndicator: XClosePriceIndicator) : XCachedIndicator<B>(bars, prop) {
 
-    override fun getValue(index: Int, bar: B): Double {
-
+    override fun calculate(index: Int, bar: B): Double {
         val cur = xLastTrendIndicator.getValue(index, bar)
         val closePrice = closePriceIndicator.getValue(index, bar)
 
@@ -29,8 +29,8 @@ class XTslIndicator<B : XExtBar>(bars: List<B>,
         }
     }
 
-//    override fun prepare() {
-//        for (i in 0 until bars.size)
-//            getValue(i, bars[i])
-//    }
+    override fun prepare() {
+        for (i in 0 until bars.size)
+            getValue(i, bars[i])
+    }
 }

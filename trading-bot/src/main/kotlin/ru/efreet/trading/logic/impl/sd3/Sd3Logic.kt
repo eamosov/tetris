@@ -36,10 +36,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     lateinit var daySignalEma: XEMAIndicator<XExtBar>
     lateinit var daySignal2Ema: XEMAIndicator<XExtBar>
 
-    lateinit var trend: XLastTrendIndicator<XExtBar>
-    lateinit var trendStart: XTrendStartIndicator<XExtBar>
+    lateinit var lastTrendIndicator: XLastTrendIndicator<XExtBar>
+    lateinit var trendStartIndicator: XTrendStartIndicator<XExtBar>
     lateinit var tslIndicator: XTslIndicator<XExtBar>
-    lateinit var xSoldBySLIndicator: XSoldBySLIndicator<XExtBar>
+    lateinit var soldBySLIndicator: XSoldBySLIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
@@ -100,10 +100,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
         daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
         daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
-        trend = XLastTrendIndicator(bars, XExtBar._trend, { index, bar -> getTrend(index, bar) })
-        trendStart = XTrendStartIndicator(bars, XExtBar._trendStart, trend)
-        tslIndicator = XTslIndicator(bars, trend, closePrice)
-        xSoldBySLIndicator = XSoldBySLIndicator(bars, trend, tslIndicator, trendStart, _params.stopLoss, _params.tStopLoss)
+        lastTrendIndicator = XLastTrendIndicator(bars, XExtBar._lastTrend, { index, bar -> getTrend(index, bar) })
+        trendStartIndicator = XTrendStartIndicator(bars, XExtBar._trendStart, lastTrendIndicator)
+        tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastTrendIndicator, closePrice)
+        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastTrendIndicator, tslIndicator, trendStartIndicator, _params.stopLoss, _params.tStopLoss)
 
 
         shortEma.prepare()
@@ -116,7 +116,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayLongEma.prepare()
         daySignalEma.prepare()
         daySignal2Ema.prepare()
-        trendStart.prepare()
+        soldBySLIndicator.prepare()
     }
 
     fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
@@ -170,9 +170,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 Pair("dayShortEma", dayShortEma),
                 Pair("dayLongEma", dayLongEma),
                 Pair("tsl", tslIndicator),
-                Pair("sl", object: XIndicator<XExtBar>{
+                Pair("sl", object : XIndicator<XExtBar> {
                     override fun getValue(index: Int, bar: XExtBar): Double {
-                        return trendStart.getValue(index, bar).closePrice
+                        return trendStartIndicator.getValue(index, bar).closePrice
                     }
                 })
         )
@@ -185,7 +185,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
 
         val bar = getBar(index)
-        val orderSide = trend.getValue(index, bar)
+        val orderSide = lastTrendIndicator.getValue(index, bar)
 
 //        val _advice = if (stats == null || isProfitable(stats)) {
 //            getAdvice(index, bar)
@@ -216,7 +216,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     indicators)
         }
 
-        if (xSoldBySLIndicator.getValue(index, bar)) {
+        if (soldBySLIndicator.getValue(index, bar)) {
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     true,

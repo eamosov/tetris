@@ -7,13 +7,14 @@ import ru.efreet.trading.exchange.OrderSide
  * Created by fluder on 17/03/2018.
  */
 class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
+                                      prop: BarGetterSetter2<B,Boolean>,
                                       val xLastTrendIndicator: XLastTrendIndicator<B>,
                                       val xTslIndicator: XTslIndicator<B>,
                                       val xTrendStartIndicator: XTrendStartIndicator<B>,
                                       val sl: Double,
-                                      val tsl: Double) : XAbstractIndicator2<B, Boolean>(bars) {
+                                      val tsl: Double) : XCachedIndicator2<B, Boolean>(bars, prop) {
 
-    override fun getValue(index: Int, bar: B): Boolean {
+    override fun calculate(index: Int, bar: B): Boolean {
 
         val trend = xLastTrendIndicator.getValue(index, bar)
         if (trend.side == OrderSide.SELL)
@@ -32,4 +33,7 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
         return false
     }
 
+    override fun prepare() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }
