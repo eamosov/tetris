@@ -215,12 +215,35 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
             /* && uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)*/) {
 
 
-                var lastBuyIndex = index - 1;
-                while (lastBuyIndex > 0 && getAdvice(lastBuyIndex, bars[lastBuyIndex])?.first == OrderSide.BUY) {
-                    lastBuyIndex--
+                var lastSellIndex = index - 1;
+                while (lastSellIndex > 0 && getAdvice(lastSellIndex, bars[lastSellIndex])?.first != OrderSide.SELL) {
+                    lastSellIndex--
                 }
 
-                val uptrendStartedAt = bars[lastBuyIndex + 1].endTime
+                if (lastSellIndex >= 0) { //нашли последнюю точку продажи
+                    //найдем точку покупки
+                    var buyIndex = lastSellIndex + 1
+                    while (buyIndex < bars.size && getAdvice(buyIndex, bars[buyIndex])?.first != OrderSide.BUY) {
+                        buyIndex++
+                    }
+
+                    val uptrendStartedAt = bars[buyIndex].endTime
+
+                    if (lastTrade.time!!.isAfter(uptrendStartedAt))
+                        return Advice(bar.endTime,
+                                null,
+                                false,
+                                false,
+                                false,
+                                null,
+                                instrument,
+                                bar.closePrice,
+                                0.0,
+                                bar,
+                                indicators)
+
+                }
+
 
 //                if (advice == OrderSide.BUY && uptrendStartedAt == null) {
 //                    uptrendStartedAt = bar.endTime
@@ -231,18 +254,6 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
                 //println("${bar.endTime} NOT BUY AFTER (T)SL")
 
-                if (lastTrade.time!!.isAfter(uptrendStartedAt))
-                    return Advice(bar.endTime,
-                            null,
-                            false,
-                            false,
-                            false,
-                            null,
-                            instrument,
-                            bar.closePrice,
-                            0.0,
-                            bar,
-                            indicators)
             }
 
             //println("${bar.endTime} BUY ${bar.closePrice}")
