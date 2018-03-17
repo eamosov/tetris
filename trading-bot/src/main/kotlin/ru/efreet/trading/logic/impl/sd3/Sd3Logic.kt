@@ -168,7 +168,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 Pair("price", closePrice),
                 Pair("macd", XMinusIndicator(macd, signalEma)),
                 Pair("dayShortEma", dayShortEma),
-                Pair("dayLongEma", dayLongEma))
+                Pair("dayLongEma", dayLongEma),
+                Pair("sl", tslIndicator)
+        )
     }
 
     override var historyBars: Long
@@ -209,7 +211,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     indicators)
         }
 
-        if (xSoldBySLIndicator.getValue(index, bar)){
+        if (xSoldBySLIndicator.getValue(index, bar)) {
             return Advice(bar.endTime,
                     OrderSideExt(OrderSide.SELL, false),
                     true,
