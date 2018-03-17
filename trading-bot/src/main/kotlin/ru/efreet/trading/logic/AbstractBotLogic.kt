@@ -37,8 +37,6 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     private var barsIsPrepared = false
 
-    override var maxBars = 3000
-
     override var historyBars = 3000L
 
     inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<P, R> =
@@ -109,7 +107,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override fun insertBar(bar: XBar) {
         bars.add(XExtBar(bar))
 
-        while (bars.size > maxBars) {
+        while (bars.size > historyBars) {
             bars.removeAt(0)
         }
     }

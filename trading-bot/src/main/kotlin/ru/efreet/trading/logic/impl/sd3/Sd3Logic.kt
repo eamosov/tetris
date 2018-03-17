@@ -174,12 +174,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     }
 
     override var historyBars: Long
-        get() = Duration.ofHours(168).toMillis() / barInterval.duration.toMillis()
+        get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
-
-    override var maxBars: Int
-        get() = historyBars.toInt()
-        set(value) {}
-
 
 }

@@ -116,7 +116,7 @@ class TradeBot(val exchange: Exchange,
                 exchange.getName(),
                 instrument,
                 barInterval,
-                ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.maxBars.toLong())), ZonedDateTime.now())
+                ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.historyBars)), ZonedDateTime.now())
 
         for (i in 0 until lastBars.size - 1)
             logic.insertBar(lastBars[i])

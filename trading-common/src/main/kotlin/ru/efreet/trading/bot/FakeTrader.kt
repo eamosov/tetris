@@ -76,9 +76,9 @@ class FakeTrader(var startUsd: Double = 1000.0,
                 trades.add(lastTrade!!)
                 return lastTrade
             }
-        } else {
-            return null
         }
+
+        return null
     }
 
     override fun history(start: ZonedDateTime, end: ZonedDateTime): TradeHistory {

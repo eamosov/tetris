@@ -84,8 +84,6 @@ interface BotLogic<P> {
 
     fun metrica(stats: TradesStats): Double
 
-    var maxBars: Int
-
     var historyBars: Long
 
     fun isProfitable(stats: TradesStats): Boolean
