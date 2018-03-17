@@ -248,7 +248,14 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
                     lastTrade.side == OrderSide.SELL &&
                     ((lastTrade.sellBySl == true) || (lastTrade.sellByTsl == true))) {
 
-                val uptrendStartedAt = findUptrendStartedAt(index)
+                val uptrendStartedAt = if (index > 0 && bars[index - 1].uptrendStartedAt != null) {
+                    bars[index - 1].uptrendStartedAt
+                } else {
+                    findUptrendStartedAt(index)
+                }
+
+                bars[index].uptrendStartedAt = uptrendStartedAt
+
                 if (uptrendStartedAt != null && lastTrade.time!!.isAfter(uptrendStartedAt)) {
                     return Advice(bar.endTime,
                             null,
