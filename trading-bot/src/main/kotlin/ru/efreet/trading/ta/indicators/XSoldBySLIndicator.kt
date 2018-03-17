@@ -34,6 +34,7 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
     }
 
     override fun prepare() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        for (i in 0 until bars.size)
+            getValue(i, bars[i])
     }
 }
