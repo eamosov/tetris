@@ -65,7 +65,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(209), Duration.ofMinutes(315), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1399), Duration.ofMinutes(2099), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(103), Duration.ofMinutes(155 ), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(103), Duration.ofMinutes(155), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(2510), Duration.ofMinutes(3766), Duration.ofSeconds(1), false)
 
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 3.57, 5.36, 0.2, true)
@@ -184,45 +184,48 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
 
-        val bar = getBar(index)
-        val orderSide = lastTrendIndicator.getValue(index, bar)
+        synchronized(this) {
 
-        val indicators = if (fillIndicators) getIndicators(index, bar) else null
+            val bar = getBar(index)
+            val orderSide = lastTrendIndicator.getValue(index, bar)
 
-        //Если SELL, то безусловно продаем
-        if (orderSide.side == OrderSide.SELL) {
+            val indicators = if (fillIndicators) getIndicators(index, bar) else null
 
-            //println("${bar.endTime} SELL ${bar.closePrice}")
+            //Если SELL, то безусловно продаем
+            if (orderSide.side == OrderSide.SELL) {
+
+                //println("${bar.endTime} SELL ${bar.closePrice}")
+
+                return Advice(bar.endTime,
+                        OrderSideExt(OrderSide.SELL, false),
+                        false,
+                        instrument,
+                        bar.closePrice,
+                        trader.availableAsset(instrument),
+                        bar,
+                        indicators)
+            }
+
+            if (soldBySLIndicator.getValue(index, bar)) {
+                return Advice(bar.endTime,
+                        OrderSideExt(OrderSide.SELL, false),
+                        true,
+                        instrument,
+                        bar.closePrice,
+                        trader.availableAsset(instrument),
+                        bar,
+                        indicators)
+            }
 
             return Advice(bar.endTime,
-                    OrderSideExt(OrderSide.SELL, false),
+                    orderSide,
                     false,
                     instrument,
                     bar.closePrice,
-                    trader.availableAsset(instrument),
+                    trader.availableUsd(instrument) / bar.closePrice,
                     bar,
                     indicators)
         }
-
-        if (soldBySLIndicator.getValue(index, bar)) {
-            return Advice(bar.endTime,
-                    OrderSideExt(OrderSide.SELL, false),
-                    true,
-                    instrument,
-                    bar.closePrice,
-                    trader.availableAsset(instrument),
-                    bar,
-                    indicators)
-        }
-
-        return Advice(bar.endTime,
-                orderSide,
-                false,
-                instrument,
-                bar.closePrice,
-                trader.availableUsd(instrument) / bar.closePrice,
-                bar,
-                indicators)
 
     }
 

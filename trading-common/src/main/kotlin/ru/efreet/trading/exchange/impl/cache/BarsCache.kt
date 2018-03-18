@@ -34,31 +34,34 @@ class BarsCache(val path: String) {
     fun getConnection(): Connection = conn
 
     fun getFirst(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
+        return synchronized(this) {
+            conn.createStatement().use { statement ->
+                val time = statement.executeQuery("select min(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
+                    resultSet.next()
+                    resultSet.getLong(1)
+                }
 
-        conn.createStatement().use { statement ->
-            val time = statement.executeQuery("select min(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
-                resultSet.next()
-                resultSet.getLong(1)
-            }
-
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                resultSet.next()
-                return mapToBar(resultSet, interval);
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                    resultSet.next()
+                    mapToBar(resultSet, interval);
+                }
             }
         }
     }
 
     fun getLast(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
 
-        conn.createStatement().use { statement ->
-            val time = statement.executeQuery("select max(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
-                resultSet.next()
-                resultSet.getLong(1)
-            }
+        return synchronized(this) {
+            conn.createStatement().use { statement ->
+                val time = statement.executeQuery("select max(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
+                    resultSet.next()
+                    resultSet.getLong(1)
+                }
 
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                resultSet.next()
-                return mapToBar(resultSet, interval);
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                    resultSet.next()
+                    mapToBar(resultSet, interval);
+                }
             }
         }
     }
@@ -76,16 +79,17 @@ class BarsCache(val path: String) {
     }
 
     fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBaseBar> {
-        val bars = mutableListOf<XBaseBar>()
-
-        conn.createStatement().use { statement ->
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
-                while (resultSet.next()) {
-                    bars.add(mapToBar(resultSet, interval))
+        synchronized(this) {
+            val bars = mutableListOf<XBaseBar>()
+            conn.createStatement().use { statement ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
+                    while (resultSet.next()) {
+                        bars.add(mapToBar(resultSet, interval))
+                    }
                 }
             }
+            return bars
         }
-        return bars
     }
 
     fun tableName(exchange: String, instrument: Instrument, interval: BarInterval): String {
@@ -125,6 +129,7 @@ class BarsCache(val path: String) {
                 }
             }
             conn.commit()
+            conn.autoCommit = true
         }
     }
 

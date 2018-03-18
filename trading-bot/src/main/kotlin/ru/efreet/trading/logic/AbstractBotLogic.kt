@@ -3,12 +3,9 @@ package ru.efreet.trading.logic
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bars.indexOf
-import ru.efreet.trading.bot.Advice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.PropertyEditorFactory
 import ru.efreet.trading.utils.SeedType
@@ -105,10 +102,12 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 
     override fun insertBar(bar: XBar) {
-        bars.add(XExtBar(bar))
+        synchronized(this) {
+            bars.add(XExtBar(bar))
 
-        while (bars.size > historyBars) {
-            bars.removeAt(0)
+            while (bars.size > historyBars) {
+                bars.removeAt(0)
+            }
         }
     }
 
@@ -119,16 +118,18 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override fun isInitialized(): Boolean = properties.isInitialized(_params)
 
     override fun setParams(params: P) {
-        val oldP = _params
-        _params = params
-        if ((_params != oldP && isInitialized()) || (isInitialized() && !barsIsPrepared)) {
-            if (barsIsPrepared) {
-                for (i in 0 until bars.size) {
-                    bars[i] = XExtBar(bars[i].bar)
+        synchronized(this) {
+            val oldP = _params
+            _params = params
+            if ((_params != oldP && isInitialized()) || (isInitialized() && !barsIsPrepared)) {
+                if (barsIsPrepared) {
+                    for (i in 0 until bars.size) {
+                        bars[i] = XExtBar(bars[i].bar)
+                    }
                 }
+                barsIsPrepared = true
+                prepare()
             }
-            barsIsPrepared = true
-            prepare()
         }
     }
 

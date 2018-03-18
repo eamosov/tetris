@@ -16,8 +16,6 @@ data class SimpleBotLogicParams(var short: Int? = null,
                                 var daySignal: Int? = null,
                                 var daySignal2: Int? = null,
 
-                                var f3Index: Int? = null,
-
                                 override var stopLoss: Double = 10.0,
                                 override var tStopLoss: Double = 1.5,
 

@@ -2,9 +2,7 @@ package ru.efreet.trading
 
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
-import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
-import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
@@ -13,10 +11,7 @@ import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.IntFunction3
 import ru.efreet.trading.utils.toJson
-import java.time.ZonedDateTime
-import kotlin.reflect.jvm.internal.impl.protobuf.Internal
 
 /**
  * Created by fluder on 08/02/2018.
@@ -59,12 +54,7 @@ class Train {
                     {
                         val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, cmd.barInterval, exchange.getFee(), bars, arrayListOf(Pair(cmd.start!!, cmd.end!!)), false)
 
-                        val stats = StatsCalculator().stats(history)
-
-                        if (stats.profit > 1.0 && it.f3Index != null) {
-                            IntFunction3.incCounter(it.f3Index!!)
-                        }
-                        stats
+                        StatsCalculator().stats(history)
                     },
                     { _, stats -> logic.metrica(stats) },
                     { logic.copyParams(it) })

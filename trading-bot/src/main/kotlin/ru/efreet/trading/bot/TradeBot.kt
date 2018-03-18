@@ -21,8 +21,11 @@ class TradeBot(val exchange: Exchange,
                var baseLimit: Double,
                val testOnly: Boolean,
                val instrument: Instrument,
+               val logicName: String,
                val logic: BotLogic<SimpleBotLogicParams>,
+               val settings:String,
                val barInterval: BarInterval,
+               val trainStart:ZonedDateTime,
                var orderListener: ((TradeBot, TradeRecord) -> Unit)? = null) {
 
     private val zone = ZoneId.of("GMT")
