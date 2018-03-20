@@ -120,7 +120,7 @@ class Main {
                             val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(bot.logicName, bot.instrument, bot.barInterval)
                             val curParams = bot.logic.getParams().copy()
 
-                            val div = 20.0
+                            val div = 50.0
                             val hardBound = false
 
                             tmpLogic.setParams(curParams)
