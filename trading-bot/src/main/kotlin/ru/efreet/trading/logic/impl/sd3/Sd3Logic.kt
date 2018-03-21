@@ -116,9 +116,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         dayLongEma.prepare()
         daySignalEma.prepare()
         daySignal2Ema.prepare()
-        lastTrendIndicator.prepare()
-        trendStartIndicator.prepare()
-        tslIndicator.prepare()
+//        lastTrendIndicator.prepare()
+//        trendStartIndicator.prepare()
+//        tslIndicator.prepare()
         soldBySLIndicator.prepare()
     }
 
