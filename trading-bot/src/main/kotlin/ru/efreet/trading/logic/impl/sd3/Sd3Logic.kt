@@ -81,8 +81,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
                 stats.goodTrades * (1.0 / targetGoodTrades) +
                 stats.profit * (1.0 / targetProfit) -
-                params.stopLoss / 5.0 -
-                params.tStopLoss / 5.0
+                params.stopLoss / 3.0 -
+                params.tStopLoss / 4.0
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
