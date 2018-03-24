@@ -102,11 +102,10 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
         return n
     }
 
-    fun step2(obj: T, stepSizeP: Double): R {
+    fun step2(obj: T, stepSizeP: Double) {
         var value = getValue(obj)
         if (value == null) {
             value = setRandom(obj)
-            return value
         }
 
         val n: R
@@ -159,7 +158,6 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
         }
 
         setValue(obj, n)
-        return n
     }
 
     fun setMinMax(obj: T, p: Double, hardBounds: Boolean) {

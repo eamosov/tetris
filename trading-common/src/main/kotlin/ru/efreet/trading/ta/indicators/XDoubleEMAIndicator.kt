@@ -18,6 +18,8 @@ class XDoubleEMAIndicator<B>(bars: List<B>,
     }
 
     override fun prepare() {
+        ema.prepare()
+        emaEma.prepare()
         for (i in 0 until bars.size)
             getValue(i, bars[i])
     }

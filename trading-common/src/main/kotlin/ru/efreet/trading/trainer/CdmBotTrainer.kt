@@ -79,8 +79,8 @@ class CdmBotTrainer : BotTrainer {
         all.get()
     }
 
-    val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
-    //val steps: Array<Int> = arrayOf(10, 5, 1)
+    //val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
+    val steps: Array<Int> = arrayOf(20, 10, 1)
 
     fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      origin: TrainItem<P, R?>,
@@ -92,23 +92,25 @@ class CdmBotTrainer : BotTrainer {
         while (true) {
             val n = doCdmStep(genes, c, steps[i], function, metrica, copy)
             if (n == null) {
-                if (i < steps.size - 1)
+                if (i < steps.size - 1) {
                     i++
-                else
+                }else {
                     return c
+                }
             } else {
                 c = n
+                i = 0
             }
         }
     }
 
     fun <P, R> doCdmStep(genes: List<PropertyEditor<P, Any?>>,
                          origin: TrainItem<P, R?>,
-                         stepP: Double,
+                         step: Int,
                          function: (P) -> R,
                          metrica: (P, R) -> Double,
                          copy: (P) -> P): TrainItem<P, R?>? {
-
+        
         val origMetrica: Double = metrica(origin.args, origin.result!!)
 
         val futures: MutableList<CompletableFuture<TrainItem<P, R>>> = mutableListOf()
@@ -116,11 +118,11 @@ class CdmBotTrainer : BotTrainer {
 
         for (gene in genes) {
 
-            for (step in arrayOf(-stepP, stepP/*, rnd(-10, 10)*/)) {
+            for (step in arrayOf(-step, step/*, rnd(-10, 10)*/)) {
 
                 val f = CompletableFuture.supplyAsync(Supplier {
                     val copyParams = copy(origin.args)
-                    gene.step2(copyParams, step)
+                    gene.step(copyParams, step)
                     return@Supplier TrainItem(copyParams, function(copyParams))
                 }, executor)
 
@@ -133,7 +135,7 @@ class CdmBotTrainer : BotTrainer {
                 val copyParams = copy(origin.args)
                 for (gene in genes) {
                     //gene.step(copyParams, rnd(-100, 100))
-                    gene.step2(copyParams, rnd(-stepP * 3, stepP * 3))
+                    gene.step(copyParams, rnd(-step * 3, step * 3))
                 }
                 return@Supplier TrainItem(copyParams, function(copyParams))
             }, executor)
