@@ -56,20 +56,20 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 tStopLoss = 3.89
         )
 
-        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 8, 14, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(9), Duration.ofMinutes(15), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 9, 29, 1, false)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(5), Duration.ofMinutes(15), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(8), Duration.ofMinutes(14), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(54), Duration.ofMinutes(82), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(85), Duration.ofMinutes(129), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(3), Duration.ofMinutes(9), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(38), Duration.ofMinutes(114), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(98), Duration.ofMinutes(294), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(209), Duration.ofMinutes(315), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1399), Duration.ofMinutes(2099), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(103), Duration.ofMinutes(155), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(2510), Duration.ofMinutes(3766), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(365), Duration.ofMinutes(1095), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(443), Duration.ofMinutes(1329), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(41), Duration.ofMinutes(123), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(1142), Duration.ofMinutes(3426), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 3.57, 5.36, 0.1, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 3.11, 4.67, 0.1, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 4.0, 0.1, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 2.0, 6.0, 0.1, true)
     }
 
     fun funXP(x: Double, p: Double): Double {
