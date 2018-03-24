@@ -56,7 +56,7 @@ class Train {
 
                         StatsCalculator().stats(history)
                     },
-                    { _, stats -> logic.metrica(stats) },
+                    { params, stats -> logic.metrica(params, stats) },
                     { logic.copyParams(it) })
 
             println(sp.toJson())

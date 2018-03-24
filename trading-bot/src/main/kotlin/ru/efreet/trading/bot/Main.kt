@@ -146,7 +146,7 @@ class Main {
 
                                         StatsCalculator().stats(history)
                                     },
-                                    { _, stats -> tmpLogic.metrica(stats) },
+                                    { params, stats -> tmpLogic.metrica(params, stats) },
                                     { tmpLogic.copyParams(it) })
 
                             println("STATS: $stats")

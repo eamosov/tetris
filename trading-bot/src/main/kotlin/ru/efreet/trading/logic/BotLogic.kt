@@ -82,7 +82,7 @@ interface BotLogic<P> {
         return getAdvice(barsCount() - 1, stats, trader, fillIndicators)
     }
 
-    fun metrica(stats: TradesStats): Double
+    fun metrica(params: P, stats: TradesStats): Double
 
     var historyBars: Long
 
