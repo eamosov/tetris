@@ -19,7 +19,7 @@ class CdmBotTrainer : BotTrainer {
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true)
 
-        private val threadPool = ThreadPoolExecutor(4, 4,
+        private val threadPool = ThreadPoolExecutor(1, 1,
                 0L, TimeUnit.MILLISECONDS,
                 LinkedBlockingQueue(),
                 ThreadFactoryBuilder().setDaemon(true).build())
