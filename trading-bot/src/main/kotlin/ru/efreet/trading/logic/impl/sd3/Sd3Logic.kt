@@ -120,28 +120,28 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { signalEma.prepare() })
+        //tasks.add(ForkJoinPool.commonPool().submit { signalEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { daySignalEma.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { daySignal2Ema.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { soldBySLIndicator.prepare() })
+        //tasks.add(ForkJoinPool.commonPool().submit { daySignalEma.prepare() })
+        //tasks.add(ForkJoinPool.commonPool().submit { daySignal2Ema.prepare() })
+        //tasks.add(ForkJoinPool.commonPool().submit { soldBySLIndicator.prepare() })
         tasks.forEach { it.join() }
 
 //        shortEma.prepare()
 //        longEma.prepare()
 //        sma.prepare()
 //        sd.prepare()
-//        signalEma.prepare()
+        signalEma.prepare()
 
 //        dayShortEma.prepare()
 //        dayLongEma.prepare()
-//        daySignalEma.prepare()
-//        daySignal2Ema.prepare()
+        daySignalEma.prepare()
+        daySignal2Ema.prepare()
 ////        lastTrendIndicator.prepare()
 ////        trendStartIndicator.prepare()
 ////        tslIndicator.prepare()
-//        soldBySLIndicator.prepare()
+        soldBySLIndicator.prepare()
     }
 
     fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
