@@ -72,7 +72,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 3.11, 4.67, 0.1, true)
     }
 
-    fun funXP(x:Double, p:Double):Double {
+    fun funXP(x: Double, p: Double): Double {
         return Math.signum(x) * (Math.pow(Math.abs(x) + 1.0, p) - 1.0)
     }
 
@@ -80,15 +80,15 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val targetGoodTrades = 0.8
         val targetProfit = 3.4
-        val targetStopLoss = 5.0
-        val targetTStopLoss = 5.0
+        val targetStopLoss = 2.5
+        val targetTStopLoss = 4.5
 
         return BotLogic.fine(stats.trades.toDouble(), 20.0, 5.0) + BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
-                stats.goodTrades * (1.0 / targetGoodTrades) +
-                stats.profit * (1.0 / targetProfit) -
-                funXP(params.stopLoss / targetStopLoss, 0.5) -
-                funXP(params.tStopLoss / targetTStopLoss, 0.5)
+                funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
+                funXP(stats.profit / targetProfit - 1.0, 1.0) -
+                funXP(params.stopLoss / targetStopLoss - 1.0, 0.5) -
+                funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.5)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
