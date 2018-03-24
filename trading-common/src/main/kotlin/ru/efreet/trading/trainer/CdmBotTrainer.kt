@@ -19,7 +19,7 @@ class CdmBotTrainer : BotTrainer {
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true)
 
-        private val threadPool = ThreadPoolExecutor(2, 2,
+        private val threadPool = ThreadPoolExecutor(4, 4,
                 0L, TimeUnit.MILLISECONDS,
                 LinkedBlockingQueue(),
                 ThreadFactoryBuilder().setDaemon(true).build())
@@ -37,7 +37,7 @@ class CdmBotTrainer : BotTrainer {
 
         println("TOP RESULTS:")
 
-        for (i in maxOf(population.size - 5, 0) until population.size ){
+        for (i in maxOf(population.size - 5, 0) until population.size) {
             println(population[i])
         }
 
@@ -94,12 +94,12 @@ class CdmBotTrainer : BotTrainer {
             if (n == null) {
                 if (i < steps.size - 1) {
                     i++
-                }else {
+                } else {
                     return c
                 }
             } else {
                 c = n
-                i = 0
+                i = maxOf(0, i - 1)
             }
         }
     }
