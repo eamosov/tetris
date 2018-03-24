@@ -80,7 +80,7 @@ class CdmBotTrainer : BotTrainer {
     }
 
     //val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
-    val steps: Array<Int> = arrayOf(20, 10, 1)
+    val steps: Array<Int> = arrayOf(5,1)
 
     fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      origin: TrainItem<P, R?>,
