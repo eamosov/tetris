@@ -68,7 +68,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(103), Duration.ofMinutes(155), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(2510), Duration.ofMinutes(3766), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 3.57, 5.36, 0.2, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 3.57, 5.36, 0.1, true)
         of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 3.11, 4.67, 0.1, true)
     }
 
