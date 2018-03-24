@@ -13,6 +13,8 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
 import java.time.Duration
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
 
 /**
  * Created by fluder on 20/02/2018.
@@ -113,21 +115,33 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastTrendIndicator, closePrice)
         soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastTrendIndicator, tslIndicator, trendStartIndicator, _params.stopLoss, _params.tStopLoss)
 
+        val tasks = mutableListOf<ForkJoinTask<*>>()
+        tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { sma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { signalEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { daySignalEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { daySignal2Ema.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { soldBySLIndicator.prepare() })
+        tasks.forEach { it.join() }
 
-        shortEma.prepare()
-        longEma.prepare()
-        sma.prepare()
-        sd.prepare()
-        signalEma.prepare()
+//        shortEma.prepare()
+//        longEma.prepare()
+//        sma.prepare()
+//        sd.prepare()
+//        signalEma.prepare()
 
-        dayShortEma.prepare()
-        dayLongEma.prepare()
-        daySignalEma.prepare()
-        daySignal2Ema.prepare()
-//        lastTrendIndicator.prepare()
-//        trendStartIndicator.prepare()
-//        tslIndicator.prepare()
-        soldBySLIndicator.prepare()
+//        dayShortEma.prepare()
+//        dayLongEma.prepare()
+//        daySignalEma.prepare()
+//        daySignal2Ema.prepare()
+////        lastTrendIndicator.prepare()
+////        trendStartIndicator.prepare()
+////        tslIndicator.prepare()
+//        soldBySLIndicator.prepare()
     }
 
     fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
