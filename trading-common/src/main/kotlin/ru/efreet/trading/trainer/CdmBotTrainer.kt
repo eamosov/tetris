@@ -19,7 +19,7 @@ class CdmBotTrainer : BotTrainer {
                 ForkJoinPool.defaultForkJoinWorkerThreadFactory,
                 null, true)
 
-        private val threadPool = ThreadPoolExecutor(32, 32,
+        private val threadPool = ThreadPoolExecutor(2, 2,
                 0L, TimeUnit.MILLISECONDS,
                 LinkedBlockingQueue(),
                 ThreadFactoryBuilder().setDaemon(true).build())
@@ -110,7 +110,7 @@ class CdmBotTrainer : BotTrainer {
                          function: (P) -> R,
                          metrica: (P, R) -> Double,
                          copy: (P) -> P): TrainItem<P, R?>? {
-        
+
         val origMetrica: Double = metrica(origin.args, origin.result!!)
 
         val futures: MutableList<CompletableFuture<TrainItem<P, R>>> = mutableListOf()
