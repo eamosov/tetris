@@ -76,8 +76,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
         val targetGoodTrades = 0.8
         val targetProfit = 3.4
-        val targetStopLoss = 3.0
-        val targetTStopLoss = 4.0
+        val targetStopLoss = 5.0
+        val targetTStopLoss = 5.0
 
         return BotLogic.fine(stats.trades.toDouble(), 20.0, 5.0) + BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
