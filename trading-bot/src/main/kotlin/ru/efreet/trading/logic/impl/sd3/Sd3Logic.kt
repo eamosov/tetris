@@ -45,33 +45,33 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     init {
         _params = SimpleBotLogicParams(
-                short = 11,
-                long = 68,
-                signal = 107,
-                deviationTimeFrame = 12,
-                deviation = 11,
-                dayShort = 262,
-                dayLong = 1244,
-                daySignal = 129,
-                daySignal2 = 3138,
-                stopLoss = 4.47,
-                tStopLoss = 3.89
+                short = 6,
+                long = 76,
+                signal = 196,
+                deviationTimeFrame = 10,
+                deviation = 19,
+                dayShort = 730,
+                dayLong = 891,
+                daySignal = 82,
+                daySignal2 = 2269,
+                stopLoss = 2.195,
+                tStopLoss = 4.113
         )
 
-        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 9, 29, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(5), Duration.ofMinutes(15), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(3), Duration.ofMinutes(9), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(38), Duration.ofMinutes(114), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(98), Duration.ofMinutes(294), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(4), Duration.ofMinutes(8), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(60), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(365), Duration.ofMinutes(1095), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(584), Duration.ofMinutes(876), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(443), Duration.ofMinutes(1329), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(41), Duration.ofMinutes(123), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(1142), Duration.ofMinutes(3426), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(99), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(1815), Duration.ofMinutes(2723), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 4.0, 0.1, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 2.0, 6.0, 0.1, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.75, 2.63, 0.05, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 3.29, 4.93, 0.05, true)
     }
 
     fun funXP(x: Double, p: Double): Double {
@@ -81,14 +81,15 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Double {
 
         val targetGoodTrades = 0.8
-        val targetProfit = 3.4
-        val targetStopLoss = 2.5
-        val targetTStopLoss = 4.5
+        val targetProfit = 4.5
+        val targetStopLoss = 2
+        val targetTStopLoss = 4
 
-        return BotLogic.fine(stats.trades.toDouble(), 20.0, 5.0) + BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
+        return BotLogic.fine(stats.trades.toDouble(), 20.0, 5.0) +
+                BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
                 funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
-                funXP(stats.profit / targetProfit - 1.0, 1.0) -
+                funXP(stats.profit / targetProfit - 1.0, 0.5) -
                 funXP(params.stopLoss / targetStopLoss - 1.0, 0.2) -
                 funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.2)
     }

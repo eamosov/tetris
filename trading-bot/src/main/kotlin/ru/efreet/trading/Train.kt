@@ -40,7 +40,7 @@ class Train {
             val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.loadState(cmd.settings!!)
 
-            val population = logic.seed(cmd.seedType, cmd.population ?: 10)
+            val population = mutableListOf<SimpleBotLogicParams>() //logic.seed(cmd.seedType, cmd.population ?: 10)
             if (logic.isInitialized())
                 population.add(logic.getParams().copy())
 
