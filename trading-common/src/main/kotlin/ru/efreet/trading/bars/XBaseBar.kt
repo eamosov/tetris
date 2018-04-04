@@ -64,6 +64,9 @@ data class XBaseBar(override var timePeriod: Duration,
     constructor(timePeriod: Duration, endTime: ZonedDateTime, openPrice: Double, highPrice: Double, lowPrice: Double, closePrice: Double, volume: Double) :
             this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0.0)
 
+    constructor(bar: XBar) :
+            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.amount)
+
 
     /**
      * Adds a trade at the end of bar period.

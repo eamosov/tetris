@@ -26,13 +26,15 @@ class Poloniex() : Exchange {
     val apiSecret: String
 
     init {
-        val properties = Poloniex::class.java.getResourceAsStream("resource.properties").use {
-            val properties = Properties()
-            properties.load(it)
-            properties
-        }
-        apiKey = properties.getProperty("POLONIEX_API_KEY")
-        apiSecret = properties.getProperty("POLONIEX_SECRET_KEY")
+//        val properties = Poloniex::class.java.getResourceAsStream("resource.properties").use {
+//            val properties = Properties()
+//            properties.load(it)
+//            properties
+//        }
+//        apiKey = properties.getProperty("POLONIEX_API_KEY")
+//        apiSecret = properties.getProperty("POLONIEX_SECRET_KEY")
+        apiKey = "QZ1Z6Q4T-1NHKN160-869RSEOW-91YPTVX9"
+        apiSecret = "2dac8206d5f04a7d138391b0ab525523ab37be63198497cb1c39e84f3f5049e56bb76852404bd4df263fa947de69f936d1723d337bfdacba36c22161902f5f17"
     }
 
     private val service = PoloniexExchangeService(apiKey, apiSecret)

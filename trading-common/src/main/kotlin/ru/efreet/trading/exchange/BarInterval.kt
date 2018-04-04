@@ -9,6 +9,7 @@ import java.time.temporal.TemporalUnit
  */
 enum class BarInterval(private val _duration: Duration) : TemporalUnit {
 
+    INVALID(Duration.ofSeconds(0)),
     ONE_SECOND(Duration.ofSeconds(1)),
     ONE_MIN(Duration.ofMinutes(1)),
     FIVE_MIN(Duration.ofMinutes(5)),
@@ -25,6 +26,14 @@ enum class BarInterval(private val _duration: Duration) : TemporalUnit {
                     .forEach { return it }
 
             throw RuntimeException("Unknown duration $duration")
+        }
+
+        fun ofSafe(duration: Duration): BarInterval {
+            BarInterval.values()
+                    .filter { it.duration.toMillis() == duration.toMillis() }
+                    .forEach { return it }
+
+            return INVALID
         }
     }
 

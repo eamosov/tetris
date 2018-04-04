@@ -100,6 +100,10 @@ interface XBar {
         return openPrice < closePrice
     }
 
+    fun middlePrice() : Double {
+        return (minPrice+maxPrice)/2
+    }
+
     /**
      * Adds a trade at the end of bar period.
      * @param tradeVolume the traded volume

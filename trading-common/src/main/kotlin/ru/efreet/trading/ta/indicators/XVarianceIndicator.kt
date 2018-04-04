@@ -24,7 +24,7 @@ class XVarianceIndicator<B>(val bars: List<B>,
         }
         variance = variance / numberOfObservations
 
-        //println("XVarianceIndicator.getValue took ${System.currentTimeMillis() - st}")
+        //println("XVarianceIndicator.calcValue took ${System.currentTimeMillis() - st}")
         return variance
     }
 }
