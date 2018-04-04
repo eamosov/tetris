@@ -1,6 +1,7 @@
 package ru.efreet.trading.book.indicators;
 
 import ru.efreet.trading.book.Sheet;
+import ru.efreet.trading.visual.CandlesPane;
 
 import java.awt.*;
 
@@ -24,12 +25,12 @@ public class MacdIndicator implements IIndicator {
 
     @Override
     public Color getColorMax() {
-        return Color.green;
+        return CandlesPane.GREEN;
     }
 
     @Override
     public Color getColorMin() {
-        return Color.red;
+        return CandlesPane.RED;
     }
 
     @Override

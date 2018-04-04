@@ -30,7 +30,7 @@ public class PanelWithVerticalLine extends JPanel {
         if (p==null) return;
         int index = vis.getIndexAt(p);
         int x = (index-vis.getIndex())*vis.candleWidth()+vis.candleWidth()/2;
-        g.setColor(Color.darkGray);
+        g.setColor(new Color(145,171,172));
         g.drawLine(x,0,x,getHeight());
     }
 

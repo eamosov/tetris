@@ -1,6 +1,7 @@
 package ru.efreet.trading.book.indicators;
 
 import ru.efreet.trading.book.Sheet;
+import ru.efreet.trading.visual.CandlesPane;
 
 import java.awt.*;
 
@@ -31,7 +32,7 @@ public class TargetSellIndicator implements IIndicator{
 
     @Override
     public Color getColorMax() {
-        return COLOR;
+        return CandlesPane.RED;
     }
 
     public Color getColorMin() {

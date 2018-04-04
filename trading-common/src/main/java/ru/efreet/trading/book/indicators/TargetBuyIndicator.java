@@ -1,12 +1,12 @@
 package ru.efreet.trading.book.indicators;
 
 import ru.efreet.trading.book.Sheet;
+import ru.efreet.trading.visual.CandlesPane;
 
 import java.awt.*;
 
 public class TargetBuyIndicator implements IIndicator{
     public static final int Id = 1;
-    public static final Color COLOR = new Color(0,192,0);
 
     @Override
     public int getId() {
@@ -31,7 +31,7 @@ public class TargetBuyIndicator implements IIndicator{
 
     @Override
     public Color getColorMax() {
-        return COLOR;
+        return CandlesPane.GREEN;
     }
 
     @Override
