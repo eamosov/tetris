@@ -31,6 +31,12 @@
               <text value="&gt;&gt;"/>
             </properties>
           </component>
+          <component id="51299" class="javax.swing.JButton" binding="superBot">
+            <constraints/>
+            <properties>
+              <text value="Super bot"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <grid id="11fca" binding="center" layout-manager="BorderLayout" hgap="0" vgap="0">

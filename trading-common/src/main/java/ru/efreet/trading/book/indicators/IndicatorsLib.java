@@ -2,7 +2,6 @@ package ru.efreet.trading.book.indicators;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 
 public class IndicatorsLib {
     private IIndicator[] indicators;
@@ -10,7 +9,17 @@ public class IndicatorsLib {
 
     public IndicatorsLib(){
 
-        indicators = new IIndicator[]{new VolumeIndicator(),new TargetBuyIndicator(),new TargetSellIndicator(), new MacdIndicator(), new DemaIndicator()};
+        indicators = new IIndicator[]{new VolumeIndicator(),new TargetBuyIndicator(),new TargetSellIndicator(), new MacdIndicator(), new DemaIndicator(),
+        new PriceChangeIndicator(IndicatorPeriod.TENMINUTES),new PriceChangeIndicator(IndicatorPeriod.HOUR),new PriceChangeIndicator(IndicatorPeriod.DAY),
+                new PriceChangeIndicator(IndicatorPeriod.WEEK),new PriceChangeIndicator(IndicatorPeriod.MONTH),
+        new RelativePriceIndicator(IndicatorPeriod.TENMINUTES),new RelativePriceIndicator(IndicatorPeriod.HOUR),new RelativePriceIndicator(IndicatorPeriod.DAY),
+                new RelativePriceIndicator(IndicatorPeriod.WEEK),
+        new RelativeVolumeIndicator(IndicatorPeriod.TENMINUTES),new RelativeVolumeIndicator(IndicatorPeriod.HOUR),new RelativeVolumeIndicator(IndicatorPeriod.DAY),
+                new RelativeVolumeIndicator(IndicatorPeriod.WEEK),
+//          new HighCandlesIndicator(IndicatorPeriod.HOUR,true),new HighCandlesIndicator(IndicatorPeriod.DAY,true), new HighCandlesIndicator(IndicatorPeriod.WEEK,true),
+//          new HighCandlesIndicator(IndicatorPeriod.HOUR,false),new HighCandlesIndicator(IndicatorPeriod.DAY, false), new HighCandlesIndicator(IndicatorPeriod.WEEK,false),
+        };
+
         Arrays.sort(indicators, Comparator.comparingInt(IIndicator::getId));
         map = new IIndicator[Arrays.stream(indicators).mapToInt(IIndicator::getId).max().getAsInt()+1];
         for (IIndicator i : indicators)

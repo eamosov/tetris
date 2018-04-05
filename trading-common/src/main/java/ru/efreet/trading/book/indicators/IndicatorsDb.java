@@ -25,7 +25,9 @@ public class IndicatorsDb {
         String tableName = tableName(sheet);
         ResultSet r = conn.createStatement().executeQuery(String.format("PRAGMA table_info(%s)", tableName));
         if (r.isClosed()){
-            conn.createStatement().execute(String.format("create table %s(time bigint primary key, %s)", tableName,makeColumns(sheet.getLib())));
+            String q = String.format("create table %s(time bigint primary key, %s)", tableName, makeColumns(sheet.getLib()));
+            System.out.println(q);
+            conn.createStatement().execute(q);
         } else {
             HashSet<String> columns = new HashSet<String>();
             do {
@@ -34,8 +36,11 @@ public class IndicatorsDb {
                 if (!name.equalsIgnoreCase("time"))
                     columns.add(name.toLowerCase());
             } while (r.next());
-            for (IIndicator ind : sheet.getLib().listIndicators()) if (!columns.contains(ind.getName().toLowerCase()))
-                conn.createStatement().execute(String.format("ALTER TABLE %s ADD COLUMN %s double", tableName,ind.getName().toLowerCase()));
+            for (IIndicator ind : sheet.getLib().listIndicators()) if (!columns.contains(ind.getName().toLowerCase())) {
+                String q = String.format("ALTER TABLE %s ADD COLUMN %s double", tableName, ind.getName().toLowerCase());
+                System.out.println(q);
+                conn.createStatement().execute(q);
+            }
         }
     }
 

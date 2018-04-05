@@ -7,9 +7,11 @@ import ru.efreet.trading.book.Sheet;
 import ru.efreet.trading.book.SheetUtils;
 import ru.efreet.trading.book.indicators.IIndicator;
 import ru.efreet.trading.book.indicators.IndicatorType;
+import ru.efreet.trading.exchange.BarInterval;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.ZonedDateTime;
 
 public class CandlesPane extends JPanel {
     public static final Color RED = new Color(164, 32, 21);
@@ -48,14 +50,14 @@ public class CandlesPane extends JPanel {
 //            }
         }
 
-        paintHorizontalLines(g,minMax);
+        paintGrid(g,minMax, sheet.moments.get(from).bar.getBeginTime(),sheet.interval());
         for (int i = from; i< to; i++) {
             XBar bar = sheet.moments.get(i).bar;
             paintBar(g,i,bar,minMax);
         }
     }
 
-    private void paintHorizontalLines(Graphics g, XBaseBar minMax) {
+    private void paintGrid(Graphics g, XBaseBar minMax, ZonedDateTime time, BarInterval interval) {
         double price = minMax.getMinPrice();
         Graphics2D g2 = (Graphics2D)g;
         g2.setColor(new Color(242, 246, 246));
@@ -66,6 +68,19 @@ public class CandlesPane extends JPanel {
             g.drawLine(0,y,getWidth(),y);
             price = price*1.005;
         } while (price<=minMax.getMaxPrice());
+
+        int w = vis.candleWidth();
+        int x = 0;
+        ZonedDateTime prevTime = time.minus(interval.getDuration());
+        do {
+            if (time.getHour()!=prevTime.getHour()) {
+                g.drawLine(x, 0, x, getHeight());
+            }
+            x+=w;
+            prevTime = time;
+            time = time.plus(interval.getDuration());
+        } while (x<getWidth());
+
     }
 
     private void paintIndicatorBar(Graphics g, int index, IIndicator indicator, Pair<Double, Double> mm) {

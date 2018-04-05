@@ -24,6 +24,10 @@ public class IndicatorsData {
         return data.get(indicator.getId())[index];
     }
 
+    public double get(int id, int index) {
+        return data.get(id)[index];
+    }
+
     public void save(IndicatorsDb db) throws SQLException {
         Integer[] keys = data.keySet().toArray(new Integer[0]);
 

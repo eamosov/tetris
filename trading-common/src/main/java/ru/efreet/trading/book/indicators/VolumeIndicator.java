@@ -43,3 +43,4 @@ public class VolumeIndicator implements IIndicator{
         return true;
     }
 }
+

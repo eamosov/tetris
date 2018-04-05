@@ -10,13 +10,13 @@ public class SheetUtils {
 
     public static void FillDecisions(Sheet sheet){
         initDecisions(sheet);
-//        filterBadBuys(sheet);
-//        filterBadSells(sheet);
-//        filterBadBuys(sheet);
-//        filterBadSells(sheet);
-//        filterBadBuys(sheet);
-//        filterBadSells(sheet);
-//        initDecisionsRisky(sheet);
+        filterBadBuys(sheet);
+        filterBadSells(sheet);
+        filterBadBuys(sheet);
+        filterBadSells(sheet);
+        filterBadBuys(sheet);
+        filterBadSells(sheet);
+        initDecisionsRisky(sheet);
     }
 
     private static void filterBadBuys(Sheet sheet) {

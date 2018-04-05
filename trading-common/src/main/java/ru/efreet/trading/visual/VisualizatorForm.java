@@ -2,6 +2,7 @@ package ru.efreet.trading.visual;
 
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.book.Moment;
+import ru.efreet.trading.bots.CheatBot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,6 +17,7 @@ public class VisualizatorForm {
     private JPanel center;
     private JTextField indexField;
     private JLabel infoLabel;
+    private JButton superBot;
 
     private CandlesPane candles;
     private IndicatorsPane indicators;
@@ -103,6 +105,12 @@ public class VisualizatorForm {
             @Override
             public void visualizatorMouseClicked(Point p) {
                 mouseClick(p);
+            }
+        });
+        superBot.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new CheatBot(vis.getSheet()).run();
             }
         });
     }
