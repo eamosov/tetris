@@ -31,11 +31,11 @@ class StatsCalculator {
 
                 if (i > 0 && history.trades[i - 1].side == OrderSide.BUY) {
                     if (trade.fundsAfter != 0.0 && history.trades[i - 1].fundsAfter != 0.0) {
-                        val tradeProfit = trade.fundsAfter / history.trades[i - 1].fundsAfter
+                        val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].fundsAfter!!
                         if (tradeProfit > 1)
                             tradesWithProfit++
 
-                        profits.add(Pair(trade.time, tradeProfit))
+                        profits.add(Pair(trade.time!!, tradeProfit))
                     }
                 }
             }
@@ -51,8 +51,8 @@ class StatsCalculator {
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                profits.firstOrNull()?.first,
-                profits.lastOrNull()?.first
+                history.start,
+                history.end
         )
     }
 }

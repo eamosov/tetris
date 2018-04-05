@@ -3,12 +3,9 @@ package ru.efreet.trading.logic
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bars.indexOf
+import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
-import ru.efreet.trading.bot.TradesStats
-import ru.efreet.trading.bot.Advice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.PropertyEditorFactory
 import ru.efreet.trading.utils.SeedType
@@ -26,23 +23,24 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
                                                             val paramsCls: KClass<P>,
                                                             override val instrument: Instrument,
                                                             val barInterval: BarInterval,
-                                                            val bars: MutableList<XExtBar> = mutableListOf<XExtBar>()) : BotLogic<P> {
+                                                            val bars: MutableList<XExtBar> = mutableListOf()) : BotLogic<P> {
 
     val properties = PropertyEditorFactory<P>(paramsCls)
 
     override val genes: List<PropertyEditor<P, Any?>>
         get() = properties.genes
 
-    lateinit var _params: P
-    private var paramsInited: Boolean = false
+    protected var _params: P = paramsCls.java.newInstance()
 
-    override var maxBars = 3000
+    private var barsIsPrepared = false
 
     override var historyBars = 3000L
 
-    inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<P, R> {
-        return properties.of(kprop, key, min, max, step, hardBounds)
-    }
+    inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<P, R> =
+            properties.of(kprop, key, min, max, step, hardBounds)
+
+    inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, value: R): PropertyEditor<P, R> =
+            properties.of(kprop, key, value)
 
     fun of(kprop: KMutableProperty1<P, Int?>, key: String, min: Duration, max: Duration, step: Duration, hardBounds: Boolean): PropertyEditor<P, Int?> {
         return properties.of(kprop, key,
@@ -53,12 +51,12 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     }
 
     override fun logState(): String {
-        return properties.log(_params)
+        return properties.log(getParams())
     }
 
-    override fun copyParams(orig: P): P {
-        return properties.copy(orig)
-    }
+//    override fun copyParams(orig: P): P {
+//        return properties.copy(orig)
+//    }
 
     private fun seedByCell(population: MutableList<P>, trainingSize: Int, proto: P, propIndex: Int) {
 
@@ -86,12 +84,10 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
 
     }
 
-    override fun seed(seedType: SeedType, size: Int): MutableList<P> {
-        return when {
-            seedType == SeedType.CELL -> seedByCell(size)
-            seedType == SeedType.RANDOM -> seedRandom(size)
-            else -> throw RuntimeException("Unknown seed method")
-        }
+    override fun seed(seedType: SeedType, size: Int): MutableList<P> = when {
+        seedType == SeedType.CELL -> seedByCell(size)
+        seedType == SeedType.RANDOM -> seedRandom(size)
+        else -> throw RuntimeException("Unknown seed method")
     }
 
     protected fun seedByCell(size: Int): MutableList<P> {
@@ -101,19 +97,17 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return population
     }
 
-    open protected fun seedRandom(size: Int): MutableList<P> {
-        return (0 until size).map { properties.random() } as MutableList<P>
-    }
+    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { properties.random(_params, { copyParams(it) }) } as MutableList<P>
 
-    override fun indexOf(time: ZonedDateTime): Int {
-        return bars.indexOf(time)
-    }
+    override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 
     override fun insertBar(bar: XBar) {
-        bars.add(XExtBar(bar))
+        synchronized(this) {
+            bars.add(XExtBar(bar))
 
-        while (bars.size > maxBars) {
-            bars.removeAt(0)
+            while (bars.size > historyBars) {
+                bars.removeAt(0)
+            }
         }
     }
 
@@ -121,92 +115,46 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return _params
     }
 
+    override fun isInitialized(): Boolean = properties.isInitialized(_params)
+
     override fun setParams(params: P) {
-        if (!paramsInited || params != _params) {
-            if (paramsInited) {
-                for (i in 0 until bars.size) {
-                    bars[i] = XExtBar(bars[i].bar)
-                }
-            }
+        synchronized(this) {
+            val oldP = _params
             _params = params
-            paramsInited = true
-            prepare()
+            if ((_params != oldP && isInitialized()) || (isInitialized() && !barsIsPrepared)) {
+                if (barsIsPrepared) {
+                    for (i in 0 until bars.size) {
+                        bars[i] = XExtBar(bars[i].bar)
+                    }
+                }
+                barsIsPrepared = true
+                prepare()
+            }
         }
     }
 
-    override fun getParamsAsProperties(): Properties {
-        return properties.fromLogicParams(_params)
-    }
+    override fun getParamsAsProperties(): Properties = properties.fromLogicParams(_params)
 
-    override fun setParamsAsProperties(params: Properties) {
-        setParams(properties.toLogicParams(params))
-    }
+    override fun setParamsAsProperties(params: Properties) = setParams(properties.toLogicParams(params))
 
-    private fun getAdvice(index: Int, bar: XExtBar, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
+    override fun lastBar(): XExtBar = bars.last()
 
-        var advice = if (stats == null || isProfitable(stats)) {
-            getAdvice(index, bar)
-        } else {
-            OrderSide.SELL
-        }
+    override fun getBar(index: Int): XExtBar = bars[index]
 
-        var amount: Double = 0.0
+    override fun firstBar(): XExtBar = bars.first()
 
-        val availableAsset = trader.availableAsset(instrument)
+    override fun barsCount(): Int = bars.size
 
-        val lastTrade = trader.lastTrade()
-        if (lastTrade != null
-                && lastTrade.side == OrderSide.BUY
-                && bar.closePrice < (1.0 - _params.stopLoss / 100.0) * lastTrade.price
-                && availableAsset > 0) {
+    protected fun getIndicators(index: Int, bar: XExtBar): Map<String, Double> =
+            indicators().mapValues { it.value.getValue(index, bar) }
 
-            advice = OrderSide.SELL
-            amount = availableAsset
-        } else if (advice == OrderSide.BUY) {
-            amount = trader.availableUsd(instrument).div(bar.closePrice)
-        } else if (advice == OrderSide.SELL) {
-            amount = availableAsset
-        }
-
-        return Advice(bar.endTime, advice, instrument, bar.closePrice, amount, bar, if (fillIndicators) getIndicators(index, bar) else null)
-    }
-
-    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
-        val bar = getBar(index)
-        return getAdvice(index, bar, stats, trader, fillIndicators)
-    }
-
-
-    override fun lastBar(): XExtBar {
-        return bars.last()
-    }
-
-    override fun getBar(index: Int): XExtBar {
-        return bars[index]
-    }
-
-    override fun firstBar(): XExtBar {
-        return bars.first()
-    }
-
-    override fun barsCount(): Int {
-        return bars.size
-    }
-
-    private fun getIndicators(index: Int, bar: XExtBar): Map<String, Double> {
-        return indicators().mapValues { it.value.getValue(index, bar) }
-    }
-
-    fun foo(x: Double, min: Double, base: Double = 2.0): Double {
-        return -Math.pow(base, (-(x - min))) + 1.0
-    }
-
-    override fun metrica(stats: TradesStats): Double {
-        return foo(stats.trades.toDouble(), 4.0) + 2 * foo(stats.goodTrades, 0.7) + foo(stats.profit, 1.0) + stats.profit
+    override fun metrica(params: P, stats: TradesStats): Double {
+        return BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0) + /*BotLogic.fine((stats.avrProfitPerTrade - 1.0) * 100, 1.0, 5.0) +*/ /*foo(stats.goodTrades, 1.3, 5.0)*/ BotLogic.fine(stats.sma10, 1.0, 10.0) + BotLogic.fine(stats.profit, 1.0) + stats.profit
     }
 
     override fun isProfitable(stats: TradesStats): Boolean {
-        return stats.trades > 4 && stats.goodTrades > 0.6 && stats.profit > 1.0
+        //return stats.trades > 4 && stats.goodTrades > 0.6 && stats.profit > 1.0
+        return stats.profit > 1.0
     }
 
     override fun getBarIndex(time: ZonedDateTime): Int {
@@ -227,8 +175,6 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         properties.setMinMax(obj, p, hardBounds)
     }
 
-    override fun getMinMax(): Properties {
-        return properties.getMinMax()
-    }
+    override fun getMinMax(): Properties = properties.getMinMax()
 
 }

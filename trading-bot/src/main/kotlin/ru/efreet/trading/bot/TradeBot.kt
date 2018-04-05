@@ -1,14 +1,14 @@
 package ru.efreet.trading.bot
 
-import ru.efreet.trading.exchange.*
-import ru.efreet.trading.logic.*
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
-import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XBarsAggregator
+import ru.efreet.trading.exchange.BarInterval
+import ru.efreet.trading.exchange.Exchange
+import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.exchange.TradeRecord
 import ru.efreet.trading.exchange.impl.cache.BarsCache
+import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.Periodical
 import java.time.Duration
-import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -16,27 +16,27 @@ import java.time.ZonedDateTime
  * Created by fluder on 06/02/2018.
  */
 class TradeBot(val exchange: Exchange,
+               tradesDbPath: String,
                var barsCache: BarsCache,
                var baseLimit: Double,
                val testOnly: Boolean,
                val instrument: Instrument,
+               val logicName: String,
                val logic: BotLogic<SimpleBotLogicParams>,
+               val settings:String,
                val barInterval: BarInterval,
+               val trainStart:ZonedDateTime,
                var orderListener: ((TradeBot, TradeRecord) -> Unit)? = null) {
 
     private val zone = ZoneId.of("GMT")
 
-    private var barAgg = XBarsAggregator(barInterval)
-
     private var lastTradeTime: ZonedDateTime = ZonedDateTime.now()
-
-    private var secondsBarAgg = XBarsAggregator(BarInterval.ONE_SECOND)
 
     private var logStateTimer = Periodical(Duration.ofMinutes(5))
 
     val trader = when {
-        testOnly == true -> FakeTrader(1000.0, 0.0, 0.02, true)
-        else -> RealTrader(exchange, baseLimit, instrument.base!!, instrument.asset!!)
+        testOnly == true -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
+        else -> RealTrader(tradesDbPath, barsCache.getConnection(), exchange, baseLimit, exchange.getName(), instrument)
     }
 
     val asset get() = instrument.asset!!
@@ -51,26 +51,6 @@ class TradeBot(val exchange: Exchange,
         println("interval: $barInterval")
         println("testOnly: $testOnly")
         println("baseLimit: $baseLimit")
-        println("stats: ${StatsCalculator().stats(trader.history())}")
-    }
-
-    fun addTrade(trade: AggTrade): XBar? {
-
-        val tradeTimeStamp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(trade.timestampMillis), zone)
-
-        secondsBarAgg.addBar(trade.asSecondsBar())?.let {
-            barsCache.saveBar(exchange.getName(), instrument, it)
-        }
-
-        if (logic.barsCount() > 0 && tradeTimeStamp.isBefore(logic.lastBar().endTime)) {
-            println("Skip event $tradeTimeStamp")
-            return null
-        }
-
-        return barAgg.addBar(trade.asSecondsBar())?.also {
-            println("ADD bar ($instrument): $it")
-            logic.insertBar(it)
-        }
     }
 
     fun checkStrategy() {
@@ -88,17 +68,13 @@ class TradeBot(val exchange: Exchange,
                 println("no trade")
             }
         } catch (e: Exception) {
+            println("ERROR")
             e.printStackTrace()
         }
     }
 
-    fun startStrategy(/*params: SimpleBotLogicParams*/) {
+    fun startStrategy() {
         synchronized(this) {
-
-            //            logic.setParams(params)
-//
-//            println("Switching $instrument to strategy  $params")
-
             fetchTradesHistory()
             checkStrategy()
             startTrade()
@@ -107,15 +83,14 @@ class TradeBot(val exchange: Exchange,
 
     fun fetchTradesHistory() {
 
-        val lastBars = exchange.loadBars(
+        val lastBars = barsCache.getBars(
+                exchange.getName(),
                 instrument,
                 barInterval,
-                ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.maxBars.toLong())), ZonedDateTime.now())
+                ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.historyBars)), ZonedDateTime.now())
 
-        for (i in 0 until lastBars.size - 1)
-            logic.insertBar(lastBars[i])
+        lastBars.forEach { logic.insertBar(it) }
 
-        exchange.getLastTrades(instrument).forEach { addTrade(it) }
         logic.prepare()
 
         println("Ok fetchTradesHistory (${logic.barsCount()} bars from ${logic.firstBar().endTime} to ${logic.lastBar().endTime})")
@@ -125,22 +100,17 @@ class TradeBot(val exchange: Exchange,
     fun startTrade() {
 
         synchronized(this) {
-            exchange.startTrade(instrument, { trade ->
+            exchange.startTrade(instrument, barInterval, { bar, isFinal ->
 
                 synchronized(this) {
-                    //println("ADD trade $trade")
-
                     lastTradeTime = ZonedDateTime.now()
 
-                    try {
+                    println("bar: final=$isFinal, $bar")
 
-                        addTrade(trade)?.let {
-                            checkStrategy()
-                        }
-
-                    } catch (e: Throwable) {
-                        println("ERROR: " + e)
-                        logState()
+                    if (isFinal) {
+                        barsCache.saveBar(exchange.getName(), instrument, bar)
+                        logic.insertBar(bar)
+                        checkStrategy()
                     }
                 }
             })

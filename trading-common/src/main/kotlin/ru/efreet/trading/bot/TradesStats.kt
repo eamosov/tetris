@@ -9,5 +9,6 @@ data class TradesStats(var trades: Int = 0,
                        var sdProfitPerTrade: Double = 0.0,
                        var sma5: Double = 0.0,
                        var sma10: Double = 0.0,
-                       var firstTrade:ZonedDateTime?,
-                       var lastTrade:ZonedDateTime?)
+                       var start: ZonedDateTime,
+                       var end: ZonedDateTime
+)

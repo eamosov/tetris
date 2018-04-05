@@ -112,3 +112,12 @@ fun List<Pair<ZonedDateTime, Double>>.dema(timeFrame: Int): List<Pair<ZonedDateT
 
     return out
 }
+
+fun roundAmount(amount:Double, price:Double):Double{
+    var k = 1.0
+    while ((1.0 / price) * k < 1.0){
+        k = k*10.0
+    }
+
+    return (amount * k).toInt() / k
+}

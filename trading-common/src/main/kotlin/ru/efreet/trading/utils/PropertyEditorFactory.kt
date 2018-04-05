@@ -10,14 +10,16 @@ import kotlin.reflect.KMutableProperty1
 
 data class PropRef<T>(val cls: KClass<*>, var propRef: PropRef<T>? = null, var const: Any? = null, var value: String) {
 
-    fun get(receiver: T): Any? {
-        return propRef?.get(receiver) ?: const
+    fun get(receiver: T?): Any? {
+        return receiver?.let { propRef?.get(it) } ?: const
     }
 }
 
-data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
-                                          val allProps: MutableMap<String, PropRef<T>> = mutableMapOf(),
-                                          val genes: MutableList<PropertyEditor<T, Any?>> = mutableListOf()) {
+class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
+
+    val allProps: MutableMap<String, PropRef<T>> = mutableMapOf()
+    val genes: MutableList<PropertyEditor<T, Any?>> = mutableListOf()
+    val consts: MutableList<PropertyEditor<T, Any?>> = mutableListOf()
 
 
     inline fun <reified R : Any?> of(kprop: KMutableProperty1<T, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
@@ -34,6 +36,15 @@ data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
 
         val pe = PropertyEditor(R::class, key, kprop, minRef, maxRef, stepRef, hardBoundsRef, min, max, step, hardBounds)
         genes.add(pe as PropertyEditor<T, Any?>)
+        return pe
+    }
+
+    inline fun <reified R : Any?> of(kprop: KMutableProperty1<T, R>, key: String, value: R): PropertyEditor<T, R> {
+        val ref = PropRef<T>(R::class, value = value.toString())
+        allProps[key] = ref
+
+        val pe = PropertyEditor(R::class, key, kprop, ref, ref, ref, ref, value, value, value, true)
+        consts.add(pe as PropertyEditor<T, Any?>)
         return pe
     }
 
@@ -76,21 +87,42 @@ data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
 
     fun toLogicParams(properties: Properties): T {
         val prop = cls.java.newInstance()
-
+        //var propsSetted = 0
         for (gene in genes) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
+                //propsSetted++
+            } /*?: Unit.also {
+                gene.setRandom(prop);
+                //println("Set ${gene.kprop.name} to random value ${gene.kprop.get(prop)}")
+            }*/
+        }
+
+        for (gene in consts) {
+            properties.getProperty(gene.key)?.let {
+                gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
+                //propsSetted++
             }
         }
+
         return prop
+
+//        return if (propsSetted == 0) {
+//            null
+//        } else
+//            prop
     }
 
-    fun random(): T {
-        val prop = cls.java.newInstance()
+    fun random(orig: T, copy: (T) -> T): T {
+        val prop = copy(orig)
 
         for (gene in genes) {
             gene.setRandom(prop)
         }
+
+//        for (gene in consts) {
+//            gene.setValue(prop, gene.getMin(prop))
+//        }
 
         return prop
     }
@@ -104,19 +136,27 @@ data class PropertyEditorFactory<T : Any>(val cls: KClass<T>,
         return p
     }
 
-    fun copy(orig: T): T {
-        val prop = cls.java.newInstance()
-        for (gene in genes) {
-            gene.kprop.set(prop, gene.kprop.get(orig))
-        }
-        return prop
+    fun isInitialized(value: T): Boolean {
+        return genes.none { it.kprop.get(value) == null }
     }
 
-    fun log(params: T): String {
+//    fun copy(orig: T): T {
+//        val prop = cls.java.newInstance()
+//        for (gene in genes) {
+//            gene.kprop.set(prop, gene.kprop.get(orig))
+//        }
+//        return prop
+//    }
+
+    fun log(params: T?): String {
         val sb = StringBuffer()
         for (gene in genes.sortedBy { it.key }) {
-            sb.append("${gene.kprop.name}: value=${gene.kprop.get(params)} min=${gene.getMin(params)} max=${gene.getMax(params)} step=${gene.getStep(params)} hardBounds=${gene.getHardBounds(params)}\n")
+            sb.append("${gene.kprop.name}: value=${params?.let { gene.kprop.get(it) }} min =${gene.getMin(params)} max =${gene.getMax(params)} step =${gene.getStep(params)} hardBounds =${gene.getHardBounds(params)}\n")
         }
+        for (gene in consts.sortedBy { it.key }) {
+            sb.append("${gene.kprop.name}: value=${params?.let { gene.kprop.get(it) }}\n")
+        }
+
         return sb.toString()
     }
 

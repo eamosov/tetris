@@ -13,13 +13,10 @@ data class XBaseBar(override var timePeriod: Duration,
                     override var minPrice: Double = Double.MAX_VALUE,
                     override var closePrice: Double = 0.0,
                     override var volume: Double = 0.0,
-                    override var amount: Double = 0.0) : XBar {
+                    override var trades:Int = 0) : XBar {
 
     /** Begin time of the bar  */
     override var beginTime: ZonedDateTime = endTime.minus(timePeriod)
-
-    /** Trade count  */
-    override var trades = 0
 
     /**
      * Constructor.
@@ -62,10 +59,10 @@ data class XBaseBar(override var timePeriod: Duration,
      * @param volume the volume of the bar period
      */
     constructor(timePeriod: Duration, endTime: ZonedDateTime, openPrice: Double, highPrice: Double, lowPrice: Double, closePrice: Double, volume: Double) :
-            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0.0)
+            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0)
 
     constructor(bar: XBar) :
-            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.amount)
+            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.trades)
 
 
     /**
@@ -85,7 +82,6 @@ data class XBaseBar(override var timePeriod: Duration,
         minPrice = if (minPrice > tradePrice) tradePrice else minPrice
 
         volume = volume + tradeVolume
-        amount = amount + (tradeVolume * tradePrice)
         trades++
     }
 
@@ -98,7 +94,6 @@ data class XBaseBar(override var timePeriod: Duration,
         minPrice = if (minPrice > bar.minPrice) bar.minPrice else minPrice
 
         volume = volume + bar.volume
-        amount = amount + bar.amount
         trades += minOf(bar.trades, 1)
     }
 

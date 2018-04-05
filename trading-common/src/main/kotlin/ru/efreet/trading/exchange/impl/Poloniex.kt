@@ -57,9 +57,10 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(ZonedDateTime.now(),
-                result.orderNumber.toString(),
-                instrument,
+        return TradeRecord(result.orderNumber.toString(),
+                ZonedDateTime.now(),
+                getName(),
+                instrument.toString(),
                 _price.toDouble(),
                 OrderSide.BUY,
                 type,
@@ -77,9 +78,10 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(ZonedDateTime.now(),
-                result.orderNumber.toString(),
-                instrument,
+        return TradeRecord(result.orderNumber.toString(),
+                ZonedDateTime.now(),
+                getName(),
+                instrument.toString(),
                 _price.toDouble(),
                 OrderSide.SELL,
                 type,
@@ -104,49 +106,53 @@ class Poloniex() : Exchange {
         return arrayListOf()
     }
 
-    override fun startTrade(instrument: Instrument, consumer: (AggTrade) -> Unit) {
+//    override fun startTrade(instrument: Instrument, consumer: (AggTrade) -> Unit) {
+//
+//        webSocketClient = object : WebSocketClient(URI("wss://api2.poloniex.com"), Draft_6455()) {
+//            override fun onMessage(message: String) {
+//                val packet = JSONArray(message)
+//
+//                if (packet.length() == 3) {
+//                    val frames = packet.getJSONArray(2)
+//
+//                    for (frame in frames) {
+//                        if ((frame as JSONArray).getString(0) == "t") {
+//
+//                            consumer(AggTrade(frame.getLong(5) * 1000L, frame.getDouble(3), frame.getDouble(4)))
+//                        }
+//                    }
+//                }
+//
+//                //val obj = JSONObject(message)
+//
+//            }
+//
+//            override fun onOpen(handshake: ServerHandshake) {
+//                println("opened connection")
+//
+//                val obj = JSONObject()
+//                obj.put("command", "subscribe")
+//                obj.put("channel", symbol(instrument))
+//                val message = obj.toString()
+//                //send message
+//                webSocketClient!!.send(message)
+//            }
+//
+//            override fun onClose(code: Int, reason: String, remote: Boolean) {
+//                println("closed connection")
+//            }
+//
+//            override fun onError(ex: Exception) {
+//                ex.printStackTrace()
+//            }
+//
+//        }
+//
+//        webSocketClient!!.connect()
+//    }
 
-        webSocketClient = object : WebSocketClient(URI("wss://api2.poloniex.com"), Draft_6455()) {
-            override fun onMessage(message: String) {
-                val packet = JSONArray(message)
-
-                if (packet.length() == 3) {
-                    val frames = packet.getJSONArray(2)
-
-                    for (frame in frames) {
-                        if ((frame as JSONArray).getString(0) == "t") {
-
-                            consumer(AggTrade(frame.getLong(5) * 1000L, frame.getDouble(3), frame.getDouble(4)))
-                        }
-                    }
-                }
-
-                //val obj = JSONObject(message)
-
-            }
-
-            override fun onOpen(handshake: ServerHandshake) {
-                println("opened connection")
-
-                val obj = JSONObject()
-                obj.put("command", "subscribe")
-                obj.put("channel", symbol(instrument))
-                val message = obj.toString()
-                //send message
-                webSocketClient!!.send(message)
-            }
-
-            override fun onClose(code: Int, reason: String, remote: Boolean) {
-                println("closed connection")
-            }
-
-            override fun onError(ex: Exception) {
-                ex.printStackTrace()
-            }
-
-        }
-
-        webSocketClient!!.connect()
+    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun stopTrade() {
