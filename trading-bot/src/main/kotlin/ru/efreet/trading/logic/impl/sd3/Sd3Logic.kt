@@ -45,17 +45,17 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     init {
         _params = SimpleBotLogicParams(
-                short = 6,
-                long = 76,
-                signal = 196,
-                deviationTimeFrame = 10,
-                deviation = 19,
-                dayShort = 730,
-                dayLong = 891,
-                daySignal = 82,
-                daySignal2 = 2269,
-                stopLoss = 2.195,
-                tStopLoss = 4.113
+                short = 1,
+                long = 52,
+                signal = 160,
+                deviationTimeFrame = 26,
+                deviation = 11,
+                dayShort = 1002,
+                dayLong = 327,
+                daySignal = 79,
+                daySignal2 = 808,
+                stopLoss = 1.9044203147701881,
+                tStopLoss = 4.252559979496663
         )
 
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
