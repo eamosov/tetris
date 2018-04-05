@@ -13,6 +13,7 @@ data class Instrument(var asset: String?, var base: String?) : Serializable {
     }
 
     companion object {
+        @JvmStatic
         val BTC_USDT = Instrument("BTC", "USDT")
 
         fun parse(name: String): Instrument {

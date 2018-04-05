@@ -76,9 +76,9 @@ interface BotLogic<P> {
 
     fun prepare()
 
-    fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice
+    fun getAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): Advice
 
-    fun getAdvice(stats: TradesStats?, trader: Trader, fillIndicators: Boolean = false): Advice {
+    fun getAdvice(stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): Advice {
         return getAdvice(barsCount() - 1, stats, trader, fillIndicators)
     }
 

@@ -208,7 +208,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
-    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader, fillIndicators: Boolean): Advice {
+    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): Advice {
 
         synchronized(this) {
 
@@ -227,7 +227,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                         false,
                         instrument,
                         bar.closePrice,
-                        trader.availableAsset(instrument),
+                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -238,7 +238,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                         true,
                         instrument,
                         bar.closePrice,
-                        trader.availableAsset(instrument),
+                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -248,7 +248,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                     false,
                     instrument,
                     bar.closePrice,
-                    trader.availableUsd(instrument) / bar.closePrice,
+                    if (trader != null) {
+                        trader.availableUsd(instrument) / bar.closePrice
+                    } else 0.0,
                     bar,
                     indicators)
         }

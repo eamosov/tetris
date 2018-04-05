@@ -62,7 +62,7 @@ data class XBaseBar(override var timePeriod: Duration,
             this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0)
 
     constructor(bar: XBar) :
-            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.amount)
+            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.trades)
 
 
     /**
