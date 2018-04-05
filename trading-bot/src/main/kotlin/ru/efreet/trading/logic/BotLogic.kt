@@ -7,6 +7,7 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.bot.Advice
+import ru.efreet.trading.bot.OrderSideExt
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
@@ -16,7 +17,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.time.ZonedDateTime
 import java.util.*
-
 
 interface BotLogic<P> {
 
@@ -43,6 +43,8 @@ interface BotLogic<P> {
     fun getParams(): P
 
     fun setParams(params: P)
+
+    fun isInitialized(): Boolean
 
     fun getParamsAsProperties(): Properties
 
@@ -80,9 +82,7 @@ interface BotLogic<P> {
         return getAdvice(barsCount() - 1, stats, trader, fillIndicators)
     }
 
-    fun metrica(stats: TradesStats): Double
-
-    var maxBars: Int
+    fun metrica(params: P, stats: TradesStats): Double
 
     var historyBars: Long
 
@@ -90,7 +90,7 @@ interface BotLogic<P> {
 
     fun indicators(): Map<String, XIndicator<XExtBar>>
 
-    fun getAdvice(index: Int, bar: XExtBar): OrderSide?
+    //fun getAdvice(index: Int, bar: XExtBar): OrderSideExt?
 
     fun setMinMax(settings: Properties)
 
@@ -101,4 +101,11 @@ interface BotLogic<P> {
     fun seed(seedType: SeedType, size: Int): MutableList<P>
 
     fun logState(): String
+
+    companion object {
+        fun fine(x: Double, min: Double, base: Double = 2.0): Double {
+            return -Math.pow(base, (-(x - min))) + 1.0
+        }
+    }
+
 }

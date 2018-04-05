@@ -2,12 +2,11 @@ package ru.efreet.trading.exchange.impl
 
 import com.webcerebrium.binance.api.BinanceApi
 import com.webcerebrium.binance.datatype.*
-import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterAggTrades
+import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterKline
 import org.eclipse.jetty.websocket.api.Session
-import ru.efreet.trading.exchange.*
-import ru.efreet.trading.exchange.TradeRecord
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
+import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.round
 import java.math.BigDecimal
 import java.time.Duration
@@ -25,10 +24,10 @@ class Binance() : Exchange {
 
     private val api = BinanceApi()
 
-    init {
-        api.setBaseUrl("https://us.binance.com/api/")
-        api.setBaseWapiUrl("https://us.binance.com/wapi/")
-    }
+//    init {
+//        api.setBaseUrl("https://us.binance.com/api/")
+//        api.setBaseWapiUrl("https://us.binance.com/wapi/")
+//    }
 
     override fun getName(): String = "binance"
 
@@ -67,9 +66,10 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
         return TradeRecord(
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
                 order.orderId.toString(),
-                instrument,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
+                getName(),
+                instrument.toString(),
                 order.price.toDouble(),
                 OrderSide.BUY,
                 type,
@@ -84,9 +84,10 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
         return TradeRecord(
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
                 order.orderId.toString(),
-                instrument,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
+                getName(),
+                instrument.toString(),
                 order.price.toDouble(),
                 OrderSide.SELL,
                 type,
@@ -109,7 +110,8 @@ class Binance() : Exchange {
                         it.high.toDouble(),
                         it.low.toDouble(),
                         it.close.toDouble(),
-                        it.volume.toDouble())
+                        it.volume.toDouble(),
+                        it.numberOfTrades.toInt())
 
                 bars.add(bar)
             }
@@ -127,13 +129,21 @@ class Binance() : Exchange {
             api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
 
 
-    override fun startTrade(instrument: Instrument, consumer: (AggTrade) -> Unit) {
+    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
 
-        session = api.websocketTrades(symbol(instrument), object : BinanceWebSocketAdapterAggTrades() {
-            override fun onMessage(message: BinanceEventAggTrade) {
+        session = api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
+            override fun onMessage(message: BinanceEventKline) {
 
-                consumer(AggTrade(message.eventTime, message.price.toDouble(), message.quantity.toDouble()))
+                val bar = XBaseBar(Duration.ofMillis(message.endTime - message.startTime + 1),
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(message.endTime), ZoneId.of("GMT")),
+                        message.open.toDouble(),
+                        message.high.toDouble(),
+                        message.low.toDouble(),
+                        message.close.toDouble(),
+                        message.volume.toDouble(),
+                        message.numberOfTrades.toInt())
 
+                consumer(bar, message.isFinal)
             }
         })
     }

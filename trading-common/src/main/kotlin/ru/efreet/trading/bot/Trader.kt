@@ -2,6 +2,7 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.TradeRecord
+import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
@@ -16,5 +17,5 @@ interface Trader {
 
     fun lastTrade(): TradeRecord?
 
-    fun history(): TradeHistory
+    fun history(start:ZonedDateTime, end:ZonedDateTime): TradeHistory
 }

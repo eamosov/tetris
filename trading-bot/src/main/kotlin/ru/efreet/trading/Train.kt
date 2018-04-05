@@ -1,13 +1,15 @@
 package ru.efreet.trading
 
+import ru.efreet.trading.bars.checkBars
+import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
-import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
-import ru.efreet.trading.trainer.getBestParams
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.toJson
 
@@ -25,33 +27,42 @@ class Train {
 
             val cmd = CmdArgs.parse(args)
 
-            val exchange = Exchange.getExchange(cmd.exchange)
-            val cache = CachedExchange(exchange.getName(), exchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
+            val realExchange = Exchange.getExchange(cmd.exchange)
 
-//            val ts: TrainSettings
-//
-//            if (cmd.start != null && cmd.end != null) {
-//                ts = TrainSettings(arrayListOf(Pair(cmd.start!!.toString(), cmd.end!!.toString())))
-//                ts.storeAsJson("train.json")
-//            } else {
-//                ts = loadFromJson("train.json")
-//            }
 
-            val (sp, stats) = CdmBotTrainer().getBestParams(
-                    cache, cmd.instrument, cmd.barInterval,
-                    cmd.logicName,
-                    cmd.logicPropertiesPath!!,
-                    cmd.seedType,
-                    cmd.population ?: 10,
-                    //ts.times.map { Pair(ZonedDateTime.parse(it.first), ZonedDateTime.parse(it.second)) },
-                    arrayListOf(Pair(cmd.start!!, cmd.end!!)),
-                    null as AbstractBotLogicParams?)
+            //realExchange.loadBars(Ins)
+//            val cache = BarsCache(cmd.cachePath)
+//            var bars = cache.getBars("binance", Instrument.BTC_USDT, BarInterval.ONE_SECOND, ZonedDateTime.now().minusDays(10), ZonedDateTime.now())
+
+
+            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
+
+            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+            logic.loadState(cmd.settings!!)
+
+            val population = mutableListOf<SimpleBotLogicParams>() //logic.seed(cmd.seedType, cmd.population ?: 10)
+            if (logic.isInitialized())
+                population.add(logic.getParams().copy())
+
+            val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval))
+            println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${cmd.start!!} end=${cmd.end!!}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${logic.logState()}")
+
+
+            bars.checkBars()
+
+            val (sp, stats) = CdmBotTrainer().getBestParams(logic.genes, population,
+                    {
+                        val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, cmd.barInterval, exchange.getFee(), bars, arrayListOf(Pair(cmd.start!!, cmd.end!!)), false)
+
+                        StatsCalculator().stats(history)
+                    },
+                    { params, stats -> logic.metrica(params, stats) },
+                    { logic.copyParams(it) })
 
             println(sp.toJson())
-            val savePath = cmd.logicPropertiesPath + ".out"
+            val savePath = cmd.settings + ".out"
             println("Saving logic's properties to ${savePath}")
 
-            val logic: BotLogic<AbstractBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.setMinMax(sp, 20.0, false)
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())

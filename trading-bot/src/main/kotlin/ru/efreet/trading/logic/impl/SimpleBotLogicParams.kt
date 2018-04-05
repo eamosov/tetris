@@ -11,12 +11,14 @@ data class SimpleBotLogicParams(var short: Int? = null,
                                 var deviationTimeFrame: Int? = null,
                                 var deviation: Int? = null,
 
-                                var dayShort: Int? = 712,
-                                var dayLong: Int? = 1487,
-                                var daySignal: Int? = 1433,
+                                var dayShort: Int? = null,
+                                var dayLong: Int? = null,
+                                var daySignal: Int? = null,
+                                var daySignal2: Int? = null,
 
-                                var f3Index: Int? = null,
+                                override var stopLoss: Double = 10.0,
+                                override var tStopLoss: Double = 1.5,
 
-                                override var stopLoss: Double = 10.0) : AbstractBotLogicParams {
+                                var persist: Int? = null) : AbstractBotLogicParams {
 
 }

@@ -9,6 +9,7 @@ import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.bot.Advice
 import ru.efreet.trading.bot.FakeTrader
+import ru.efreet.trading.bot.OrderSideExt
 import java.time.ZonedDateTime
 
 /**
@@ -28,7 +29,7 @@ class ProfitCalculator {
         val logic: BotLogic<P> = LogicFactory.getLogic(logicName, instrument, interval, XExtBar.of(bars))
         logic.setParams(params)
 
-        val trader = FakeTrader(feeP = feeP, fillCash = fillIndicators)
+        val trader = FakeTrader(feeP = feeP, fillCash = fillIndicators, exchangeName = "", instrument = instrument);
 
         for (ti in times) {
 
@@ -39,7 +40,7 @@ class ProfitCalculator {
 
                 if (!advice.time.isBefore(ti.second)) {
                     if (trader.lastTrade()?.side == OrderSide.BUY) {
-                        trader.executeAdvice(Advice(ti.second.minusSeconds(1), OrderSide.SELL, instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
+                        trader.executeAdvice(Advice(ti.second.minusSeconds(1), OrderSideExt(OrderSide.SELL, false), false, instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
                     }
                     break
                 }
@@ -50,7 +51,7 @@ class ProfitCalculator {
 
         }
 
-        return trader.history()
+        return trader.history(times.first().first, times.last().second)
     }
 
 }

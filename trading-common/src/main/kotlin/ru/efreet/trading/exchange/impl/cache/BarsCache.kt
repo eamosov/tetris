@@ -31,32 +31,37 @@ class BarsCache(val path: String) {
         conn = DriverManager.getConnection(url, prop)
     }
 
+    fun getConnection(): Connection = conn
+
     fun getFirst(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
+        return synchronized(this) {
+            conn.createStatement().use { statement ->
+                val time = statement.executeQuery("select min(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
+                    resultSet.next()
+                    resultSet.getLong(1)
+                }
 
-        conn.createStatement().use { statement ->
-            val time = statement.executeQuery("select min(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
-                resultSet.next()
-                resultSet.getLong(1)
-            }
-
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                resultSet.next()
-                return mapToBar(resultSet, interval);
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                    resultSet.next()
+                    mapToBar(resultSet, interval);
+                }
             }
         }
     }
 
     fun getLast(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
 
-        conn.createStatement().use { statement ->
-            val time = statement.executeQuery("select max(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
-                resultSet.next()
-                resultSet.getLong(1)
-            }
+        return synchronized(this) {
+            conn.createStatement().use { statement ->
+                val time = statement.executeQuery("select max(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
+                    resultSet.next()
+                    resultSet.getLong(1)
+                }
 
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                resultSet.next()
-                return mapToBar(resultSet, interval);
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                    resultSet.next()
+                    mapToBar(resultSet, interval);
+                }
             }
         }
     }
@@ -74,16 +79,17 @@ class BarsCache(val path: String) {
     }
 
     fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBaseBar> {
-        val bars = mutableListOf<XBaseBar>()
-
-        conn.createStatement().use { statement ->
-            statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
-                while (resultSet.next()) {
-                    bars.add(mapToBar(resultSet, interval))
+        synchronized(this) {
+            val bars = mutableListOf<XBaseBar>()
+            conn.createStatement().use { statement ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
+                    while (resultSet.next()) {
+                        bars.add(mapToBar(resultSet, interval))
+                    }
                 }
             }
+            return bars
         }
-        return bars
     }
 
     fun tableName(exchange: String, instrument: Instrument, interval: BarInterval): String {
@@ -91,30 +97,40 @@ class BarsCache(val path: String) {
     }
 
     fun createTable(exchange: String, instrument: Instrument, interval: BarInterval) {
-        conn.createStatement().use {
-            try {
-                it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
-            } catch (e: SQLiteException) {
+        synchronized(this) {
+            conn.autoCommit = true
+            conn.createStatement().use {
+                try {
+                    it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
+                } catch (e: SQLiteException) {
 
+                }
             }
         }
     }
 
     fun saveBar(exchange: String, instrument: Instrument, bar: XBar): Int {
-        conn.createStatement().use { statement ->
-            return statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+        return synchronized(this) {
+            conn.autoCommit = true
+            val ret = conn.createStatement().use { statement ->
+                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+            }
+            ret
         }
     }
 
     fun saveBars(exchange: String, instrument: Instrument, bars: List<XBar>) {
 
-        conn.autoCommit = false
-        conn.createStatement().use { statement ->
-            bars.forEach { bar ->
-                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+        synchronized(this) {
+            conn.autoCommit = false
+            conn.createStatement().use { statement ->
+                bars.forEach { bar ->
+                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+                }
             }
+            conn.commit()
+            conn.autoCommit = true
         }
-        conn.commit()
     }
 
     companion object {

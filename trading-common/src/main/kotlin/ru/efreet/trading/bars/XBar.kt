@@ -41,11 +41,6 @@ interface XBar {
     var trades: Int
 
     /**
-     * @return the whole traded amount of the period
-     */
-    var amount: Double
-
-    /**
      * @return the time period of the bar
      */
     var timePeriod: Duration
