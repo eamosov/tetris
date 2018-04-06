@@ -29,27 +29,28 @@ public class IndicatorsPane extends JPanel {
         super.paint(g);
         Sheet sheet = vis.getSheet();
         if (sheet ==null) return;
+        int scale = vis.zoomScale();
         int from = vis.getIndex();
-        int bars = getSize().width/vis.candleWidth();
+        int bars = getSize().width*scale/vis.candleWidth();
         IIndicator[] ii = vis.getSheet().getLib().listIndicators();
         for (int j = 0;j<ii.length;j++) {
             IIndicator ind = ii[j];
             int to = Math.min(from + bars, sheet.moments.size());
             Pair<Double,Double> minMax = SheetUtils.getIndicatorMinMax(sheet,ind,from,to);
-            for (int i = from; i < to; i++)
-                paintIndicator(g, i, j, ind,minMax.getFirst(),minMax.getSecond());
+            for (int i = from; i < to; i+=scale)
+                paintIndicator(g, i, j, scale, ind,minMax.getFirst(),minMax.getSecond());
         }
 
     }
 
-    private void paintIndicator(Graphics g, int index, int indicatorIndex, IIndicator ind, double min, double max) {
+    private void paintIndicator(Graphics gg, int index, int indicatorIndex, int scale, IIndicator ind, double min, double max) {
         int w = vis.candleWidth();
-        int x = (index-vis.getIndex())* w;
-        g.setColor(VisUtils.NumberColor(vis.getSheet(),index, ind, min, max));
-        g.fillRect(x, indicatorIndex*w,w,w);
+        int x = (index-vis.getIndex())/scale* w;
+        gg.setColor(VisUtils.NumberColor(vis.getSheet(), index, scale, ind, min, max));
+        gg.fillRect(x, indicatorIndex*w,w,w);
     }
 
-    public String getIndicatorValue(int index, Point p) {
+    public String getIndicatorInfo(int index, Point p) {
         IIndicator indicator = vis.getSheet().getLib().listIndicators()[getIndicatorIndex(p)];
         return indicator.getName()+" "+vis.getSheet().getData().get(indicator,index);
     }

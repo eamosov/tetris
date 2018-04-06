@@ -31,10 +31,28 @@
               <text value="&gt;&gt;"/>
             </properties>
           </component>
-          <component id="51299" class="javax.swing.JButton" binding="superBot">
+          <component id="51299" class="javax.swing.JButton" binding="bot">
             <constraints/>
             <properties>
-              <text value="Super bot"/>
+              <text value="Bot"/>
+            </properties>
+          </component>
+          <component id="55386" class="javax.swing.JLabel" binding="zoomLabel">
+            <constraints/>
+            <properties>
+              <text value="   Zoom level: 0"/>
+            </properties>
+          </component>
+          <component id="852f5" class="javax.swing.JButton" binding="zoomPlus">
+            <constraints/>
+            <properties>
+              <text value="+"/>
+            </properties>
+          </component>
+          <component id="47213" class="javax.swing.JButton" binding="zoomMinus">
+            <constraints/>
+            <properties>
+              <text value="-"/>
             </properties>
           </component>
         </children>

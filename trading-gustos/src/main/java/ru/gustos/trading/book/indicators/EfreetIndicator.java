@@ -13,7 +13,7 @@ import java.awt.Color;
 import java.util.stream.Collectors;
 
 public class EfreetIndicator implements IIndicator {
-    public static final int Id = 5;
+    public static final int Id = 6;
 
     @Override
     public int getId() {

@@ -9,7 +9,7 @@ public class IndicatorsLib {
 
     public IndicatorsLib(){
 
-        indicators = new IIndicator[]{new VolumeIndicator(),new TargetBuyIndicator(),new TargetSellIndicator(), new MacdIndicator(), new DemaIndicator(),
+        indicators = new IIndicator[]{new VolumeIndicator(),new TargetBuyIndicator(),new TargetSellIndicator(), new MacdIndicator(), new DemaIndicator(), new EfreetIndicator(),
         new PriceChangeIndicator(IndicatorPeriod.TENMINUTES),new PriceChangeIndicator(IndicatorPeriod.HOUR),new PriceChangeIndicator(IndicatorPeriod.DAY),
                 new PriceChangeIndicator(IndicatorPeriod.WEEK),new PriceChangeIndicator(IndicatorPeriod.MONTH),
         new RelativePriceIndicator(IndicatorPeriod.TENMINUTES),new RelativePriceIndicator(IndicatorPeriod.HOUR),new RelativePriceIndicator(IndicatorPeriod.DAY),

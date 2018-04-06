@@ -24,6 +24,16 @@ public class IndicatorsData {
         return data.get(indicator.getId())[index];
     }
 
+    public double get(IIndicator indicator, int index,int scale) {
+        if (scale==1)
+            return data.get(indicator.getId())[index];
+        double res = 0;
+        for (int i = 0;i<scale;i++)
+            res+=data.get(indicator.getId())[index+i];
+        res/=scale;
+        return res;
+    }
+
     public double get(int id, int index) {
         return data.get(id)[index];
     }
