@@ -27,7 +27,7 @@ public class PanelWithVerticalLine extends JPanel {
         super.paint(g);
         if (p==null) return;
         int index = vis.getIndexAt(p);
-        int x = (index-vis.getIndex())*vis.candleWidth()+vis.candleWidth()/2;
+        int x = (index-vis.getIndex())/vis.zoomScale()*vis.candleWidth()+vis.candleWidth()/2;
         g.setColor(new Color(145,171,172));
         g.drawLine(x,0,x,getHeight());
     }

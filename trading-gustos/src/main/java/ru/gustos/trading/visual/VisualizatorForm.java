@@ -17,7 +17,10 @@ public class VisualizatorForm {
     private JPanel center;
     private JTextField indexField;
     private JLabel infoLabel;
-    private JButton superBot;
+    private JButton bot;
+    private JButton zoomPlus;
+    private JButton zoomMinus;
+    private JLabel zoomLabel;
 
     private CandlesPane candles;
     private IndicatorsPane indicators;
@@ -56,7 +59,7 @@ public class VisualizatorForm {
         });
         center.addMouseMotionListener(new MouseMotionListener() {
             @Override
-            public void mouseDragged(MouseEvent e) {            }
+            public void mouseDragged(MouseEvent e) { vis.mouseDrag(e.getPoint());  }
 
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -72,12 +75,12 @@ public class VisualizatorForm {
 
             @Override
             public void mousePressed(MouseEvent e) {
-
+                vis.mousePressed(e.getPoint());
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-
+                vis.mouseReleased(e.getPoint());
             }
 
             @Override
@@ -87,7 +90,7 @@ public class VisualizatorForm {
 
             @Override
             public void mouseExited(MouseEvent e) {
-
+                vis.mouseExited(e.getPoint());
             }
         });
         vis.addListener(new VisualizatorViewListener() {
@@ -107,12 +110,30 @@ public class VisualizatorForm {
                 mouseClick(p);
             }
         });
-        superBot.addActionListener(new ActionListener() {
+        bot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new CheatBot(vis.getSheet()).run();
+                RunBotDialog dlg = new RunBotDialog(vis);
+                dlg.pack();
+                dlg.setVisible(true);
             }
         });
+        zoomPlus.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.zoomPlus();
+            }
+        });
+        zoomMinus.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.zoomMinus();
+            }
+        });
+    }
+
+    public void setZoom(int zoom){
+        zoomLabel.setText("  Zoom level: "+zoom+"  ");
     }
 
     JPanel getCenter(){
@@ -129,11 +150,12 @@ public class VisualizatorForm {
         if (index<0 || index>=mm.size())
             infoLabel.setText("");
         else {
-            String info = info4bar(mm.get(index).bar);
+
+            String info = info4bar(candles.getBar(index));
             int indY = point.y-indicators.getLocation().y;
 
             if (indY>=0)
-                info += "      "+indicators.getIndicatorValue(index,new Point(point.x,indY));
+                info += "      "+indicators.getIndicatorInfo(index,new Point(point.x,indY));
             infoLabel.setText(info);
         }
 

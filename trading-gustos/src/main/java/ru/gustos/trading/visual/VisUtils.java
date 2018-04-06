@@ -14,6 +14,17 @@ public class VisUtils {
         return new Color((int)(c2.getRed()*p + c1.getRed()*(1-p)),(int)(c2.getGreen()*p + c1.getGreen()*(1-p)),(int)(c2.getBlue()*p + c1.getBlue()*(1-p)));
     }
 
+    public static Color NumberColor(Sheet sheet, int index, int scale, IIndicator ind, double min, double max) {
+        int r = 0, g = 0, b = 0;
+        for (int i = 0;i<scale;i++){
+            Color color = VisUtils.NumberColor(sheet, index, ind, min, max);
+            r+=color.getRed();
+            g+=color.getGreen();
+            b+=color.getBlue();
+        }
+        return new Color(r/scale,g/scale,b/scale);
+    }
+
     public static Color NumberColor(Sheet sheet, int index, IIndicator ind, double min, double max) {
         Color col = Color.lightGray;
         double val = sheet.getData().get(ind,index);

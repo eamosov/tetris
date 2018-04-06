@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class Visualizator {
     private Sheet sheet;
     private int from;
+    private int zoom;
     private VisualizatorFrame frame;
     protected EventListenerList viewListeners = new EventListenerList();
 
@@ -60,11 +61,16 @@ public class Visualizator {
     }
 
     private int barsOnScreen(){
-        return frame.form.getCenter().getWidth()/candleWidth();
+        return frame.form.getCenter().getWidth()*zoomScale()/candleWidth();
+    }
+
+    public int zoomScale(){
+        return 1<<zoom;
     }
 
     private void fixFrom(){
         if (from<0) from = 0;
+        from = from/zoomScale()*zoomScale();
         if (from>sheet.moments.size()-barsOnScreen())
             from = sheet.moments.size()-barsOnScreen();
     }
@@ -77,12 +83,47 @@ public class Visualizator {
         return sheet;
     }
 
+    public void zoomPlus() {
+        if (zoom>=9) return;
+        zoom++;
+        frame.form.setZoom(zoom);
+        fixFrom();
+        fireViewUpdated();
+    }
+
+    public void zoomMinus() {
+        if (zoom<=0) return;
+        zoom--;
+        frame.form.setZoom(zoom);
+    }
+
     public int getIndexAt(Point point) {
-        return getIndex()+point.x/candleWidth();
+        return getIndex()+point.x*zoomScale()/candleWidth();
     }
 
     public void mouseMove(Point point) {
+        startDrag = null;
         Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMouseMoved(point));
+    }
+
+    private Point startDrag;
+    private int startDragIndex;
+    public void mousePressed(Point point) {
+        startDrag = point;
+        startDragIndex = from;
+    }
+
+    public void mouseReleased(Point point) {
+        startDrag = null;
+    }
+    public void mouseExited(Point point) {
+        startDrag = null;
+    }
+    public void mouseDrag(Point point) {
+        if (startDrag!=null){
+            int dif = getIndexAt(point)-getIndexAt(startDrag);
+            setIndex(startDragIndex-dif);
+        }
     }
 
     public void mouseClicked(Point point) {
@@ -93,6 +134,7 @@ public class Visualizator {
         try {
             Sheet sheet = new Sheet();
             sheet.fromCache();
+//            sheet.fromExchange();
             SheetUtils.FillDecisions(sheet);
             sheet.calcIndicators();
             new Visualizator(sheet);
@@ -101,6 +143,5 @@ public class Visualizator {
         }
 
     }
-
 }
 

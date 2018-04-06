@@ -29,7 +29,7 @@ public class Sheet {
         exch = new Binance();
 //        exch = new Poloniex();
         instr = Instrument.Companion.getBTC_USDT();
-        interval = BarInterval.FIVE_MIN;
+        interval = BarInterval.ONE_MIN;
         indicatorsLib = new IndicatorsLib();
         indicatorsData = new IndicatorsData(this);
     }
@@ -50,7 +50,7 @@ public class Sheet {
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
         String exchName = exch.getName();
         cache.createTable(exchName, instr, interval);
-        ZonedDateTime from = ZonedDateTime.now().minusDays(180);
+        ZonedDateTime from = ZonedDateTime.now().minusDays(210);
         List<XBar> bars = exch.loadBars(instr, interval, from, ZonedDateTime.now());
         bars.removeIf((b)->BarInterval.Companion.ofSafe(b.getTimePeriod())!=interval);
         cache.saveBars(exchName, instr,bars);
@@ -64,7 +64,7 @@ public class Sheet {
         indicatorsDb.updateTable(this);
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
         String exchName = exch.getName();
-        ZonedDateTime from = ZonedDateTime.now().minusDays(180);
+        ZonedDateTime from = ZonedDateTime.now().minusDays(130);
         List<XBaseBar> bars = cache.getBars(exchName, instr, interval, from, ZonedDateTime.now());
         for (int i =0 ;i<bars.size();i++)
             moments.add(new Moment(bars.get(i)));
@@ -74,12 +74,12 @@ public class Sheet {
     public void calcIndicators(){
         for (IIndicator ii : indicatorsLib.listIndicators())
             indicatorsData.calc(ii);
-        try {
-            indicatorsDb.clear(this);
-            indicatorsData.save(indicatorsDb);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            indicatorsDb.clear(this);
+//            indicatorsData.save(indicatorsDb);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void loadIndicators() throws SQLException {
@@ -94,17 +94,18 @@ public class Sheet {
             ZonedDateTime tt = startTime.plus(interval.getDuration().multipliedBy(i));
             Duration between = Duration.between(t, tt);
             long secs = between.getSeconds();
-            if (secs<0){
-                int toInsert = (int)(-secs+120)/300;
+            int intervalSeconds = (int)interval.getDuration().getSeconds();
+            if (secs<0 && secs< -intervalSeconds /2){
+                int toInsert = (int)(-secs+ intervalSeconds /3)/ intervalSeconds;
                 for (int j = 0;j<toInsert;j++)
                     InsertEmpty(i+j, tt.plus(interval.getDuration().multipliedBy(j)));
-                System.out.println("inserted "+toInsert+" at "+i);
+                System.out.println("inserted "+toInsert+" at "+i+" deltaSec "+secs);
                 fixes++;
-            } else if (secs>0 && secs<150) {
+            } else if (secs!=0 && Math.abs(secs)< intervalSeconds /3) {
                 moments.get(i).bar.setBeginTime(tt);
                 moments.get(i).bar.setEndTime(tt.plus(interval.getDuration()));
                 fixes++;
-            } else if (secs>=150)
+            } else if (secs>= intervalSeconds /3)
                 System.out.println("negative step "+ between +" at "+i);
         }
         System.out.println("fixes: "+fixes);
