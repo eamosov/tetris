@@ -92,7 +92,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 funXP(stats.profit / targetProfit - 1.0, 0.5) -
                 funXP(params.stopLoss / targetStopLoss - 1.0, 0.2) -
                 funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.2) +
-                stats.pearson
+                (stats.pearson - 0.9) * 10.0
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
