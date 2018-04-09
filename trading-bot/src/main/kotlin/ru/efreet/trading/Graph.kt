@@ -1,5 +1,6 @@
 package ru.efreet.trading
 
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import org.jfree.chart.ChartFactory
 import org.jfree.chart.ChartPanel
 import org.jfree.chart.axis.DateAxis
@@ -26,6 +27,7 @@ import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.toJson
 import java.awt.Color
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -63,14 +65,26 @@ class Graph {
             dataset.addSeries(ts)
         }
 
+        val (startTime, startFunds) = history.cash.first()
+
+        //время в часах
+        val t = Duration.between(startTime, history.cash.last().first).toHours()
+
+        //профит в час
+        val k = Math.pow(history.cash.last().second / startFunds, 1.0 / t)
+
+
         val cashDataset = TimeSeriesCollection()
         val cashSeries = org.jfree.data.time.TimeSeries("usd")
+        val idealSeries = org.jfree.data.time.TimeSeries("ideal")
 
         for (c in history.cash) {
             cashSeries.add(Minute(Date.from(c.first.toInstant())), c.second)
+            idealSeries.add(Minute(Date.from(c.first.toInstant())), startFunds * Math.pow(k, Duration.between(startTime, c.first).toHours().toDouble()))
         }
 
         cashDataset.addSeries(cashSeries)
+        cashDataset.addSeries(idealSeries)
 
         ///
 //        val profitDataset = TimeSeriesCollection()
