@@ -178,7 +178,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
 
                 val usdBefore = balanceResult.balances[baseName]
                 val assetBefore = balanceResult.balances[advice.instrument.asset]
-                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.MARKET)
 
                 updateBalance(true)
 
