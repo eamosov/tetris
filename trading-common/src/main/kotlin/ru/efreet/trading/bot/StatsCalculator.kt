@@ -43,6 +43,7 @@ class StatsCalculator {
 
         val avrProfitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
         val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - avrProfitPerTrade).pow2() }.sum() / profits.size) else 0.0
+
         return TradesStats(
                 profits.size,
                 if (profits.size > 0) tradesWithProfit.toDouble() / profits.size else 0.0,
