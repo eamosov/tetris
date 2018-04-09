@@ -1,8 +1,10 @@
 package ru.efreet.trading.bot
 
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.utils.pow2
 import ru.efreet.trading.utils.sma
+import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
@@ -22,6 +24,7 @@ class StatsCalculator {
         var tradesWithProfit = 0
 
         val profits = mutableListOf<Pair<ZonedDateTime, Double>>()
+        val funds = mutableListOf<Pair<ZonedDateTime, Double>>()
 
         for (i in 0 until history.trades.size) {
             val trade = history.trades[i]
@@ -36,9 +39,29 @@ class StatsCalculator {
                             tradesWithProfit++
 
                         profits.add(Pair(trade.time!!, tradeProfit))
+                        funds.add(Pair(trade.time!!, trade.fundsAfter))
                     }
                 }
             }
+        }
+
+        val pearson: Double;
+
+        if (funds.size > 2) {
+            val (startTime, startFunds) = funds.first()
+
+            //время в часах
+            val t = Duration.between(startTime, funds.last().first).toHours()
+
+            //профит в час
+            val k = Math.pow(funds.last().second / startFunds, 1.0 / t)
+
+            //Идеальный график распределения профита
+            val ideal = funds.map { startFunds * Math.pow(k, Duration.between(startTime, it.first).toHours().toDouble()) }.toDoubleArray()
+
+            pearson = PearsonsCorrelation().correlation(funds.map { it.second }.toDoubleArray(), ideal)
+        } else {
+            pearson = 0.0
         }
 
         val avrProfitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
@@ -52,6 +75,7 @@ class StatsCalculator {
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
+                pearson,
                 history.start,
                 history.end
         )
