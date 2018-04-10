@@ -14,7 +14,7 @@ class Periodical(val duration: Duration) {
             last = ZonedDateTime.now()
             try {
                 block()
-            }catch (e:Exception){
+            }catch (e:Throwable){
                 e.printStackTrace()
             }
         }
