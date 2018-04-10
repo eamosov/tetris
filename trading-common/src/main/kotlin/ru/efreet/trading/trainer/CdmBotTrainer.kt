@@ -29,11 +29,16 @@ class CdmBotTrainer : BotTrainer {
 
     data class TrainItem<P, R>(var args: P, var result: R)
 
-    override fun <P, R> getBestParams(genes: List<PropertyEditor<P, Any?>>, origin: List<P>, function: (P) -> R, metrica: (P, R) -> Double, copy: (P) -> P): Pair<P, R> {
+    override fun <P, R> getBestParams(genes: List<PropertyEditor<P, Any?>>,
+                                      origin: List<P>,
+                                      function: (P) -> R,
+                                      metrica: (P, R) -> Double,
+                                      copy: (P) -> P,
+                                      newBest: ((P, R) -> Unit)?): Pair<P, R> {
 
         val population: MutableList<TrainItem<P, R?>> = origin.map { TrainItem(it, null as R?) }.toMutableList()
 
-        doCdm(genes, population, function, metrica, copy)
+        doCdm(genes, population, function, metrica, copy, newBest)
 
         population.sortBy { metrica(it.args, it.result!!) }
 
@@ -47,8 +52,12 @@ class CdmBotTrainer : BotTrainer {
     }
 
 
-    fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>, population: MutableList<TrainItem<P, R?>>,
-                     function: (P) -> R, metrica: (P, R) -> Double, copy: (P) -> P) {
+    fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
+                     population: MutableList<TrainItem<P, R?>>,
+                     function: (P) -> R,
+                     metrica: (P, R) -> Double,
+                     copy: (P) -> P,
+                     newBest: ((P, R) -> Unit)? = null) {
 
         val futures: MutableList<CompletableFuture<Unit>> = mutableListOf()
         var finished = 0
@@ -64,6 +73,7 @@ class CdmBotTrainer : BotTrainer {
                     if (lastBest == null || m > lastBest!!) {
                         lastBest = m
                         println("CDM: NEW BEST ${population[it]}")
+                        newBest?.invoke(population[it].args, population[it].result!!)
                     }
 
                     print("CDM: (${(finished * 100.0 / population.size).round2()} %): $finished\r")
@@ -82,7 +92,7 @@ class CdmBotTrainer : BotTrainer {
     }
 
     //val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
-    val steps: Array<Int> = arrayOf(20,5,1)
+    val steps: Array<Int> = arrayOf(20, 5, 1)
 
     fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      origin: TrainItem<P, R?>,

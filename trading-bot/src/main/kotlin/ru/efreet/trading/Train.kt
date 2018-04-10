@@ -57,7 +57,17 @@ class Train {
                         StatsCalculator().stats(history)
                     },
                     { params, stats -> logic.metrica(params, stats) },
-                    { logic.copyParams(it) })
+                    { logic.copyParams(it) },
+                    { params, stats ->
+                        synchronized(Train.Companion) {
+                            val savePath = cmd.settings + ".out"
+                            println("Saving intermediate logic's properties to ${savePath}")
+                            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                            logic.setMinMax(params, 20.0, false)
+                            logic.setParams(params)
+                            logic.saveState(savePath, stats.toString())
+                        }
+                    })
 
             println(sp.toJson())
             val savePath = cmd.settings + ".out"

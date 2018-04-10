@@ -12,7 +12,11 @@ class Periodical(val duration: Duration) {
     fun invoke( block: ()->Unit, force:Boolean = false):Unit {
         if (last.isBefore(ZonedDateTime.now().minus(duration)) || force){
             last = ZonedDateTime.now()
-            block()
+            try {
+                block()
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
         }
     }
 }
