@@ -18,14 +18,17 @@ import java.time.format.DateTimeFormatter;
 public class CandlesPane extends JPanel {
     public static final Color RED = new Color(164, 32, 21);
     public static final Color GREEN = new Color(51, 147, 73);
+    public static final Color BLUE = new Color(25, 25, 164);
 
     public static final Font gridFont = new Font("Dialog",Font.BOLD,12);
     public static final Color gridColor = new Color(242, 246, 246);
     public static final Color darkColor = new Color(74, 90, 90);
+    public static final Color darkerColor = new Color(37, 45, 45);
 
 
     private Visualizator vis;
-    private int indicator = -1;
+    private int graphIndicator = -1;
+    private int backIndicator = -1;
 
     public CandlesPane(Visualizator vis) {
         this.vis = vis;
@@ -48,14 +51,18 @@ public class CandlesPane extends JPanel {
         XBaseBar minMax = sheet.getSumBar(from, bars);
         int to = Math.min(from + bars, sheet.moments.size());
 
-        if (indicator!=-1){
-            IIndicator ii = vis.getSheet().getLib().listIndicators()[indicator];
-//            if (ii.getType()== IndicatorType.NUMBER){
+        if (graphIndicator !=-1){
+            IIndicator ii = vis.getSheet().getLib().get(graphIndicator);
                 Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
+        }
 
-//            }
+        if (backIndicator !=-1){
+            IIndicator ii = vis.getSheet().getLib().get(backIndicator);
+                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
+                for (int i = from; i< to; i+=scale)
+                    paintIndicatorBar(g,i,scale,ii,mm);
         }
 
         paintGrid(g,minMax, sheet.moments.get(from).bar.getBeginTime(),sheet.interval(),false);
@@ -169,10 +176,19 @@ public class CandlesPane extends JPanel {
     }
 
     public void setIndicator(int ind) {
-        if (ind==indicator)
-            indicator = -1;
-        else
-            indicator = ind;
+        IndicatorType type = vis.getSheet().getLib().get(ind).getType();
+        if (type==IndicatorType.YESNO){
+            if (ind == backIndicator)
+                backIndicator = -1;
+            else
+                backIndicator = ind;
+
+        } else {
+            if (ind == graphIndicator)
+                graphIndicator = -1;
+            else
+                graphIndicator = ind;
+        }
         repaint();
     }
 

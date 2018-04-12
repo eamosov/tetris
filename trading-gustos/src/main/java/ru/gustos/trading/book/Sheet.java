@@ -9,8 +9,11 @@ import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.Binance;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +28,7 @@ public class Sheet {
     IndicatorsData indicatorsData;
     IndicatorsDb indicatorsDb;
 
-    public Sheet(){
+    public Sheet() throws NoSuchMethodException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
         exch = new Binance();
 //        exch = new Poloniex();
         instr = Instrument.Companion.getBTC_USDT();
@@ -50,7 +53,7 @@ public class Sheet {
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
         String exchName = exch.getName();
         cache.createTable(exchName, instr, interval);
-        ZonedDateTime from = ZonedDateTime.now().minusDays(210);
+        ZonedDateTime from = ZonedDateTime.of(2017,9,1,0,0,0,0, ZoneId.systemDefault());
         List<XBar> bars = exch.loadBars(instr, interval, from, ZonedDateTime.now());
         bars.removeIf((b)->BarInterval.Companion.ofSafe(b.getTimePeriod())!=interval);
         cache.saveBars(exchName, instr,bars);
@@ -60,20 +63,46 @@ public class Sheet {
     }
 
     public void fromCache() throws SQLException {
+        fromCache(-1);
+    }
+    public void fromCache(int packing) throws SQLException {
+        packing = 500;
         indicatorsDb = new IndicatorsDb("d:\\tetrislibs\\inds");
         indicatorsDb.updateTable(this);
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
         String exchName = exch.getName();
-        ZonedDateTime from = ZonedDateTime.now().minusDays(130);
+        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
         List<XBaseBar> bars = cache.getBars(exchName, instr, interval, from, ZonedDateTime.now());
-        for (int i =0 ;i<bars.size();i++)
-            moments.add(new Moment(bars.get(i)));
-        fixMoments();
+        XBaseBar lastBar = null;
+        for (int i =0 ;i<bars.size();i++) {
+            if (lastBar==null || lastBar.getVolume()>packing) {
+                Moment m = new Moment(bars.get(i));
+                moments.add(m);
+                lastBar = (XBaseBar)m.bar;
+            } else {
+                lastBar.addBar(bars.get(i));
+            }
+        }
+//        fixMoments();
+
     }
+
 
     public void calcIndicators(){
         for (IIndicator ii : indicatorsLib.listIndicators())
             indicatorsData.calc(ii);
+//        try {
+//            indicatorsDb.clear(this);
+//            indicatorsData.save(indicatorsDb);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    public void calcIndicatorsNoPredict(){
+        for (IIndicator ii : indicatorsLib.listIndicators())
+            if (ii.getId()<200)
+                indicatorsData.calc(ii);
 //        try {
 //            indicatorsDb.clear(this);
 //            indicatorsData.save(indicatorsDb);

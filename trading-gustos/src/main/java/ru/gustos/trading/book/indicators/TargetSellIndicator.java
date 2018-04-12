@@ -1,17 +1,19 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class TargetSellIndicator implements IIndicator{
-    public static final int Id = 2;
-    public static final Color COLOR = new Color(192,0,0);
+import static ru.gustos.trading.book.SheetUtils.sellValues;
 
-    @Override
-    public int getId() {
-        return Id;
+public class TargetSellIndicator extends BaseIndicator{
+    public static int Id;
+
+    public TargetSellIndicator(IndicatorInitData data){
+        super(data);
+        Id = data.id;
     }
 
     @Override
@@ -26,8 +28,18 @@ public class TargetSellIndicator implements IIndicator{
 
     @Override
     public void calcValues(Sheet sheet, double[] values) {
-        for (int i = 0;i<values.length;i++)
-            values[i] =  sheet.moments.get(i).decision==Decision.SELL?IIndicator.YES:Double.NaN;
+        double[] sellValues = sellValues(sheet, false);
+        int lookNext = 60;
+        for (int i = 0;i<sheet.moments.size()-lookNext;i++) {
+            XBar bar = sheet.moments.get(i).bar;
+            int cnt = 0;
+            for (int j = i+1;j<i+lookNext;j++){
+                if (bar.getClosePrice()*0.995>sellValues[j])
+                    cnt++;
+            }
+
+            values[i] = cnt>40?IIndicator.YES:0;
+        }
     }
 
     @Override

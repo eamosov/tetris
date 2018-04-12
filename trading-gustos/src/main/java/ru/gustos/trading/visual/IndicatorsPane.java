@@ -21,7 +21,7 @@ public class IndicatorsPane extends JPanel {
             }
         });
         Dimension d = getPreferredSize();
-        d.height = vis.candleWidth()*vis.getSheet().getLib().listIndicators().length;
+        d.height = vis.candleWidth()*vis.getSheet().getLib().listIndicatorsShow().length;
         setPreferredSize(d);
     }
 
@@ -32,7 +32,7 @@ public class IndicatorsPane extends JPanel {
         int scale = vis.zoomScale();
         int from = vis.getIndex();
         int bars = getSize().width*scale/vis.candleWidth();
-        IIndicator[] ii = vis.getSheet().getLib().listIndicators();
+        IIndicator[] ii = vis.getSheet().getLib().listIndicatorsShow();
         for (int j = 0;j<ii.length;j++) {
             IIndicator ind = ii[j];
             int to = Math.min(from + bars, sheet.moments.size());
@@ -51,12 +51,12 @@ public class IndicatorsPane extends JPanel {
     }
 
     public String getIndicatorInfo(int index, Point p) {
-        IIndicator indicator = vis.getSheet().getLib().listIndicators()[getIndicatorIndex(p)];
+        IIndicator indicator = vis.getSheet().getLib().get(getIndicatorId(p));
         return indicator.getName()+" "+vis.getSheet().getData().get(indicator,index);
     }
 
-    public int getIndicatorIndex(Point point) {
-        return point.y/vis.candleWidth();
+    public int getIndicatorId(Point point) {
+        return vis.getSheet().getLib().listIndicatorsShow()[point.y/vis.candleWidth()].getId();
     }
 }
 

@@ -37,10 +37,10 @@ public class Sd3LogicIndicatorTest {
             OrderSide side = logic.getAdvice(i, null, null, false).getOrderSide().getSide();
             if (side!=prev) {
                 if (side==OrderSide.BUY) {
-                    btc+=money/logic.getBar(i).getClosePrice()*0.9975;
+                    btc+=money/logic.getBar(i).getClosePrice()*0.9995;
                     money = 0;
                 } else {
-                    money+=btc*logic.getBar(i).getClosePrice()*0.9975;
+                    money+=btc*logic.getBar(i).getClosePrice()*0.9995;
                     btc = 0;
                 }
 

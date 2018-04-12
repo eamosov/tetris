@@ -1,5 +1,6 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.bot.OrderSideExt;
 import ru.efreet.trading.exchange.BarInterval;
@@ -12,12 +13,17 @@ import ru.gustos.trading.book.Sheet;
 import java.awt.Color;
 import java.util.stream.Collectors;
 
-public class EfreetIndicator implements IIndicator {
-    public static final int Id = 6;
+public class EfreetIndicator extends BaseIndicator  {
+    public static int Id;
+
+    public EfreetIndicator(IndicatorInitData data){
+        super(data);
+        Id = data.id;
+    }
 
     @Override
     public int getId() {
-        return Id;
+        return id;
     }
 
     @Override
@@ -49,13 +55,39 @@ public class EfreetIndicator implements IIndicator {
                                                                               .collect(Collectors.toList()));
         logic.prepare();
 
+        boolean buy = false;
+        double buyWhenPrice = 0;
+        double sellWhenPrice = 0;
         for (int i = 0; i < values.length; i++) {
 
             final OrderSideExt ose = logic.getAdvice(i, null, null, false).getOrderSide();
-            final Decision decision = (ose == null) ? Decision.NONE : ((ose.getSide() == OrderSide.BUY) ? Decision.BUY : Decision.SELL);
 
-            values[i] = decision == Decision.BUY ? IIndicator.YES : (decision == Decision.SELL ? IIndicator.NO : Double.NaN);
+            XBar bar = sheet.moments.get(i).bar;
+            if (ose.getSide() == OrderSide.BUY ){
+                double price = bar.getMaxPrice();
+                if (price>buyWhenPrice || bar.getClosePrice()>bar.getOpenPrice()*1.002) {
+                    buy = true;
+                    buyWhenPrice = 0;
+                } else
+                    buyWhenPrice = Math.min(buyWhenPrice,price*1.002);
+
+                sellWhenPrice = 0;
+            } else {
+                double price = bar.getMinPrice();
+                if (price<sellWhenPrice || bar.getClosePrice()*1.002<bar.getOpenPrice()) {
+                    buy = false;
+                    sellWhenPrice = 10000000;
+                } else
+                    sellWhenPrice = Math.max(sellWhenPrice,price/1.002);
+
+                buyWhenPrice = 10000000;
+            }
+            if (buy)
+                values[i] =IIndicator.YES;
+            else
+                values[i] =IIndicator.NO;
         }
 
     }
 }
+

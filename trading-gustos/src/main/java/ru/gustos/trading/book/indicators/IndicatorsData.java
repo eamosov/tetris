@@ -38,6 +38,10 @@ public class IndicatorsData {
         return data.get(id)[index];
     }
 
+    public double[] get(int id){
+        return data.get(id);
+    }
+
     public void save(IndicatorsDb db) throws SQLException {
         Integer[] keys = data.keySet().toArray(new Integer[0]);
 

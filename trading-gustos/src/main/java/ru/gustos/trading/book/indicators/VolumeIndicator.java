@@ -1,18 +1,18 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.gustos.trading.book.Sheet;
+import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class VolumeIndicator implements IIndicator{
-    public static final int Id = 3;
+public class VolumeIndicator extends BaseIndicator{
 
     public static final Color COLOR = new Color(0,0,192);
     public static final Color COLORMIN = Color.lightGray.brighter();
 
-    @Override
-    public int getId() {
-        return Id;
+
+    public VolumeIndicator(IndicatorInitData data){
+        super(data);
     }
 
     @Override

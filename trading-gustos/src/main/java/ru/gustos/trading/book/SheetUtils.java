@@ -59,6 +59,25 @@ public class SheetUtils {
             sheet.moments.get(i).decision = CalcDecision(sheet,i,lookNext);
     }
 
+    private static void initDecisions2(Sheet sheet) {
+        double[] sellValuesPos = sellValues(sheet, true);
+        double[] sellValuesNeg = sellValues(sheet, false);
+        int lookNext = 60;
+        for (int i = 0;i<sheet.moments.size()-lookNext;i++) {
+            XBar bar = sheet.moments.get(i).bar;
+            int pos = 0;
+            int neg = 0;
+            for (int j = i+1;j<i+lookNext;j++){
+                if (bar.getMaxPrice()*1.0075<sellValuesPos[j])
+                    pos++;
+                if (bar.getMinPrice()>sellValuesNeg[j])
+                    neg++;
+            }
+
+            sheet.moments.get(i).decision = pos>10?Decision.BUY:(neg>10?Decision.SELL:Decision.NONE);
+        }
+    }
+
     private static Decision CalcDecision(Sheet sheet, int from, int next) {
         int lo = 0, hi = 0;
         double now = sheet.moments.get(from).bar.middlePrice();
@@ -97,6 +116,20 @@ public class SheetUtils {
 
 
 
+    public static Pair<Double, Double> getMinMax(Sheet sheet, int from, int to) {
+        double min = Double.MAX_VALUE;
+        double max = 0;
+        for (int i = from; i < to; i++){
+            double cmin = sheet.moments.get(i).bar.getMinPrice();
+            if (cmin<min)
+                min = cmin;
+            double cmax = sheet.moments.get(i).bar.getMaxPrice();
+            if (cmax>max)
+                max = cmax;
+        }
+        return new Pair<>(min,max);
+    }
+
     public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, IIndicator ind, int from, int to) {
         double min = ind.fromZero()?0:Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;
@@ -119,4 +152,30 @@ public class SheetUtils {
         }
         return new Pair<>(min,max);
     }
+
+    public static double sellPrice(Sheet sheet, int index, boolean optimist){
+        XBar bar = sheet.moments.get(index).bar;
+        if (optimist)
+            return bar.getMinPrice()*0.8 + bar.getMaxPrice()*0.2;
+        else
+            return bar.getMinPrice()*0.2 + bar.getMaxPrice()*0.8;
+    }
+
+    public static double[] sellValues(Sheet sheet, boolean optimist){
+        double[] sellValues = new double[sheet.moments.size()];
+        for (int i = 0;i<sellValues.length;i++){
+            double v = sellPrice(sheet,i,optimist);
+            for (int j = i-2;j<=i+2;j++)
+                if (j>=0 && j<sellValues.length){
+                    double vv = sellPrice(sheet,j,optimist);
+                    if (optimist && vv<v)
+                        v = vv;
+                    else if (!optimist && vv>v)
+                        v = vv;
+                }
+            sellValues[i] = v;
+        }
+        return sellValues;
+    }
+
 }

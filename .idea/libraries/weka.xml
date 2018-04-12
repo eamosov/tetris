@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="weka">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/trading-gustos/libs/weka.jar!/" />
+      <root url="jar://$PROJECT_DIR$/trading-gustos/libs/thresholdSelector-1.0.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/trading-gustos/libs/weka-src.jar!/src/main/java" />
+      <root url="jar://$PROJECT_DIR$/trading-gustos/libs/weka-src.jar!/src/test/java" />
+    </SOURCES>
+  </library>
+</component>

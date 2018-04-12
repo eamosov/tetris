@@ -16,6 +16,8 @@ public interface IIndicator {
         return false;
     }
 
+    default boolean showOnPane() { return true; }
+
     Color getColorMax();
     Color getColorMin();
 

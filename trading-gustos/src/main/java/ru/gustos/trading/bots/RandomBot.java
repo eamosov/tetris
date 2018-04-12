@@ -6,7 +6,7 @@ import ru.gustos.trading.book.indicators.Decision;
 import java.util.Random;
 
 public class RandomBot implements  IDecisionBot{
-    Random r = new Random();
+    Random r = new Random(0x1234567891011121L);
 
     @Override
     public boolean shouldBuy(Sheet sheet, int index) {

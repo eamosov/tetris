@@ -30,7 +30,10 @@ public class RunBotDialog extends JDialog {
         botList.setModel(model);
         model.addElement("Oracle bot");
         model.addElement("Efreet bot");
+        model.addElement("Y bot");
         model.addElement("Random bot");
+        model.addElement("Check period 15m");
+        model.addElement("Check period 2h");
         botList.setSelectedIndex(0);
 
         buttonOK.addActionListener(new ActionListener() {
@@ -70,12 +73,19 @@ public class RunBotDialog extends JDialog {
             bot = new OracleBot();
         else if (botName.startsWith("Efreet"))
             bot = new EfreetBot();
+        else if (botName.startsWith("Y "))
+            bot = new YBot();
         else if (botName.startsWith("Random"))
             bot = new RandomBot();
+        else if (botName.startsWith("Check period 15m"))
+            bot = new CheckPeriodBot(15,true);
+        else if (botName.startsWith("Check period 2h"))
+            bot = new CheckPeriodBot(120,true);
 
-        double[] result = r.run(vis.getSheet(), here ? vis.getIndex() : 0, vis.getSheet().moments.size(), bot);
+        double result = r.run(vis.getSheet(), here ? vis.getIndex() : 0, vis.getSheet().moments.size(), bot);
         dispose();
-        JOptionPane.showMessageDialog(null,String.format("money x %1$,.2f",(result[result.length-1]/BotRunner.startMoney)));
+        JOptionPane.showMessageDialog(null,String.format("money x %1$,.2f",(result/BotRunner.startMoney)));
+        new BotIntervalsVisualizer(vis.getSheet(),r.intervals);
     }
 
     private void onCancel() {

@@ -6,18 +6,13 @@ import ru.gustos.trading.visual.CandlesPane;
 import java.awt.*;
 
 
-public class PriceChangeIndicator implements IIndicator{
-    public static final int Id = 10;
+public class PriceChangeIndicator extends NumberIndicator {
 
     IndicatorPeriod period;
 
-    public PriceChangeIndicator(IndicatorPeriod period){
-        this.period = period;
-    }
-
-    @Override
-    public int getId() {
-        return Id + period.ordinal();
+    public PriceChangeIndicator(IndicatorInitData data){
+        super(data);
+        period =  IndicatorPeriod.values()[data.period];
     }
 
     @Override
@@ -25,23 +20,12 @@ public class PriceChangeIndicator implements IIndicator{
         return "PriceChange_"+period.name();
     }
 
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
 
     @Override
     public void calcValues(Sheet sheet, double[] values) {
         int bars = IndicatorUtils.bars(period,sheet);
         for (int i = 0;i<values.length;i++)
-            values[i] =  sheet.moments.get(i).bar.getOpenPrice()-sheet.moments.get(Math.max(0,i-bars)).bar.getOpenPrice();
+            values[i] =  (sheet.moments.get(i).bar.getOpenPrice()/sheet.moments.get(Math.max(0,i-bars)).bar.getOpenPrice()-1)*10;
     }
-
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    public Color getColorMin() {        return CandlesPane.RED;    }
 }
 

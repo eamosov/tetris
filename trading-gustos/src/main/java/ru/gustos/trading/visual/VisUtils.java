@@ -18,11 +18,20 @@ public class VisUtils {
         int r = 0, g = 0, b = 0;
         for (int i = 0;i<scale;i++){
             Color color = VisUtils.NumberColor(sheet, index, ind, min, max);
-            r+=color.getRed();
-            g+=color.getGreen();
-            b+=color.getBlue();
+            if (ind.getType()==IndicatorType.YESNO) {
+                r = Math.max(r,color.getRed());
+                g = Math.max(g,color.getGreen());
+                b = Math.max(b,color.getBlue());
+            } else {
+                r += color.getRed();
+                g += color.getGreen();
+                b += color.getBlue();
+            }
         }
-        return new Color(r/scale,g/scale,b/scale);
+        if (ind.getType()==IndicatorType.YESNO)
+            return new Color(r,g,b);
+        else
+            return new Color(r/scale,g/scale,b/scale);
     }
 
     public static Color NumberColor(Sheet sheet, int index, IIndicator ind, double min, double max) {
@@ -32,7 +41,7 @@ public class VisUtils {
             if (ind.getType() == IndicatorType.YESNO) {
                 if (val == IIndicator.YES)
                     col = ind.getColorMax();
-                else
+                else if (val==IIndicator.NO)
                     col = ind.getColorMin();
             } else if (ind.getType() == IndicatorType.NUMBER && ind.fromZero()) {
                 double p = (val-min)/(max-min);

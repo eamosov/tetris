@@ -4,18 +4,12 @@ import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
 
-public class RelativeVolumeIndicator implements IIndicator{
-    public static final int Id = 30;
-
+public class RelativeVolumeIndicator extends BaseIndicator {
     IndicatorPeriod period;
 
-    public RelativeVolumeIndicator(IndicatorPeriod period){
-        this.period = period;
-    }
-
-    @Override
-    public int getId() {
-        return Id + period.ordinal();
+    public RelativeVolumeIndicator(IndicatorInitData data){
+        super(data);
+        period =  IndicatorPeriod.values()[data.period];
     }
 
     @Override
