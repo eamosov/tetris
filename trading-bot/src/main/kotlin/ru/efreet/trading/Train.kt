@@ -47,7 +47,7 @@ class Train {
             if (logic.isInitialized())
                 population.add(logic.getParams().copy())
 
-            val bars = BarsPacker.packBars(exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval)), 100)
+            val bars = BarsPacker.packBars(exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval)), 1)
             println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${cmd.start!!} end=${cmd.end!!}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${logic.logState()}")
 
 

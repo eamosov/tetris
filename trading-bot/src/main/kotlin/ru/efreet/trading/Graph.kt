@@ -210,7 +210,7 @@ class Graph {
             logic.loadState(cmd.settings!!)
 
             val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
-            val bars = BarsPacker.packBars(cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!), 100)
+            val bars = BarsPacker.packBars(cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!), 1)
             bars.checkBars()
 
             val sp = logic.getParams()
