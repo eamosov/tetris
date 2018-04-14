@@ -128,7 +128,7 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
         synchronized(this) {
 
-            val orderSide =  when {
+            val orderSide = when {
                 macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.BUY, true)
                 macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.SELL, false)
                 else -> null
@@ -171,8 +171,11 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
                     false,
                     instrument,
                     bar.closePrice,
-                    if (trader != null) {
-                        trader.availableUsd(instrument) / bar.closePrice
+                    if (trader != null && orderSide != null) {
+                        if (orderSide.side == OrderSide.BUY)
+                            trader.availableUsd(instrument) / bar.closePrice
+                        else
+                            trader.availableAsset(instrument)
                     } else 0.0,
                     bar,
                     indicators)
