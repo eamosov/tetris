@@ -10,6 +10,7 @@ import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
+import ru.efreet.trading.utils.BarsPacker
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.toJson
 
@@ -40,15 +41,19 @@ class Train {
             val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.loadState(cmd.settings!!)
 
+            //for (j in 1..10) {
+
             val population = logic.seed(cmd.seedType, cmd.population ?: 10)
             if (logic.isInitialized())
                 population.add(logic.getParams().copy())
 
-            val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval))
+            val bars = BarsPacker.packBars(exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval)), 100)
             println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${cmd.start!!} end=${cmd.end!!}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${logic.logState()}")
 
 
             bars.checkBars()
+
+
 
             val (sp, stats) = CdmBotTrainer().getBestParams(logic.genes, population,
                     {
@@ -77,6 +82,8 @@ class Train {
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())
             println(logic.logState())
+
+            //}
         }
     }
 }
