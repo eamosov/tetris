@@ -41,9 +41,9 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
                 tStopLoss = 4.0
         )
 
-        of(SimpleBotLogicParams::short, "logic.macd.short", 5, 2000, 1, false)
-        of(SimpleBotLogicParams::long, "logic.macd.long", 5, 2000, 1, false)
-        of(SimpleBotLogicParams::signal, "logic.macd.signal", 5, 2000, 1, false)
+        of(SimpleBotLogicParams::short, "logic.macd.short", 5, 20000, 1, false)
+        of(SimpleBotLogicParams::long, "logic.macd.long", 5, 20000, 1, false)
+        of(SimpleBotLogicParams::signal, "logic.macd.signal", 5, 20000, 1, false)
 
 //        of(SimpleBotLogicParams::stopLoss, "logic.macd.stopLoss", 1.0, 10.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.macd.tStopLoss", 1.0, 10.0, 0.05, true)
