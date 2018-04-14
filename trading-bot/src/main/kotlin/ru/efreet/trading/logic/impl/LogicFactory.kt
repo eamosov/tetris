@@ -4,7 +4,7 @@ import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.logic.impl.sd3.MacdLogic
+import ru.efreet.trading.logic.impl.macd.MacdLogic
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic
 
 /**
