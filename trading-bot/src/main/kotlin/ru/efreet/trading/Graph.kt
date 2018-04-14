@@ -23,6 +23,7 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
+import ru.efreet.trading.utils.BarsPacker
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.toJson
 import java.awt.Color
@@ -209,7 +210,7 @@ class Graph {
             logic.loadState(cmd.settings!!)
 
             val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
-            val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
+            val bars = BarsPacker.packBars(cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!), 100)
             bars.checkBars()
 
             val sp = logic.getParams()
