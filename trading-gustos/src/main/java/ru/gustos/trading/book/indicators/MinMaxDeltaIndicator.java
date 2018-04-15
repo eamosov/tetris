@@ -2,6 +2,9 @@ package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
+import ru.gustos.trading.visual.CandlesPane;
+
+import java.awt.*;
 
 public class MinMaxDeltaIndicator extends NumberIndicator {
 

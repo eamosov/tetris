@@ -51,7 +51,7 @@ public class IndicatorsData {
     }
 
     public void load(IndicatorsDb db) throws SQLException {
-        int[] keys = Arrays.stream(sheet.getLib().listIndicators()).mapToInt(IIndicator::getId).toArray();
+        int[] keys = sheet.getLib().listIndicators().stream().mapToInt(IIndicator::getId).toArray();
         String[] names = Arrays.stream(keys).mapToObj(id -> sheet.getLib().get(id).getName().toLowerCase()).toArray(String[]::new);
         db.load(sheet,names,keys,data);
     }

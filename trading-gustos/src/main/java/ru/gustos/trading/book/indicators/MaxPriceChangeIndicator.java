@@ -65,3 +65,5 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
 
     public Color getColorMin() {        return Color.black;    }
 }
+
+

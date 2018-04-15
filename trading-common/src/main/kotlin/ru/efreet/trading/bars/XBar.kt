@@ -99,6 +99,14 @@ interface XBar {
         return (minPrice+maxPrice)/2
     }
 
+    fun deltaMaxMin() : Double {
+        return maxPrice-minPrice;
+    }
+
+    fun delta() : Double {
+        return closePrice-openPrice;
+    }
+
     /**
      * Adds a trade at the end of bar period.
      * @param tradeVolume the traded volume
