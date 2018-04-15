@@ -75,9 +75,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
         of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 
-        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 10, 1, false)
-        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 10, 1, false)
-        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 10, 1, false)
+//        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 10, 1, false)
+//        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 10, 1, false)
+//        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 10, 1, false)
 
     }
 
@@ -91,8 +91,10 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val targetProfit = 7
         val targetStopLoss = 2
         val targetTStopLoss = 4
+        val targetTrades = 100.0
 
-        return  BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
+        return BotLogic.fine(stats.trades.toDouble(), targetTrades, 5.0) +
+                BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
                 funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
                 funXP(stats.profit / targetProfit - 1.0, 0.5) -
