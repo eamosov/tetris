@@ -23,23 +23,44 @@ class StatsCalculator {
         var trades = 0
         var tradesWithProfit = 0
 
+        var longTrades = 0
+        var longTradesWithProfit = 0
+
+        var shorTrades = 0
+        var shortTradesWithProfit = 0
+
         val profits = mutableListOf<Pair<ZonedDateTime, Double>>()
         val funds = mutableListOf<Pair<ZonedDateTime, Double>>()
 
         for (i in 0 until history.trades.size) {
-            val trade = history.trades[i]
+            val sellTrade = history.trades[i]
 
-            if (trade.side == OrderSide.SELL) {
+            if (sellTrade.side == OrderSide.SELL) {
                 trades++
 
-                if (i > 0 && history.trades[i - 1].side == OrderSide.BUY) {
-                    if (trade.fundsAfter != 0.0 && history.trades[i - 1].fundsAfter != 0.0) {
-                        val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].fundsAfter!!
-                        if (tradeProfit > 1)
+                val buyTrade = history.trades[i - 1]
+
+                if (i > 0 && buyTrade.side == OrderSide.BUY) {
+
+                    if (buyTrade.long!!)
+                        longTrades++
+                    else
+                        shorTrades++
+
+                    if (sellTrade.fundsAfter != 0.0 && buyTrade.fundsAfter != 0.0) {
+                        val tradeProfit = sellTrade.fundsAfter!! / buyTrade.fundsAfter!!
+                        if (tradeProfit > 1) {
                             tradesWithProfit++
 
-                        profits.add(Pair(trade.time!!, tradeProfit))
-                        funds.add(Pair(trade.time!!, trade.fundsAfter))
+                            if (buyTrade.long) {
+                                longTradesWithProfit++
+                            } else {
+                                shortTradesWithProfit++
+                            }
+                        }
+
+                        profits.add(Pair(sellTrade.time!!, tradeProfit))
+                        funds.add(Pair(sellTrade.time, sellTrade.fundsAfter))
                     }
                 }
             }
@@ -66,6 +87,8 @@ class StatsCalculator {
 
         val avrProfitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
         val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - avrProfitPerTrade).pow2() }.sum() / profits.size) else 0.0
+
+        println("$shorTrades / ${shortTradesWithProfit.toDouble() / shorTrades.toDouble()}, $longTrades / ${longTradesWithProfit.toDouble() / longTrades.toDouble()}")
 
         return TradesStats(
                 profits.size,

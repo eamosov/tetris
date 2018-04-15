@@ -22,23 +22,23 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
     val closePrice = XClosePriceIndicator(bars)
 
-    lateinit var shortEma: XDoubleEMAIndicator<XExtBar>
-    lateinit var longEma: XDoubleEMAIndicator<XExtBar>
+    lateinit var shortEma: XEMAIndicator<XExtBar>
+    lateinit var longEma: XEMAIndicator<XExtBar>
     lateinit var macd: XMACDIndicator<XExtBar>
-    lateinit var signalEma: XDoubleEMAIndicator<XExtBar>
+    lateinit var signalEma: XEMAIndicator<XExtBar>
 
-//    lateinit var lastTrendIndicator: XLastTrendIndicator<XExtBar>
-//    lateinit var trendStartIndicator: XTrendStartIndicator<XExtBar>
-//    lateinit var tslIndicator: XTslIndicator<XExtBar>
-//    lateinit var soldBySLIndicator: XSoldBySLIndicator<XExtBar>
+    lateinit var lastTrendIndicator: XLastTrendIndicator<XExtBar>
+    lateinit var trendStartIndicator: XTrendStartIndicator<XExtBar>
+    lateinit var tslIndicator: XTslIndicator<XExtBar>
+    lateinit var soldBySLIndicator: XSoldBySLIndicator<XExtBar>
 
     init {
         _params = SimpleBotLogicParams(
-                short = 344,
-                long = 1044,
-                signal = 1187,
-                stopLoss = 2.0,
-                tStopLoss = 4.0
+                short = 327,
+                long = 1002,
+                signal = 808,
+                stopLoss = 50.0,//1.9,
+                tStopLoss = 50.0//4.25
         )
 
         of(SimpleBotLogicParams::short, "logic.macd.short", 5, 20000, 1, false)
@@ -76,15 +76,15 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
     override fun prepare() {
 
-        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, _params.short!!)
-        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, _params.long!!)
+        shortEma = XEMAIndicator(bars, XExtBar._shortEma, closePrice, _params.short!!)
+        longEma = XEMAIndicator(bars, XExtBar._longEma, closePrice, _params.long!!)
         macd = XMACDIndicator(shortEma, longEma)
-        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
+        signalEma = XEMAIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
 
-//        lastTrendIndicator = XLastTrendIndicator(bars, XExtBar._lastTrend, { index, bar -> getTrend(index, bar) })
-//        trendStartIndicator = XTrendStartIndicator(bars, XExtBar._trendStart, lastTrendIndicator)
-//        tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastTrendIndicator, closePrice)
-//        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastTrendIndicator, tslIndicator, trendStartIndicator, _params.stopLoss, _params.tStopLoss)
+        lastTrendIndicator = XLastTrendIndicator(bars, XExtBar._lastTrend, { index, bar -> getTrend(index, bar) })
+        trendStartIndicator = XTrendStartIndicator(bars, XExtBar._trendStart, lastTrendIndicator)
+        tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastTrendIndicator, closePrice)
+        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastTrendIndicator, tslIndicator, trendStartIndicator, _params.stopLoss, _params.tStopLoss)
 
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
@@ -93,30 +93,30 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
         signalEma.prepare()
 
-//        soldBySLIndicator.prepare()
+        soldBySLIndicator.prepare()
     }
 
-//    fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
-//
-//        return when {
-//            macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.BUY, true)
-//            macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.SELL, false)
-//            else -> null
-//        }
-//    }
+    fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
+
+        return when {
+            macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.BUY, true)
+            macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.SELL, false)
+            else -> null
+        }
+    }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
         return mapOf(
                 Pair("shortEma", shortEma),
                 Pair("longEma", longEma),
                 Pair("price", closePrice),
-                Pair("macd", XMinusIndicator(macd, signalEma))/*,
+                Pair("macd", XMinusIndicator(macd, signalEma)),
                 Pair("tsl", tslIndicator),
                 Pair("sl", object : XIndicator<XExtBar> {
                     override fun getValue(index: Int, bar: XExtBar): Double {
                         return trendStartIndicator.getValue(index, bar).closePrice
                     }
-                })*/
+                })
         )
     }
 
@@ -128,54 +128,44 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
         synchronized(this) {
 
-            val orderSide = when {
-                macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.BUY, true)
-                macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.SELL, false)
-                else -> null
+            val bar = getBar(index)
+            val orderSide = lastTrendIndicator.getValue(index, bar)
+
+            val indicators = if (fillIndicators) getIndicators(index, bar) else null
+
+            //Если SELL, то безусловно продаем
+            if (orderSide.side == OrderSide.SELL) {
+
+                //println("${bar.endTime} SELL ${bar.closePrice}")
+
+                return Advice(bar.endTime,
+                        OrderSideExt(OrderSide.SELL, false),
+                        false,
+                        instrument,
+                        bar.closePrice,
+                        trader?.availableAsset(instrument) ?: 0.0,
+                        bar,
+                        indicators)
             }
 
-//
-            val bar = getBar(index)
-//            val orderSide = lastTrendIndicator.getValue(index, bar)
-//
-            val indicators = if (fillIndicators) getIndicators(index, bar) else null
-//
-//            //Если SELL, то безусловно продаем
-//            if (orderSide.side == OrderSide.SELL) {
-//
-//                //println("${bar.endTime} SELL ${bar.closePrice}")
-//
-//                return Advice(bar.endTime,
-//                        OrderSideExt(OrderSide.SELL, false),
-//                        false,
-//                        instrument,
-//                        bar.closePrice,
-//                        trader?.availableAsset(instrument) ?: 0.0,
-//                        bar,
-//                        indicators)
-//            }
-//
-//            if (soldBySLIndicator.getValue(index, bar)) {
-//                return Advice(bar.endTime,
-//                        OrderSideExt(OrderSide.SELL, false),
-//                        true,
-//                        instrument,
-//                        bar.closePrice,
-//                        trader?.availableAsset(instrument) ?: 0.0,
-//                        bar,
-//                        indicators)
-//            }
-//
+            if (soldBySLIndicator.getValue(index, bar)) {
+                return Advice(bar.endTime,
+                        OrderSideExt(OrderSide.SELL, false),
+                        true,
+                        instrument,
+                        bar.closePrice,
+                        trader?.availableAsset(instrument) ?: 0.0,
+                        bar,
+                        indicators)
+            }
+
             return Advice(bar.endTime,
                     orderSide,
                     false,
                     instrument,
                     bar.closePrice,
-                    if (trader != null && orderSide != null) {
-                        if (orderSide.side == OrderSide.BUY)
-                            trader.availableUsd(instrument) / bar.closePrice
-                        else
-                            trader.availableAsset(instrument)
+                    if (trader != null) {
+                        trader.availableUsd(instrument) / bar.closePrice
                     } else 0.0,
                     bar,
                     indicators)
