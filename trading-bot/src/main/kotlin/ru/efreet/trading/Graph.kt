@@ -17,7 +17,6 @@ import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.exchange.Exchange
-import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
@@ -122,12 +121,12 @@ class Graph {
 
             val signalBarTime = Minute(Date.from(trade.time!!.toInstant())).firstMillisecond.toDouble()
             val marker = ValueMarker(signalBarTime)
-            if (trade.side == OrderSide.BUY) {
+            if (trade.decision == Decision.BUY) {
                 marker.paint = Color.GREEN
-                marker.label = "B"
+                marker.label = "B" + trade.decisionArgs.toString()
             } else {
                 marker.paint = Color.RED
-                marker.label = "S"
+                marker.label = "S"+ trade.decisionArgs.toString()
             }
 //                if (trade.profit != null)
 //                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"

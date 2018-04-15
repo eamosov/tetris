@@ -1,10 +1,10 @@
 package ru.efreet.trading.test;
 
+import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.exchange.OrderSide;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
@@ -32,22 +32,22 @@ public class Sd3LogicIndicatorTest {
 
         double money = 1000;
         double btc = 0;
-        OrderSide prev = OrderSide.SELL;
+        Decision prev = Decision.SELL;
         for (int i = 0; i < logic.barsCount(); i++) {
-            OrderSide side = logic.getAdvice(i, null, null, false).getOrderSide().getSide();
-            if (side!=prev) {
-                if (side==OrderSide.BUY) {
-                    btc+=money/logic.getBar(i).getClosePrice()*0.9995;
+            Decision side = logic.getBotAdvice(i, null, null, false).getDecision();
+            if (side != prev) {
+                if (side == Decision.BUY) {
+                    btc += money / logic.getBar(i).getClosePrice() * 0.9995;
                     money = 0;
-                } else {
-                    money+=btc*logic.getBar(i).getClosePrice()*0.9995;
+                } else if (side == Decision.SELL) {
+                    money += btc * logic.getBar(i).getClosePrice() * 0.9995;
                     btc = 0;
                 }
 
-                            System.out.println(String.format("%d %s: %g %s   %g",
-                                    i,
-                                    logic.getBar(i).getEndTime(),
-                                    logic.getBar(i).getClosePrice(), side,money));
+                System.out.println(String.format("%d %s: %g %s   %g",
+                                                 i,
+                                                 logic.getBar(i).getEndTime(),
+                                                 logic.getBar(i).getClosePrice(), side, money));
 
             }
             prev = side;

@@ -1,10 +1,10 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.bot.OrderSideExt;
+import ru.efreet.trading.bot.BotAdvice;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.exchange.OrderSide;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.gustos.trading.book.Sheet;
@@ -47,16 +47,17 @@ public class EfreetLateIndicator implements IIndicator {
                                             BarInterval.ONE_MIN, sheet.moments.stream()
                                                                               .map(m -> new XExtBar(m.bar))
                                                                               .collect(Collectors.toList()));
+        logic.loadState("sd3_2018_01_16.properties");
         logic.prepare();
 
-        OrderSideExt prev= logic.getAdvice(0, null, null, false).getOrderSide();
+        final BotAdvice prev= logic.getBotAdvice(0, null, null, false);
         int buyAt = -1;
         double vv = 0;
         for (int i = 0; i < values.length; i++) {
 
-            final OrderSideExt ose = logic.getAdvice(i, null, null, false).getOrderSide();
+            final BotAdvice ose = logic.getBotAdvice(i, null, null, false);
 
-            if (ose!=null && ose.getSide()==OrderSide.BUY && vv==0) {
+            if (ose.getDecision()== Decision.BUY && vv==0) {
                 if (buyAt<0)
                     buyAt = i+20;
                 else if (buyAt == i) {
@@ -65,7 +66,7 @@ public class EfreetLateIndicator implements IIndicator {
                 }
             }
 
-            if (ose!=null && ose.getSide()==OrderSide.SELL) {
+            if (ose.getDecision()==Decision.SELL) {
                 vv = 0;
                 buyAt = -1;
             }

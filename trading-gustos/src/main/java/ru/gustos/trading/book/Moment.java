@@ -1,7 +1,7 @@
 package ru.gustos.trading.book;
 
 import ru.efreet.trading.bars.XBar;
-import ru.gustos.trading.book.indicators.Decision;
+import ru.efreet.trading.Decision;
 
 public class Moment {
     public XBar bar;

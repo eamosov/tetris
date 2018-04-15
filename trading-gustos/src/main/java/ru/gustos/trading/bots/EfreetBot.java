@@ -1,7 +1,6 @@
 package ru.gustos.trading.bots;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.Decision;
 import ru.gustos.trading.book.indicators.EfreetIndicator;
 
 public class EfreetBot implements  IDecisionBot{

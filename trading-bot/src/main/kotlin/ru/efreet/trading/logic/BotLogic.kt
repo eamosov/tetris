@@ -4,10 +4,8 @@ import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.ta.indicators.XIndicator
-import ru.efreet.trading.bot.Advice
-import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
@@ -76,10 +74,10 @@ interface BotLogic<P> {
 
     fun prepare()
 
-    fun getAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): Advice
+    fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
 
-    fun getAdvice(stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): Advice {
-        return getAdvice(barsCount() - 1, stats, trader, fillIndicators)
+    fun getAdvice(stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): BotAdvice {
+        return getBotAdvice(barsCount() - 1, stats, trader, fillIndicators)
     }
 
     fun metrica(params: P, stats: TradesStats): Double

@@ -4,6 +4,7 @@ import com.webcerebrium.binance.api.BinanceApi
 import com.webcerebrium.binance.datatype.*
 import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterKline
 import org.eclipse.jetty.websocket.api.Session
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.*
@@ -71,9 +72,9 @@ class Binance() : Exchange {
                 getName(),
                 instrument.toString(),
                 order.price.toDouble(),
-                OrderSide.BUY,
-                type,
-                order.origQty.toDouble())
+                decision = Decision.BUY,
+                type = type,
+                amount = order.origQty.toDouble())
     }
 
     override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
@@ -89,9 +90,9 @@ class Binance() : Exchange {
                 getName(),
                 instrument.toString(),
                 order.price.toDouble(),
-                OrderSide.SELL,
-                type,
-                order.origQty.toDouble())
+                decision = Decision.SELL,
+                type = type,
+                amount = order.origQty.toDouble())
     }
 
     override fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar> {

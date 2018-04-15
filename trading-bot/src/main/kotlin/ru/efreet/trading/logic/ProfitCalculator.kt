@@ -1,15 +1,14 @@
 package ru.efreet.trading.logic
 
-import ru.efreet.trading.exchange.BarInterval
-import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
-import ru.efreet.trading.logic.impl.LogicFactory
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.bot.TradeHistory
-import ru.efreet.trading.bot.Advice
+import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.FakeTrader
-import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.bot.TradeHistory
+import ru.efreet.trading.exchange.BarInterval
+import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.logic.impl.LogicFactory
 import java.time.ZonedDateTime
 
 /**
@@ -36,11 +35,12 @@ class ProfitCalculator {
             val startIndex = logic.getBarIndex(ti.first)
 
             for (index in startIndex until logic.barsCount()) {
-                val advice = logic.getAdvice(index, null, trader, fillIndicators)
+                val advice = logic.getBotAdvice(index, null, trader, fillIndicators)
 
                 if (!advice.time.isBefore(ti.second)) {
-                    if (trader.lastTrade()?.side == OrderSide.BUY) {
-                        trader.executeAdvice(Advice(ti.second.minusSeconds(1), OrderSideExt(OrderSide.SELL, false), false, instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
+                    //В конце всегда всё продать
+                    if (trader.lastTrade()?.decision == Decision.BUY) {
+                        trader.executeAdvice(BotAdvice(ti.second.minusSeconds(1), Decision.SELL, mapOf(Pair("end", "true")), instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
                     }
                     break
                 }

@@ -1,13 +1,13 @@
 package ru.efreet.trading.ta.indicators
 
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.exchange.OrderSide
 
 /**
  * Created by fluder on 17/03/2018.
  */
 class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
-                                      prop: BarGetterSetter2<B,Boolean>,
+                                      prop: BarGetterSetter2<B, Boolean>,
                                       val xLastTrendIndicator: XLastTrendIndicator<B>,
                                       val xTslIndicator: XTslIndicator<B>,
                                       val xTrendStartIndicator: XTrendStartIndicator<B>,
@@ -17,7 +17,7 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
     override fun calculate(index: Int, bar: B): Boolean {
 
         val trend = xLastTrendIndicator.getValue(index, bar)
-        if (trend.side == OrderSide.SELL)
+        if (trend.first == Decision.SELL)
             return false
 
         val prevValue = if (index > 0) getValue(index - 1, bars[index - 1]) else false

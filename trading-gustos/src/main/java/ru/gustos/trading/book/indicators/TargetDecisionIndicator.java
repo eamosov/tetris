@@ -1,12 +1,10 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.efreet.trading.bars.XBar;
+import ru.efreet.trading.Decision;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
-
-import static ru.gustos.trading.book.SheetUtils.sellValues;
 
 public class TargetDecisionIndicator implements IIndicator{
     public static final int Id = 1;

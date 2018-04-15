@@ -17,7 +17,7 @@ abstract class AbstractTrader(val exchangeName:String, val instrument: Instrumen
 
     protected var lastPrice: Double = 0.0
 
-    override fun executeAdvice(advice: Advice): TradeRecord? {
+    override fun executeAdvice(advice: BotAdvice): TradeRecord? {
 
         lastPrice = advice.bar.closePrice
 

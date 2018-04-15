@@ -1,7 +1,7 @@
 package ru.efreet.trading.bot
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
-import ru.efreet.trading.exchange.OrderSide
+import ru.efreet.trading.Decision
 import ru.efreet.trading.utils.pow2
 import ru.efreet.trading.utils.sma
 import java.time.Duration
@@ -29,10 +29,10 @@ class StatsCalculator {
         for (i in 0 until history.trades.size) {
             val trade = history.trades[i]
 
-            if (trade.side == OrderSide.SELL) {
+            if (trade.decision == Decision.SELL) {
                 trades++
 
-                if (i > 0 && history.trades[i - 1].side == OrderSide.BUY) {
+                if (i > 0 && history.trades[i - 1].decision == Decision.BUY) {
                     if (trade.fundsAfter != 0.0 && history.trades[i - 1].fundsAfter != 0.0) {
                         val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].fundsAfter!!
                         if (tradeProfit > 1)

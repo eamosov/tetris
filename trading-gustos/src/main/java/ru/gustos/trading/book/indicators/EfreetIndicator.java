@@ -1,11 +1,11 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.bot.OrderSideExt;
+import ru.efreet.trading.bot.BotAdvice;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.exchange.OrderSide;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.gustos.trading.book.Sheet;
@@ -53,6 +53,8 @@ public class EfreetIndicator extends BaseIndicator  {
                                             BarInterval.ONE_MIN, sheet.moments.stream()
                                                                               .map(m -> new XExtBar(m.bar))
                                                                               .collect(Collectors.toList()));
+
+        logic.loadState("sd3_2018_01_16.properties");
         logic.prepare();
 
         boolean buy = false;
@@ -60,10 +62,10 @@ public class EfreetIndicator extends BaseIndicator  {
         double sellWhenPrice = 0;
         for (int i = 0; i < values.length; i++) {
 
-            final OrderSideExt ose = logic.getAdvice(i, null, null, false).getOrderSide();
+            final BotAdvice ose = logic.getBotAdvice(i, null, null, false);
 
             XBar bar = sheet.moments.get(i).bar;
-            if (ose.getSide() == OrderSide.BUY ){
+            if (ose.getDecision() == Decision.BUY ){
                 double price = bar.getMaxPrice();
                 if (price>buyWhenPrice || bar.getClosePrice()>bar.getOpenPrice()*1.002) {
                     buy = true;
@@ -72,7 +74,7 @@ public class EfreetIndicator extends BaseIndicator  {
                     buyWhenPrice = Math.min(buyWhenPrice,price*1.002);
 
                 sellWhenPrice = 0;
-            } else {
+            } else if (ose.getDecision() == Decision.SELL){
                 double price = bar.getMinPrice();
                 if (price<sellWhenPrice || bar.getClosePrice()*1.002<bar.getOpenPrice()) {
                     buy = false;
@@ -82,6 +84,9 @@ public class EfreetIndicator extends BaseIndicator  {
 
                 buyWhenPrice = 10000000;
             }
+
+            //TODO Decision.NONE как обработать??
+
             if (buy)
                 values[i] =IIndicator.YES;
             else

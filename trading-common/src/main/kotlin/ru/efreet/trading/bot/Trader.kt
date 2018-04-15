@@ -13,7 +13,7 @@ interface Trader {
 
     fun availableAsset(instrument: Instrument): Double
 
-    fun executeAdvice(advice: Advice): TradeRecord?
+    fun executeAdvice(advice: BotAdvice): TradeRecord?
 
     fun lastTrade(): TradeRecord?
 

@@ -1,10 +1,10 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.bot.OrderSideExt;
+import ru.efreet.trading.bot.BotAdvice;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.exchange.OrderSide;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.gustos.trading.book.Sheet;
@@ -47,16 +47,18 @@ public class EfreetSuccessIndicator implements IIndicator {
                 BarInterval.ONE_MIN, sheet.moments.stream()
                 .map(m -> new XExtBar(m.bar))
                 .collect(Collectors.toList()));
+
+        logic.loadState("sd3_2018_01_16.properties");
         logic.prepare();
 
         double buyPrice = 0;
         int buyIndex = 0;
-        OrderSideExt prev= logic.getAdvice(0, null, null, false).getOrderSide();
+        BotAdvice prev= logic.getBotAdvice(0, null, null, false);
         for (int i = 0; i < values.length; i++) {
 
-            final OrderSideExt ose = logic.getAdvice(i, null, null, false).getOrderSide();
-            if (ose!=null && ose.getSide()!=prev.getSide()) {
-                if (ose.getSide() == OrderSide.BUY){
+            final BotAdvice ose = logic.getBotAdvice(i, null, null, false);
+            if (ose.getDecision()!=prev.getDecision()) {
+                if (ose.getDecision() == Decision.BUY){
                     buyPrice = sheet.moments.get(i).bar.getClosePrice();
                     buyIndex = i;
                 } else {

@@ -1,7 +1,7 @@
 package ru.efreet.trading.bot
 
+import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.exchange.OrderType
 import ru.efreet.trading.exchange.TradeRecord
 import java.time.ZonedDateTime
@@ -46,7 +46,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
         cash.clear()
     }
 
-    override fun executeAdvice(advice: Advice): TradeRecord? {
+    override fun executeAdvice(advice: BotAdvice): TradeRecord? {
 
         super.executeAdvice(advice)
 
@@ -54,25 +54,55 @@ class FakeTrader(var startUsd: Double = 1000.0,
             cash.add(Pair(advice.time, usd + asset * advice.price))
         }
 
-        if (advice.orderSide?.side == OrderSide.BUY && advice.amount > 0) {
+        if (advice.decision == Decision.BUY && advice.amount > 0) {
             if (advice.amount * advice.price >= 10) {
                 val fee = advice.amount * feeRatio()
                 val usdBefore = usd
                 val assetBefore = asset
                 usd -= advice.price * advice.amount
                 asset += advice.amount - fee
-                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.sellBySl)
+
+                lastTrade = TradeRecord(UUID.randomUUID().toString(),
+                        advice.time,
+                        exchangeName,
+                        advice.instrument.toString(),
+                        advice.price, advice.decision,
+                        advice.decisionArgs,
+                        OrderType.LIMIT,
+                        advice.amount,
+                        fee,
+                        usdBefore,
+                        assetBefore,
+                        usd,
+                        asset,
+                        usd + asset * advice.price)
+
                 trades.add(lastTrade!!)
                 return lastTrade
             }
-        } else if (advice.orderSide?.side == OrderSide.SELL && advice.amount > 0) {
+        } else if (advice.decision == Decision.SELL && advice.amount > 0) {
             if (advice.amount * advice.price >= 10) {
                 val fee = advice.amount * feeRatio()
                 val usdBefore = usd
                 val assetBefore = asset
                 usd += advice.price * (advice.amount - fee)
                 asset -= advice.amount
-                lastTrade = TradeRecord(UUID.randomUUID().toString(), advice.time, exchangeName, advice.instrument.toString(), advice.price, advice.orderSide.side, OrderType.LIMIT, advice.amount, fee, usdBefore, assetBefore, usd, asset, usd + asset * advice.price, advice.orderSide.long, advice.sellBySl)
+                lastTrade = TradeRecord(UUID.randomUUID().toString(),
+                        advice.time,
+                        exchangeName,
+                        advice.instrument.toString(),
+                        advice.price,
+                        advice.decision,
+                        advice.decisionArgs,
+                        OrderType.LIMIT,
+                        advice.amount,
+                        fee,
+                        usdBefore,
+                        assetBefore,
+                        usd,
+                        asset,
+                        usd + asset * advice.price)
+
                 trades.add(lastTrade!!)
                 return lastTrade
             }

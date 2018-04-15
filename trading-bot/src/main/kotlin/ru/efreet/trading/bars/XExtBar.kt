@@ -1,6 +1,6 @@
 package ru.efreet.trading.bars
 
-import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.Decision
 import ru.efreet.trading.ta.indicators.BarGetterSetter
 import ru.efreet.trading.ta.indicators.BarGetterSetter2
 import java.time.Duration
@@ -96,7 +96,7 @@ data class XExtBar(val bar: XBar) : XBar {
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
         var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignal2Ema })
 
-        var _lastTrend = BarGetterSetter2<XExtBar, OrderSideExt>({ o, v -> o.lastTrend = v }, { it.lastTrend })
+        var _lastTrend = BarGetterSetter2<XExtBar, Pair<Decision, Map<String, String>>>({ o, v -> o.lastTrend = v }, { it.lastTrend })
         var _trendStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.trendStart = v }, { it.trendStart })
         var _tslIndicator = BarGetterSetter<XExtBar>({ o, v -> o.tslIndicator = v }, { it.tslIndicator })
         var _soldBySLIndicator = BarGetterSetter2<XExtBar, Boolean>({ o, v -> o.soldBySLIndicator = v }, { it.soldBySLIndicator })
@@ -122,7 +122,7 @@ data class XExtBar(val bar: XBar) : XBar {
     var daySignalEma: Double = Double.MAX_VALUE
     var daySignal2Ema: Double = Double.MAX_VALUE
 
-    var lastTrend: OrderSideExt? = null
+    var lastTrend: Pair<Decision, Map<String, String>>? = null
     var trendStart: XExtBar? = null
     var tslIndicator: Double = Double.MAX_VALUE
     var soldBySLIndicator: Boolean? = null

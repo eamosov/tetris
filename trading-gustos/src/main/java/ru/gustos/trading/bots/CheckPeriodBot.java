@@ -1,7 +1,6 @@
 package ru.gustos.trading.bots;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.Decision;
 
 public class CheckPeriodBot implements  IDecisionBot{
     int period;

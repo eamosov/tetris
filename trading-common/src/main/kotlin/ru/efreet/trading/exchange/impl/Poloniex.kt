@@ -2,18 +2,13 @@ package ru.efreet.trading.exchange.impl
 
 import com.cf.client.poloniex.PoloniexExchangeService
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_6455
-import org.java_websocket.handshake.ServerHandshake
-import org.json.JSONArray
-import org.json.JSONObject
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.round
 import java.math.BigDecimal
-import java.net.URI
 import java.time.ZonedDateTime
-import java.util.*
 import java.util.stream.Collectors
 
 
@@ -62,9 +57,9 @@ class Poloniex() : Exchange {
                 getName(),
                 instrument.toString(),
                 _price.toDouble(),
-                OrderSide.BUY,
-                type,
-                _amount.toDouble())
+                Decision.BUY,
+                type = type,
+                amount = _amount.toDouble())
     }
 
     override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
@@ -83,9 +78,9 @@ class Poloniex() : Exchange {
                 getName(),
                 instrument.toString(),
                 _price.toDouble(),
-                OrderSide.SELL,
-                type,
-                _amount.toDouble())
+                Decision.SELL,
+                type = type,
+                amount = _amount.toDouble())
 
     }
 

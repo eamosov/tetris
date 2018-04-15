@@ -2,7 +2,7 @@ package ru.gustos.trading.book;
 
 import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
-import ru.gustos.trading.book.indicators.Decision;
+import ru.efreet.trading.Decision;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
 

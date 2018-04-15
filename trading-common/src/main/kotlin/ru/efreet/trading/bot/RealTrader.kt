@@ -5,13 +5,18 @@ import com.j256.ormlite.dao.DaoManager
 import com.j256.ormlite.db.DatabaseType
 import com.j256.ormlite.db.SqliteDatabaseType
 import com.j256.ormlite.jdbc.JdbcDatabaseConnection
-import com.j256.ormlite.jdbc.JdbcSingleConnectionSource
 import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.support.DatabaseConnection
-import ru.efreet.trading.exchange.*
+import com.j256.ormlite.table.TableUtils
+import ru.efreet.trading.Decision
+import ru.efreet.trading.exchange.Exchange
+import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.exchange.OrderType
+import ru.efreet.trading.exchange.TradeRecord
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
 import java.sql.Connection
+import java.sql.SQLException
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -55,7 +60,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
 
         val jc = JdbcDatabaseConnection(jdbcConnection)
 
-        val jdbcConn = object : ConnectionSource{
+        val jdbcConn = object : ConnectionSource {
             override fun getReadOnlyConnection(tableName: String?): DatabaseConnection {
                 return jc
             }
@@ -104,6 +109,18 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
         //JdbcSingleConnectionSource("jdbc:sqlite:" + tradesDbPath, jdbcConnection)
         //TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
         dao = DaoManager.createDao(jdbcConn, TradeRecord::class.java)
+
+        try {
+            dao.queryForAll()
+        } catch (e: SQLException) {
+            val bk = "trades_backup_" + System.currentTimeMillis() / 1000
+            println("Recreating trades table, backup old as $bk")
+
+            jc.update("ALTER TABLE trades RENAME TO $bk", arrayOf(), arrayOf())
+            TableUtils.dropTable(dao, true)
+            TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
+        }
+
     }
 
     fun updateBalance(force: Boolean = false) {
@@ -139,7 +156,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
         return balanceResult.balances[instrument.asset]!!
     }
 
-    override fun executeAdvice(advice: Advice): TradeRecord? {
+    override fun executeAdvice(advice: BotAdvice): TradeRecord? {
         super.executeAdvice(advice)
 
         if (lastTrade != null)
@@ -149,7 +166,7 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
         funds = balanceResult.toBase["total"]!!
         asset = balanceResult.balances[assetName]!!
 
-        if (advice.orderSide?.side == OrderSide.BUY && advice.amount > 0) {
+        if (advice.decision == Decision.BUY && advice.amount > 0) {
 
             if (advice.amount * advice.price >= 10) {
 
@@ -159,21 +176,21 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.amount,
                         0.0,
                         usdBefore,
                         assetBefore,
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
-                        balanceResult.toBase["total"]!!,
-                        advice.orderSide.long, advice.sellBySl
+                        balanceResult.toBase["total"]!!
                 )
 
                 trades.add(lastTrade!!)
                 dao.create(lastTrade)
                 return lastTrade
             }
-        } else if (advice.orderSide?.side == OrderSide.SELL && advice.amount > 0) {
+        } else if (advice.decision == Decision.SELL && advice.amount > 0) {
             if (advice.amount * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]
@@ -182,14 +199,14 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
 
                 updateBalance(true)
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price, order.side, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.amount,
                         0.0,
                         usdBefore!!,
                         assetBefore!!,
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!,
-                        balanceResult.toBase["total"]!!,
-                        advice.orderSide.long, advice.sellBySl
+                        balanceResult.toBase["total"]!!
                 )
 
                 trades.add(lastTrade!!)

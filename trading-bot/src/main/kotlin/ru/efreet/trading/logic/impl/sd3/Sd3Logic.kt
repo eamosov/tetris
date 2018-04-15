@@ -1,13 +1,12 @@
 package ru.efreet.trading.logic.impl.sd3
 
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.bot.Advice
-import ru.efreet.trading.bot.OrderSideExt
+import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.OrderSide
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
@@ -46,32 +45,40 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     init {
         _params = SimpleBotLogicParams(
                 short = 1,
-                long = 52,
-                signal = 160,
-                deviationTimeFrame = 26,
-                deviation = 11,
-                dayShort = 1002,
-                dayLong = 327,
-                daySignal = 79,
-                daySignal2 = 808,
-                stopLoss = 1.9044203147701881,
-                tStopLoss = 4.252559979496663
+                long = 50,
+                signal = 203,
+                deviationTimeFrame = 25,
+                deviation = 12,
+                dayShort = 331,
+                dayLong = 1494,
+                daySignal = 112,
+                daySignal2 = 537,
+                stopLoss = 2.034337868566384,
+                tStopLoss = 4.236120532724698,
+                persist1 = 4,
+                persist2 = 9,
+                persist3 = 1
         )
 
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(4), Duration.ofMinutes(8), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(60), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(584), Duration.ofMinutes(876), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(443), Duration.ofMinutes(1329), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(99), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(1815), Duration.ofMinutes(2723), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.75, 2.63, 0.05, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 3.29, 4.93, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
+
+        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 10, 1, false)
+        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 10, 1, false)
+        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 10, 1, false)
+
     }
 
     fun funXP(x: Double, p: Double): Double {
@@ -81,7 +88,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Double {
 
         val targetGoodTrades = 0.8
-        val targetProfit = 4.5
+        val targetProfit = 7
         val targetStopLoss = 2
         val targetTStopLoss = 4
 
@@ -122,66 +129,51 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
-        //tasks.add(ForkJoinPool.commonPool().submit { signalEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })
-        //tasks.add(ForkJoinPool.commonPool().submit { daySignalEma.prepare() })
-        //tasks.add(ForkJoinPool.commonPool().submit { daySignal2Ema.prepare() })
-        //tasks.add(ForkJoinPool.commonPool().submit { soldBySLIndicator.prepare() })
         tasks.forEach { it.join() }
 
-//        shortEma.prepare()
-//        longEma.prepare()
-//        sma.prepare()
-//        sd.prepare()
         signalEma.prepare()
 
-//        dayShortEma.prepare()
-//        dayLongEma.prepare()
         daySignalEma.prepare()
         daySignal2Ema.prepare()
-////        lastTrendIndicator.prepare()
-////        trendStartIndicator.prepare()
-////        tslIndicator.prepare()
         soldBySLIndicator.prepare()
     }
 
-    fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
+    fun localUpTrend(index: Int, bar: XExtBar): Boolean {
+        return macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index])
+    }
+
+    fun localDownTrend(index: Int, bar: XExtBar): Boolean {
+        return macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index])
+    }
+
+    fun dayUpTrend(index: Int, bar: XExtBar): Boolean {
+        return dayMacd.getValue(index, bars[index]) > daySignalEma.getValue(index, bars[index])
+    }
+
+    fun dayDownTrend(index: Int, bar: XExtBar): Boolean {
+        return dayMacd.getValue(index, bars[index]) < daySignal2Ema.getValue(index, bars[index])
+    }
+
+    fun getTrend(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
 
         val sd = sd.getValue(index, bar)
         val sma = sma.getValue(index, bar)
         val price = closePrice.getValue(index, bar)
 
-
-        fun localUpTrend(index: Int, bar: XExtBar): Boolean {
-            return macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index])
-        }
-
-        val macd = macd.getValue(index, bar)
-        val signalEma = signalEma.getValue(index, bar)
-
-
-        fun dayUpTrend2(index: Int, bar: XExtBar): Boolean {
-            return dayMacd.getValue(index, bars[index]) > daySignal2Ema.getValue(index, bars[index])
-        }
-
-        fun dayLowTrend(index: Int, bar: XExtBar): Boolean {
-            return dayMacd.getValue(index, bars[index]) < daySignalEma.getValue(index, bars[index])
-        }
-
-        if ((maxOf(0, index - 4)..index).all { dayUpTrend2(it, bar) }) {
-            //Всегда покупать на установившемся восходящем тренде
-            return OrderSideExt(OrderSide.BUY, true)
+        if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it, bar) }) {
+            return Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
-            //Нисходящем тренде покупать в локальном минимуме и продовать в локальном максимуме
             return when {
-                price < sma - sd * _params.deviation!! / 10.0 &&
-                        (maxOf(0, index - 9)..index).all { localUpTrend(it, bar) } && //проверять последние 10 баров
-                        (maxOf(0, index - 1)..index).all { dayLowTrend(it, bar) } -> OrderSideExt(OrderSide.BUY, false) //проверять последние 2 бара
+                price < sma - sd * _params.deviation!! / 10.0
+                        && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it, bar) } //проверять последние 10 баров
+                        && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it, bar) }
+                -> Pair(Decision.BUY, mapOf(Pair("up", "true"))) //проверять последние 2 бара
 
-                price > sma + sd * _params.deviation!! / 10.0 && macd < signalEma -> OrderSideExt(OrderSide.SELL, false)
-                else -> null
+                price > sma + sd * _params.deviation!! / 10.0 && localDownTrend(index, bar) -> Pair(Decision.SELL, emptyMap())
+                else -> Pair(Decision.NONE, emptyMap())
             }
         }
 
@@ -209,23 +201,23 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
-    override fun getAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): Advice {
+    override fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
             val bar = getBar(index)
-            val orderSide = lastTrendIndicator.getValue(index, bar)
+            val (decision, decisionArgs) = lastTrendIndicator.getValue(index, bar)
 
             val indicators = if (fillIndicators) getIndicators(index, bar) else null
 
             //Если SELL, то безусловно продаем
-            if (orderSide.side == OrderSide.SELL) {
+            if (decision == Decision.SELL) {
 
                 //println("${bar.endTime} SELL ${bar.closePrice}")
 
-                return Advice(bar.endTime,
-                        OrderSideExt(OrderSide.SELL, false),
-                        false,
+                return BotAdvice(bar.endTime,
+                        decision,
+                        decisionArgs,
                         instrument,
                         bar.closePrice,
                         trader?.availableAsset(instrument) ?: 0.0,
@@ -234,9 +226,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
             }
 
             if (soldBySLIndicator.getValue(index, bar)) {
-                return Advice(bar.endTime,
-                        OrderSideExt(OrderSide.SELL, false),
-                        true,
+                return BotAdvice(bar.endTime,
+                        Decision.SELL,
+                        mapOf(Pair("sl", "true")),
                         instrument,
                         bar.closePrice,
                         trader?.availableAsset(instrument) ?: 0.0,
@@ -244,14 +236,23 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                         indicators)
             }
 
-            return Advice(bar.endTime,
-                    orderSide,
-                    false,
+            if (decision == Decision.BUY) {
+                return BotAdvice(bar.endTime,
+                        decision,
+                        decisionArgs,
+                        instrument,
+                        bar.closePrice,
+                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
+                        bar,
+                        indicators)
+            }
+
+            return BotAdvice(bar.endTime,
+                    Decision.NONE,
+                    decisionArgs,
                     instrument,
                     bar.closePrice,
-                    if (trader != null) {
-                        trader.availableUsd(instrument) / bar.closePrice
-                    } else 0.0,
+                    0.0,
                     bar,
                     indicators)
         }

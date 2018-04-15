@@ -3,8 +3,9 @@ package ru.efreet.trading.exchange
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.field.types.EnumStringType
 import com.j256.ormlite.table.DatabaseTable
+import ru.efreet.trading.Decision
 import ru.efreet.trading.utils.DateTimePersister
-import ru.efreet.trading.utils.InstrumentPersister
+import ru.efreet.trading.utils.MapPersister
 import java.io.Serializable
 import java.time.ZonedDateTime
 
@@ -30,7 +31,10 @@ data class TradeRecord(
         val price: Double? = null,
 
         @DatabaseField(persisterClass = EnumStringType::class)
-        val side: OrderSide? = null,
+        val decision: Decision? = null,
+
+        @DatabaseField (persisterClass = MapPersister::class)
+        val decisionArgs: Map<String, String>? = null,
 
         @DatabaseField(persisterClass = EnumStringType::class)
         val type: OrderType? = null,
@@ -54,13 +58,7 @@ data class TradeRecord(
         val assetAfter: Double? = null,
 
         @DatabaseField
-        val fundsAfter: Double? = null,
-
-        @DatabaseField
-        val long: Boolean? = null, /* is it a long BUY?*/
-
-        @DatabaseField
-        val sellBySl: Boolean? = null
+        val fundsAfter: Double? = null
 ) : Serializable {
 
 
