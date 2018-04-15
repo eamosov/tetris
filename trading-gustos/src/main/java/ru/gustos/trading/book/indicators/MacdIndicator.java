@@ -5,39 +5,26 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class MacdIndicator implements IIndicator {
-    public static final int Id = 4;
+public class MacdIndicator  extends NumberIndicator {
+    int t1,t2,t3;
 
-    @Override
-    public int getId() {
-        return Id;
+    public MacdIndicator(IndicatorInitData data){
+        super(data);
+        t1 = data.t1;
+        t2 = data.t2;
+        t3 = data.t3;
     }
 
     @Override
     public String getName() {
-        return "macd";
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return CandlesPane.RED;
+        return "macd_"+t1;
     }
 
     @Override
     public void calcValues(Sheet sheet, double[] values) {
-        double k1 = 2.0/(26+1);
-        double k2 = 2.0/(12+1);
-        double ks = 2.0/(9+1);
+        double k1 = 2.0/(t1+1);
+        double k2 = 2.0/(t2+1);
+        double ks = 2.0/(t3+1);
         double[] ema1 = new double[values.length];
         double[] ema2 = new double[values.length];
         double[] emas = new double[values.length];

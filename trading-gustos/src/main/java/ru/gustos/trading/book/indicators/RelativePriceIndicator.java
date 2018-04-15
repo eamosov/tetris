@@ -6,18 +6,12 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class RelativePriceIndicator implements IIndicator{
-    public static final int Id = 20;
-
+public class RelativePriceIndicator extends BaseIndicator {
     IndicatorPeriod period;
 
-    public RelativePriceIndicator(IndicatorPeriod period){
-        this.period = period;
-    }
-
-    @Override
-    public int getId() {
-        return Id + period.ordinal();
+    public RelativePriceIndicator(IndicatorInitData data){
+        super(data);
+        period =  IndicatorPeriod.values()[data.period];
     }
 
     @Override

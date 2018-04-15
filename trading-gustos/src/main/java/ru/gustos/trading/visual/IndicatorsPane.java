@@ -7,6 +7,7 @@ import ru.gustos.trading.book.indicators.IIndicator;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class IndicatorsPane extends JPanel {
 
@@ -21,7 +22,7 @@ public class IndicatorsPane extends JPanel {
             }
         });
         Dimension d = getPreferredSize();
-        d.height = vis.candleWidth()*vis.getSheet().getLib().listIndicators().length;
+        d.height = vis.candleWidth()*vis.getSheet().getLib().listIndicatorsShow().size();
         setPreferredSize(d);
     }
 
@@ -32,9 +33,9 @@ public class IndicatorsPane extends JPanel {
         int scale = vis.zoomScale();
         int from = vis.getIndex();
         int bars = getSize().width*scale/vis.candleWidth();
-        IIndicator[] ii = vis.getSheet().getLib().listIndicators();
-        for (int j = 0;j<ii.length;j++) {
-            IIndicator ind = ii[j];
+        List<IIndicator> ii = vis.getSheet().getLib().listIndicatorsShow();
+        for (int j = 0;j<ii.size();j++) {
+            IIndicator ind = ii.get(j);
             int to = Math.min(from + bars, sheet.moments.size());
             Pair<Double,Double> minMax = SheetUtils.getIndicatorMinMax(sheet,ind,from,to);
             for (int i = from; i < to; i+=scale)
@@ -51,12 +52,12 @@ public class IndicatorsPane extends JPanel {
     }
 
     public String getIndicatorInfo(int index, Point p) {
-        IIndicator indicator = vis.getSheet().getLib().listIndicators()[getIndicatorIndex(p)];
+        IIndicator indicator = vis.getSheet().getLib().get(getIndicatorId(p));
         return indicator.getName()+" "+vis.getSheet().getData().get(indicator,index);
     }
 
-    public int getIndicatorIndex(Point point) {
-        return point.y/vis.candleWidth();
+    public int getIndicatorId(Point point) {
+        return vis.getSheet().getLib().listIndicatorsShow().get(point.y/vis.candleWidth()).getId();
     }
 }
 

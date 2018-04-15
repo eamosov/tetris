@@ -2,7 +2,6 @@ package ru.gustos.trading.visual;
 
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Moment;
-import ru.gustos.trading.bots.CheatBot;
 
 import javax.swing.*;
 import java.awt.*;
@@ -164,7 +163,7 @@ public class VisualizatorForm {
     private void mouseClick(Point point) {
         int indY = point.y-indicators.getLocation().y;
         if (indY>=0){
-            int ind = indicators.getIndicatorIndex(new Point(point.x,indY));
+            int ind = indicators.getIndicatorId(new Point(point.x,indY));
             candles.setIndicator(ind);
         }
     }

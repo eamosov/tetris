@@ -133,7 +133,7 @@ public class Visualizator {
     public static void main(String[] args) {
         try {
             Sheet sheet = new Sheet();
-            sheet.fromCache();
+            sheet.fromCache(500);
 //            sheet.fromExchange();
             SheetUtils.FillDecisions(sheet);
             sheet.calcIndicators();
