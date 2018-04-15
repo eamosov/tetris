@@ -19,8 +19,8 @@ data class SimpleBotLogicParams(var short: Int? = null,
                                 override var stopLoss: Double = 10.0,
                                 override var tStopLoss: Double = 1.5,
 
-                                var persist1: Int? = null,
-                                var persist2: Int? = null,
-                                var persist3: Int? = null) : AbstractBotLogicParams {
+                                var persist1: Int? = 4,
+                                var persist2: Int? = 6,
+                                var persist3: Int? = 1) : AbstractBotLogicParams {
 
 }
