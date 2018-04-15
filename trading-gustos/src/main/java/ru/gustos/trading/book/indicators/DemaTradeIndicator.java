@@ -1,5 +1,6 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
@@ -45,28 +46,41 @@ public class DemaTradeIndicator extends BaseIndicator  {
         double money = 1;
         double btc = 0;
         int indicator = ind;
-        int sellIndicator = 70;
+        int sellIndicator = ind;
         double buyPrice = 0;
         double maxprice = 0;
         int buyTick = 0;
+        double maxdema = 0;
+        boolean op;
         for (int i = 1;i<sheet.moments.size();i++){
+            op = false;
             if (money>0){
 //                if (sheet.getData().get(indicator,i)>0.1 && sheet.getData().get(indicator,i)<5 && sheet.getData().get(73,i-1)<=0){
-                if (sheet.getData().get(indicator,i)>0.05 && /*sheet.getData().get(indicator,i)<0.8 && */sheet.getData().get(indicator,i-1)<=0){
-                    buyPrice = sheet.moments.get(i).bar.getClosePrice()*1.001;
+                boolean dema = sheet.getData().get(indicator, i) > 0 /*&& sheet.getData().get(indicator, i) < 1.8*/ && sheet.getData().get(indicator, i - 1) <= 0;
+                dema |= sheet.getData().get(indicator, i) > sheet.getData().get(indicator, i - 1) && sheet.getData().get(indicator, i - 1)>0;
+                XBar bar = sheet.moments.get(i).bar;
+                boolean notHigh = true;//sheet.getData().get(indicator, i)>1 || bar.delta()<sheet.moments.get(i-1).bar.deltaMaxMin()*2;
+                boolean positive = bar.getOpenPrice()<bar.getClosePrice();
+                if (dema && notHigh && positive){
+                    op = true;
+                    buyPrice = bar.getClosePrice()*1.001;
                     maxprice = buyPrice;
                     btc = money/buyPrice;
                     money = 0;
                     buyTick = i;
+                    maxdema = 0;
                 }
             } else if (btc>0){
+                op = true;
                 double price = sheet.moments.get(i).bar.getClosePrice();
                 maxprice = Math.max(maxprice, price);
+                double dema = sheet.getData().get(sellIndicator, i);
+                maxdema = Math.max(dema,maxdema);
 
-                if (sheet.getData().get(sellIndicator,i)<0 || (sheet.getData().get(sellIndicator,i)<sheet.getData().get(sellIndicator,i-1)*0.2) || price<maxprice*0.985){
+                if (dema<0 || (dema<maxdema*0.9) || price<maxprice*0.985){
                     double sellPrice = sheet.moments.get(i).bar.getClosePrice()*0.999;
                     if (sellPrice<buyPrice){
-                        for (int j = buyTick;j<i;j++)
+                        for (int j = buyTick;j<=i;j++)
                             values[j] = -1;
                     }
 
@@ -74,7 +88,8 @@ public class DemaTradeIndicator extends BaseIndicator  {
                     btc = 0;
                 }
             }
-            values[i] = money>0?0:1;
+            if (values[i]==0)
+                values[i] = op?1:0;
         }
 
     }

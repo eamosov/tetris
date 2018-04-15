@@ -6,61 +6,47 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class IndicatorsLib {
-    private IIndicator[] indicators;
-    private IIndicator[] indicatorsShow;
-    private IIndicator[] map;
+    private ArrayList<IIndicator> indicators = new ArrayList<>();
+    private ArrayList<IIndicator> indicatorsShow = new ArrayList<>();
+    private IIndicator[] map = new IIndicator[2000];
 
-    public IndicatorsLib() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        IndicatorInitData[] initData = new Gson().fromJson(FileUtils.readFileToString(new File("d:/tetrislibs/indicators.json")),IndicatorInitData[].class);
+    public IndicatorsLib(String path) throws Exception {
+        IndicatorInitData[] initData = new Gson().fromJson(FileUtils.readFileToString(new File(path)),IndicatorInitData[].class);
 
-        indicators = new IIndicator[initData.length];
 
-        for (int i = 0;i<indicators.length;i++)
-            indicators[i] = createIndicator(initData[i]);
-        indicatorsShow = Arrays.stream(indicators).filter(IIndicator::showOnPane).toArray(IIndicator[]::new);
-
-//        indicators = new IIndicator[]{new TargetDecisionIndicator(),new VolumeIndicator(),new TargetBuyIndicator(),new TargetSellIndicator(),
-//                new EfreetIndicator(),new EfreetSuccessIndicator(),
-//        new PriceChangeIndicator(IndicatorPeriod.TENMINUTES),new PriceChangeIndicator(IndicatorPeriod.HOUR),new PriceChangeIndicator(IndicatorPeriod.DAY),
-//                new PriceChangeIndicator(IndicatorPeriod.WEEK),new PriceChangeIndicator(IndicatorPeriod.MONTH),
-//        new RelativePriceIndicator(IndicatorPeriod.TENMINUTES),new RelativePriceIndicator(IndicatorPeriod.HOUR),new RelativePriceIndicator(IndicatorPeriod.DAY),
-//                new RelativePriceIndicator(IndicatorPeriod.WEEK),
-//        new RelativeVolumeIndicator(IndicatorPeriod.TENMINUTES),new RelativeVolumeIndicator(IndicatorPeriod.HOUR),new RelativeVolumeIndicator(IndicatorPeriod.DAY),
-//                new RelativeVolumeIndicator(IndicatorPeriod.WEEK),
-//                new HistoryMoodIndicator(true,IndicatorPeriod.DAY),new HistoryMoodIndicator(true,IndicatorPeriod.WEEK),
-//                new HistoryMoodIndicator(false,IndicatorPeriod.DAY),new HistoryMoodIndicator(false,IndicatorPeriod.WEEK),
-//                new MacdIndicator(26,12,9,0),new MacdIndicator(110,40,28,1),new MacdIndicator(200,50,35,2),
-//                new DemaIndicator(26,12,9,0),new DemaIndicator(110,40,28,1),new DemaIndicator(200,50,35,2),
-//                new MaxPriceChangeIndicator(IndicatorPeriod.TENMINUTES,true),new MaxPriceChangeIndicator(IndicatorPeriod.TENMINUTES,false),
-//                new MaxPriceChangeIndicator(IndicatorPeriod.HOUR,true),new MaxPriceChangeIndicator(IndicatorPeriod.HOUR,false),
-//                new MaxPriceChangeIndicator(IndicatorPeriod.DAY,true),new MaxPriceChangeIndicator(IndicatorPeriod.DAY,false),
-//                new SignChangeIndicator(MacdIndicator.Id,1,true),new SignChangeIndicator(MacdIndicator.Id,1,false),
-//                new SignChangeIndicator(MacdIndicator.Id,5,true),new SignChangeIndicator(MacdIndicator.Id,5,false),
-//                new SignChangeIndicator(MacdIndicator.Id+1,1,true),new SignChangeIndicator(MacdIndicator.Id+1,1,false),
-//                new SignChangeIndicator(MacdIndicator.Id+1,5,true),new SignChangeIndicator(MacdIndicator.Id+1,5,false),
-//                new SignChangeIndicator(MacdIndicator.Id+2,1,true),new SignChangeIndicator(MacdIndicator.Id+2,1,false),
-//                new SignChangeIndicator(MacdIndicator.Id+2,5,true),new SignChangeIndicator(MacdIndicator.Id+2,5,false),
-//
-//                new SignChangeIndicator(DemaIndicator.Id,1,true),new SignChangeIndicator(DemaIndicator.Id,1,false),
-//                new SignChangeIndicator(DemaIndicator.Id,5,true),new SignChangeIndicator(DemaIndicator.Id,5,false),
-//                new SignChangeIndicator(DemaIndicator.Id+1,1,true),new SignChangeIndicator(DemaIndicator.Id+1,1,false),
-//                new SignChangeIndicator(DemaIndicator.Id+1,5,true),new SignChangeIndicator(DemaIndicator.Id+1,5,false),
-//                new SignChangeIndicator(DemaIndicator.Id+2,1,true),new SignChangeIndicator(DemaIndicator.Id+2,1,false),
-//                new SignChangeIndicator(DemaIndicator.Id+2,5,true),new SignChangeIndicator(DemaIndicator.Id+2,5,false),
-
-//        };
-
-        Arrays.sort(indicators, Comparator.comparingInt(IIndicator::getId));
-        for (int i = 1;i<indicators.length;i++)
-            if (indicators[i-1].getId()==indicators[i].getId())
-                System.out.println(String.format("dublicate id %d %s %s", indicators[i].getId(),indicators[i].getName(),indicators[i-1].getName()));
-        map = new IIndicator[Arrays.stream(indicators).mapToInt(IIndicator::getId).max().getAsInt()+1];
+        for (int i = 0;i<initData.length;i++) {
+            IIndicator ii = createIndicator(initData[i]);
+            indicators.add(ii);
+            if (ii.showOnPane())
+                indicatorsShow.add(ii);
+        }
+        indicators.sort(Comparator.comparingInt(IIndicator::getId));
+        indicatorsShow.sort(Comparator.comparingInt(IIndicator::getId));
+        for (int i = 1;i<indicators.size();i++) {
+            IIndicator ii = indicators.get(i);
+            IIndicator ip = indicators.get(i - 1);
+            if (ip.getId()== ii.getId())
+                System.out.println(String.format("dublicate id %d %s %s", ii.getId(),ii.getName(),ip.getName()));
+        }
         for (IIndicator i : indicators)
             map[i.getId()] = i;
+    }
+
+    public IndicatorsLib(){}
+
+    public void add(String name, IndicatorType type, double[] data){
+        int id = indicators.size()==0?1:indicators.get(indicators.size() - 1).getId() + 1;
+        PrecalcedIndicator ii = new PrecalcedIndicator(id, name, type, data);
+        indicators.add(ii);
+        indicatorsShow.add(ii);
+        map[ii.getId()] = ii;
     }
 
     private IIndicator createIndicator(IndicatorInitData data) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
@@ -69,11 +55,11 @@ public class IndicatorsLib {
         return (IIndicator) cl.getDeclaredConstructor(IndicatorInitData.class).newInstance(data);
     }
 
-    public IIndicator[] listIndicators(){
+    public List<IIndicator> listIndicators(){
         return indicators;
     }
 
-    public IIndicator[] listIndicatorsShow(){
+    public List<IIndicator> listIndicatorsShow(){
         return indicatorsShow;
     }
 
