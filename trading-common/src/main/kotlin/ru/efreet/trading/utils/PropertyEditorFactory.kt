@@ -3,6 +3,7 @@ package ru.efreet.trading.utils
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.memberProperties
 
 /**
  * Created by fluder on 21/02/2018.
@@ -17,16 +18,33 @@ data class PropRef<T>(val cls: KClass<*>, var propRef: PropRef<T>? = null, var c
 
 class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
 
+    companion object {
+
+        @JvmStatic
+        fun <T : Any> of(cls: Class<T>): PropertyEditorFactory<T> {
+            return PropertyEditorFactory<T>(cls.kotlin)
+        }
+    }
+
     val allProps: MutableMap<String, PropRef<T>> = mutableMapOf()
     val genes: MutableList<PropertyEditor<T, Any?>> = mutableListOf()
     val consts: MutableList<PropertyEditor<T, Any?>> = mutableListOf()
 
 
     inline fun <reified R : Any?> of(kprop: KMutableProperty1<T, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
+        return of(R::class.java, kprop, key, min, max, step, hardBounds)
+    }
 
-        val minRef = PropRef<T>(R::class, value = min.toString())
-        val maxRef = PropRef<T>(R::class, value = max.toString())
-        val stepRef = PropRef<T>(R::class, value = step.toString())
+    fun <R : Any?> of(propCls: Class<R>, propName: String, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
+
+        return of(propCls, cls.memberProperties.find { it.name == propName } as KMutableProperty1<T, R>, key, min, max, step, hardBounds)
+    }
+
+    fun <R : Any?> of(propCls: Class<R>, kprop: KMutableProperty1<T, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
+
+        val minRef = PropRef<T>((propCls as Class<Any>).kotlin, value = min.toString())
+        val maxRef = PropRef<T>(propCls.kotlin, value = max.toString())
+        val stepRef = PropRef<T>(propCls.kotlin, value = step.toString())
         val hardBoundsRef = PropRef<T>(Boolean::class, value = hardBounds.toString())
 
         allProps["${key}.min"] = minRef
@@ -34,7 +52,7 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         allProps["${key}.step"] = stepRef
         allProps["${key}.hardBounds"] = hardBoundsRef
 
-        val pe = PropertyEditor(R::class, key, kprop, minRef, maxRef, stepRef, hardBoundsRef, min, max, step, hardBounds)
+        val pe = PropertyEditor(propCls.kotlin, key, kprop, minRef, maxRef, stepRef, hardBoundsRef, min, max, step, hardBounds)
         genes.add(pe as PropertyEditor<T, Any?>)
         return pe
     }
