@@ -25,7 +25,7 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
     lateinit var shortEma: XEMAIndicator<XExtBar>
     lateinit var longEma: XEMAIndicator<XExtBar>
     lateinit var macd: XMACDIndicator<XExtBar>
-    lateinit var signalEma: XEMAIndicator<XExtBar>
+    //lateinit var signalEma: XEMAIndicator<XExtBar>
 
     lateinit var lastTrendIndicator: XLastTrendIndicator<XExtBar>
     lateinit var trendStartIndicator: XTrendStartIndicator<XExtBar>
@@ -34,19 +34,19 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
 
     init {
         _params = SimpleBotLogicParams(
-                short = 327,
-                long = 1002,
-                signal = 808,
-                stopLoss = 50.0,//1.9,
-                tStopLoss = 50.0//4.25
+                short = 190,
+                long = 3159,
+                signal = 2638,
+                stopLoss = 1.9,
+                tStopLoss = 4.25
         )
 
         of(SimpleBotLogicParams::short, "logic.macd.short", 5, 20000, 1, false)
         of(SimpleBotLogicParams::long, "logic.macd.long", 5, 20000, 1, false)
-        of(SimpleBotLogicParams::signal, "logic.macd.signal", 5, 20000, 1, false)
+        //of(SimpleBotLogicParams::signal, "logic.macd.signal", 5, 20000, 1, false)
 
-//        of(SimpleBotLogicParams::stopLoss, "logic.macd.stopLoss", 1.0, 10.0, 0.05, true)
-//        of(SimpleBotLogicParams::tStopLoss, "logic.macd.tStopLoss", 1.0, 10.0, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.macd.stopLoss", 1.0, 10.0, 0.05, true)
+        of(SimpleBotLogicParams::tStopLoss, "logic.macd.tStopLoss", 1.0, 10.0, 0.05, true)
     }
 
     fun funXP(x: Double, p: Double): Double {
@@ -79,7 +79,7 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
         shortEma = XEMAIndicator(bars, XExtBar._shortEma, closePrice, _params.short!!)
         longEma = XEMAIndicator(bars, XExtBar._longEma, closePrice, _params.long!!)
         macd = XMACDIndicator(shortEma, longEma)
-        signalEma = XEMAIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
+        //signalEma = XEMAIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
 
         lastTrendIndicator = XLastTrendIndicator(bars, XExtBar._lastTrend, { index, bar -> getTrend(index, bar) })
         trendStartIndicator = XTrendStartIndicator(bars, XExtBar._trendStart, lastTrendIndicator)
@@ -91,7 +91,7 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
         tasks.forEach { it.join() }
 
-        signalEma.prepare()
+        //signalEma.prepare()
 
         soldBySLIndicator.prepare()
     }
@@ -99,8 +99,8 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
     fun getTrend(index: Int, bar: XExtBar): OrderSideExt? {
 
         return when {
-            macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.BUY, true)
-            macd.getValue(index, bars[index]) < signalEma.getValue(index, bars[index]) -> OrderSideExt(OrderSide.SELL, false)
+            macd.getValue(index, bars[index]) > 0.0 /*signalEma.getValue(index, bars[index])*/ -> OrderSideExt(OrderSide.BUY, true)
+            macd.getValue(index, bars[index]) < 0.0 /* signalEma.getValue(index, bars[index])*/ -> OrderSideExt(OrderSide.SELL, false)
             else -> null
         }
     }
@@ -110,7 +110,7 @@ class MacdLogic(name: String, instrument: Instrument, barInterval: BarInterval, 
                 Pair("shortEma", shortEma),
                 Pair("longEma", longEma),
                 Pair("price", closePrice),
-                Pair("macd", XMinusIndicator(macd, signalEma)),
+                //Pair("macd", XMinusIndicator(macd, signalEma)),
                 Pair("tsl", tslIndicator),
                 Pair("sl", object : XIndicator<XExtBar> {
                     override fun getValue(index: Int, bar: XExtBar): Double {
