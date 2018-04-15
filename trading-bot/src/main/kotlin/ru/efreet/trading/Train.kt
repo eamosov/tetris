@@ -73,7 +73,7 @@ class Train {
             val savePath = cmd.settings + ".out"
             println("Saving logic's properties to ${savePath}")
 
-            logic.setMinMax(sp, 20.0, false)
+            logic.setMinMax(sp, 50.0, false)
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())
             println(logic.logState())

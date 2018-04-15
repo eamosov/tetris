@@ -56,7 +56,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 stopLoss = 2.034337868566384,
                 tStopLoss = 4.236120532724698,
                 persist1 = 4,
-                persist2 = 9,
+                persist2 = 8,
                 persist3 = 1
         )
 
