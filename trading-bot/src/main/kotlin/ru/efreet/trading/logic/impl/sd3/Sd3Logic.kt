@@ -92,8 +92,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val targetStopLoss = 2
         val targetTStopLoss = 4
 
-        return BotLogic.fine(stats.trades.toDouble(), 20.0, 5.0) +
-                BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
+        return  BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
                 funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
                 funXP(stats.profit / targetProfit - 1.0, 0.5) -
