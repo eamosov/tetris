@@ -112,9 +112,11 @@ public class VisualizatorForm {
         bot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RunBotDialog dlg = new RunBotDialog(vis);
-                dlg.pack();
-                dlg.setVisible(true);
+                throw new RuntimeException("FIX ME");
+                //TOOD call RunBotDialog
+//                RunBotDialog dlg = new RunBotDialog(vis);
+//                dlg.pack();
+//                dlg.setVisible(true);
             }
         });
         zoomPlus.addActionListener(new ActionListener() {
