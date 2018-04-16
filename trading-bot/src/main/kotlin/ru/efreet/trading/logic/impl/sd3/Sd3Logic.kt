@@ -89,9 +89,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
         val targetGoodTrades = 0.8
-        val targetProfit = 7
-        val targetStopLoss = 2
-        val targetTStopLoss = 4
+        val targetProfit = 7.0
+        val targetStopLoss = 2.0
+        val targetTStopLoss = 4.0
         val targetTrades = 100.0
 
         return Metrica().add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 5.0))
