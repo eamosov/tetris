@@ -98,8 +98,8 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
                 funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
                 funXP(stats.profit / targetProfit - 1.0, 2.0) -
-                funXP(params.stopLoss / targetStopLoss - 1.0, 0.2) -
-                funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.2) +
+                funXP(params.stopLoss / targetStopLoss - 1.0, 0.1) -
+                funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1) +
                 (stats.pearson - 0.9) * 10.0
     }
 
