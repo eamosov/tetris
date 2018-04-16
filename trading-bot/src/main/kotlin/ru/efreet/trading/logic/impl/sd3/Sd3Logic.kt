@@ -94,14 +94,14 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val targetTStopLoss = 4.0
         val targetTrades = 100.0
 
-        return Metrica().add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 5.0))
+        return Metrica().add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 3.0))
                 .add("fine_goodTrades", BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0))
                 .add("fine_profit", BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0))
                 .add("goodTrades", funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0))
                 .add("profit", funXP(stats.profit / targetProfit - 1.0, 2.0))
                 .add("sl", -funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
                 .add("tsl", -funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
-                .add("pearson", (stats.pearson - 0.9) * 10.0)
+                .add("pearson", (stats.pearson - 0.95) * 10.0)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
