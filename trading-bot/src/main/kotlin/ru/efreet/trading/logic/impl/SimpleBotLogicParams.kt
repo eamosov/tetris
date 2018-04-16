@@ -20,7 +20,7 @@ data class SimpleBotLogicParams(var short: Int? = null,
                                 override var tStopLoss: Double = 1.5,
 
                                 var persist1: Int? = 4,
-                                var persist2: Int? = 6,
+                                var persist2: Int? = 8,
                                 var persist3: Int? = 1) : AbstractBotLogicParams {
 
 }
