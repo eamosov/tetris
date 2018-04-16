@@ -6,9 +6,15 @@ import ru.gustos.trading.book.Moment;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class VisualizatorForm {
+    private final DateTimeFormatter dateFormatter =DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     private JPanel root;
     private JPanel top;
     private JButton left;
@@ -131,6 +137,7 @@ public class VisualizatorForm {
                 vis.zoomMinus();
             }
         });
+        viewUpdated();
     }
 
     public void setZoom(int zoom){
@@ -179,11 +186,13 @@ public class VisualizatorForm {
     }
 
     private void viewUpdated() {
-        indexField.setText(Integer.toString(vis.getIndex()));
+        indexField.setText(dateFormatter.format(vis.getSheet().moments.get(vis.getIndex()).bar.getBeginTime()).replace('T',' '));
     }
 
     private void IndexEntered() {
-        vis.setIndex(Integer.parseInt(indexField.getText()));
+        String text = indexField.getText().trim().replace(' ','T');
+        ZonedDateTime time = LocalDate.parse(text, dateFormatter).atStartOfDay(ZoneId.of("UTC"));
+        vis.setIndex(vis.getSheet().getBarIndex(time));
     }
 
 }

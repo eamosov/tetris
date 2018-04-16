@@ -21,7 +21,7 @@
           <component id="feb64" class="javax.swing.JTextField" binding="indexField">
             <constraints/>
             <properties>
-              <columns value="10"/>
+              <columns value="15"/>
               <text value=""/>
             </properties>
           </component>

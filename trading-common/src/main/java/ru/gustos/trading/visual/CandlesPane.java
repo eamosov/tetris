@@ -65,12 +65,12 @@ public class CandlesPane extends JPanel {
                     paintIndicatorBar(g,i,scale,ii,mm);
         }
 
-        paintGrid(g,minMax, sheet.moments.get(from).bar.getBeginTime(),sheet.interval(),false);
+        paintGrid(g,minMax, from,false);
         for (int i = from; i< to; i+=scale) {
             XBar bar = getBar(i);
             paintBar(g,i,bar,minMax);
         }
-        paintGrid(g,minMax, sheet.moments.get(from).bar.getBeginTime(),sheet.interval(),true);
+        paintGrid(g,minMax, from,true);
     }
 
     public XBar getBar(int index) {
@@ -84,7 +84,7 @@ public class CandlesPane extends JPanel {
         return bar;
     }
 
-    private void paintGrid(Graphics g, XBaseBar minMax, ZonedDateTime time, BarInterval interval, boolean text) {
+    private void paintGrid(Graphics g, XBaseBar minMax, int from, boolean text) {
         double price = minMax.getMinPrice();
         Graphics2D g2 = (Graphics2D)g;
         g2.setStroke(new BasicStroke(1.5f,1,1));
@@ -107,21 +107,18 @@ public class CandlesPane extends JPanel {
 
         int w = vis.candleWidth();
         int x = 0;
-        ZonedDateTime prevTime = time.minus(interval.getDuration());
-        Duration duration = interval.getDuration().multipliedBy(vis.zoomScale());
-        int period = 3600*vis.zoomScale();
+        ZonedDateTime time = vis.getSheet().moments.get(from).bar.getBeginTime();
 
         do {
-            if (time.toEpochSecond()/period!=prevTime.toEpochSecond()/period) {
+            if (x/20!=(x+1)/20) {
                 if (text)
-                    g.drawString(time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),x,getHeight());
+                    g.drawString(time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),x*w,getHeight());
                 else
-                    g.drawLine(x, 0, x, getHeight());
+                    g.drawLine(x*w, 0, x*w, getHeight());
             }
-            x+=w;
-            prevTime = time;
-            time = time.plus(duration);
-        } while (x<getWidth());
+            x++;
+            time = vis.getSheet().moments.get(from+x).bar.getBeginTime();
+        } while (x*w<getWidth());
     }
 
     private void paintIndicatorBar(Graphics g, int index, int scale, IIndicator indicator, Pair<Double, Double> mm) {
