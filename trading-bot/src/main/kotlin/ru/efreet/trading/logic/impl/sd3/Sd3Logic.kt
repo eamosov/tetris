@@ -88,15 +88,15 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
-        val targetGoodTrades = 0.8
-        val targetProfit = 7.0
+        val targetGoodTrades = 0.7
+        val targetProfit = 4.0
         val targetStopLoss = 2.0
         val targetTStopLoss = 4.0
         val targetTrades = 100.0
 
         return Metrica().add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 3.0))
-                .add("fine_goodTrades", BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0))
-                .add("fine_profit", BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0))
+                .add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
+                .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit) * (1 / targetProfit), 1.0, 2.0))
                 .add("goodTrades", funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0))
                 .add("profit", funXP(stats.profit / targetProfit - 1.0, 2.0))
                 .add("sl", -funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
