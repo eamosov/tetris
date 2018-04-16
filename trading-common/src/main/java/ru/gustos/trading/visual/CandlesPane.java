@@ -27,8 +27,6 @@ public class CandlesPane extends JPanel {
 
 
     private Visualizator vis;
-    private int graphIndicator = -1;
-    private int backIndicator = -1;
 
     public CandlesPane(Visualizator vis) {
         this.vis = vis;
@@ -50,16 +48,15 @@ public class CandlesPane extends JPanel {
         int bars = getSize().width* scale /vis.candleWidth();
         XBaseBar minMax = sheet.getSumBar(from, bars);
         int to = Math.min(from + bars, sheet.moments.size());
-
-        if (graphIndicator !=-1){
-            IIndicator ii = vis.getSheet().getLib().get(graphIndicator);
+        if (vis.graphIndicator !=-1){
+            IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
                 Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
         }
 
-        if (backIndicator !=-1){
-            IIndicator ii = vis.getSheet().getLib().get(backIndicator);
+        if (vis.backIndicator !=-1){
+            IIndicator ii = vis.getSheet().getLib().get(vis.backIndicator);
                 Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
@@ -79,7 +76,7 @@ public class CandlesPane extends JPanel {
         if (scale ==1) return sheet.moments.get(index).bar;
         int from = index/scale*scale;
         XBaseBar bar = new XBaseBar(sheet.moments.get(from).bar);
-        for (int j = 1;j<scale;j++)
+        for (int j = 1;j<scale;j++) if (from+j<sheet.moments.size())
             bar.addBar(sheet.moments.get(from+j).bar);
         return bar;
     }
@@ -107,9 +104,10 @@ public class CandlesPane extends JPanel {
 
         int w = vis.candleWidth();
         int x = 0;
-        ZonedDateTime time = vis.getSheet().moments.get(from).bar.getBeginTime();
+        ZonedDateTime time;
 
         do {
+            time = vis.getSheet().moments.get(from+x).bar.getBeginTime();
             if (x/20!=(x+1)/20) {
                 if (text)
                     g.drawString(time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),x*w,getHeight());
@@ -117,8 +115,7 @@ public class CandlesPane extends JPanel {
                     g.drawLine(x*w, 0, x*w, getHeight());
             }
             x++;
-            time = vis.getSheet().moments.get(from+x).bar.getBeginTime();
-        } while (x*w<getWidth());
+        } while (x*w<getWidth() && x+from<vis.getSheet().moments.size());
     }
 
     private void paintIndicatorBar(Graphics g, int index, int scale, IIndicator indicator, Pair<Double, Double> mm) {
@@ -128,7 +125,7 @@ public class CandlesPane extends JPanel {
         int x = (index-vis.getIndex())/scale* w;
         Color col = VisUtils.NumberColor(vis.getSheet(),index, scale,indicator, mm.getFirst(), mm.getSecond());
         if (indicator.getType()==IndicatorType.YESNO){
-            g.setColor(new Color(col.getRed(),col.getGreen(),col.getBlue(),30));
+            g.setColor(new Color(col.getRed(),col.getGreen(),col.getBlue(),60));
             g.fillRect(x, 0, w, getHeight());
         } else if (indicator.getType()==IndicatorType.NUMBER) {
             g.setColor(col);
@@ -170,23 +167,6 @@ public class CandlesPane extends JPanel {
             g.setColor(bar.isBearish() ? RED : GREEN);
             g.fillRect(x + bound + 1, lo + 1, w - bound * 2 - 2, hi - lo - 1);
         }
-    }
-
-    public void setIndicator(int ind) {
-        IndicatorType type = vis.getSheet().getLib().get(ind).getType();
-        if (type==IndicatorType.YESNO){
-            if (ind == backIndicator)
-                backIndicator = -1;
-            else
-                backIndicator = ind;
-
-        } else {
-            if (ind == graphIndicator)
-                graphIndicator = -1;
-            else
-                graphIndicator = ind;
-        }
-        repaint();
     }
 
 }

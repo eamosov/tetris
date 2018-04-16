@@ -24,6 +24,8 @@ public class Sheet {
     Instrument instr;
     BarInterval interval;
 
+    XBaseBar totalBar;
+
     public ArrayList<Moment> moments = new ArrayList<>();
     IndicatorsLib indicatorsLib;
     IndicatorsData indicatorsData;
@@ -84,12 +86,22 @@ public class Sheet {
     }
 
     public void fromBars(List<? extends XBar> bars){
+        totalBar = null;
         moments.clear();
-        for (int i =0 ;i<bars.size();i++)
-            moments.add(new Moment(bars.get(i)));
+        for (int i =0 ;i<bars.size();i++) {
+            XBar bar = bars.get(i);
+            if (totalBar==null)
+                totalBar = new XBaseBar(bar);
+            else
+                totalBar.addBar(bar);
+            moments.add(new Moment(bar));
+        }
         calcIndicators();
     }
 
+    public XBaseBar totalBar(){
+        return totalBar;
+    }
 
     public void calcIndicators(){
         for (IIndicator ii : indicatorsLib.listIndicators())

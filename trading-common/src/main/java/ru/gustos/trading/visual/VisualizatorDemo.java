@@ -14,6 +14,7 @@ import ru.gustos.trading.book.indicators.IndicatorsLib;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Random;
 
 public class VisualizatorDemo{
 
@@ -30,10 +31,11 @@ public class VisualizatorDemo{
 // индикаторы
         IndicatorsLib lib = new IndicatorsLib();
 
+        Random r = new Random();
 // быки медведи
         double[] rr = new double[bars.size()];
         for (int i = 0;i<rr.length;i++)
-            rr[i] = bars.get(i).isBullish()?1:(bars.get(i).isBearish()?-1:0);
+            rr[i] = r.nextInt(1000)==0?(bars.get(i).isBullish()?1:(bars.get(i).isBearish()?-1:0)):0;
         lib.add("bull bear", IndicatorType.YESNO,rr);
 
 // объем
@@ -44,7 +46,7 @@ public class VisualizatorDemo{
 
 
         Sheet sheet = new Sheet(exch,instr,interval,lib);
-        bars = BarsPacker.packBars(bars,100);
+//        bars = BarsPacker.packBars(bars,100);
         sheet.fromBars(bars);
 
         new Visualizator(sheet);

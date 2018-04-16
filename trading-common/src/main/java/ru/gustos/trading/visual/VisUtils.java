@@ -17,20 +17,23 @@ public class VisUtils {
     public static Color NumberColor(Sheet sheet, int index, int scale, IIndicator ind, double min, double max) {
         int r = 0, g = 0, b = 0;
         for (int i = 0;i<scale;i++){
-            Color color = VisUtils.NumberColor(sheet, index, ind, min, max);
+            Color color = VisUtils.NumberColor(sheet, index+i, ind, min, max);
             if (ind.getType()==IndicatorType.YESNO) {
-                r = Math.max(r,color.getRed());
-                g = Math.max(g,color.getGreen());
-                b = Math.max(b,color.getBlue());
+                if (color!=Color.lightGray) {
+                    r = Math.max(r, color.getRed());
+                    g = Math.max(g, color.getGreen());
+                    b = Math.max(b, color.getBlue());
+                }
             } else {
                 r += color.getRed();
                 g += color.getGreen();
                 b += color.getBlue();
             }
         }
-        if (ind.getType()==IndicatorType.YESNO)
-            return new Color(r,g,b);
-        else
+        if (ind.getType()==IndicatorType.YESNO) {
+            if (r==0 && g==0 && b==0) return Color.lightGray;
+            return new Color(r, g, b);
+        }else
             return new Color(r/scale,g/scale,b/scale);
     }
 

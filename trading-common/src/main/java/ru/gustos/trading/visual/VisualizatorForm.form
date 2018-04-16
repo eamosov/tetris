@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ru.gustos.trading.visual.VisualizatorForm">
   <grid id="27dc6" binding="root" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="534" height="400"/>
+      <xy x="20" y="20" width="776" height="489"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -12,10 +12,16 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="70cae" class="javax.swing.JButton" binding="left">
+          <component id="4dc5a" class="javax.swing.JButton" binding="leftToIndicator">
             <constraints/>
             <properties>
               <text value="&lt;&lt;"/>
+            </properties>
+          </component>
+          <component id="70cae" class="javax.swing.JButton" binding="left">
+            <constraints/>
+            <properties>
+              <text value="&lt;"/>
             </properties>
           </component>
           <component id="feb64" class="javax.swing.JTextField" binding="indexField">
@@ -28,13 +34,13 @@
           <component id="54335" class="javax.swing.JButton" binding="right">
             <constraints/>
             <properties>
-              <text value="&gt;&gt;"/>
+              <text value="&gt;"/>
             </properties>
           </component>
-          <component id="51299" class="javax.swing.JButton" binding="bot">
+          <component id="654d9" class="javax.swing.JButton" binding="rightToIndicator">
             <constraints/>
             <properties>
-              <text value="Bot"/>
+              <text value="&gt;&gt;"/>
             </properties>
           </component>
           <component id="55386" class="javax.swing.JLabel" binding="zoomLabel">

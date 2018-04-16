@@ -26,7 +26,10 @@ public class VisualizatorForm {
     private JButton zoomPlus;
     private JButton zoomMinus;
     private JLabel zoomLabel;
+    private JButton leftToIndicator;
+    private JButton rightToIndicator;
 
+    private TimelinePanel timeline;
     private CandlesPane candles;
     private IndicatorsPane indicators;
 
@@ -50,6 +53,9 @@ public class VisualizatorForm {
         panelWithLine.setLayout(new BorderLayout());
         center.add(panelWithLine, BorderLayout.CENTER);
 
+        timeline = new TimelinePanel(vis);
+        center.add(timeline, BorderLayout.NORTH);
+
         candles = new CandlesPane(vis);
         panelWithLine.add(candles, BorderLayout.CENTER);
 
@@ -62,7 +68,7 @@ public class VisualizatorForm {
                 IndexEntered();
             }
         });
-        center.addMouseMotionListener(new MouseMotionListener() {
+        panelWithLine.addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseDragged(MouseEvent e) { vis.mouseDrag(e.getPoint());  }
 
@@ -72,7 +78,7 @@ public class VisualizatorForm {
             }
         });
 
-        center.addMouseListener(new MouseListener() {
+        panelWithLine.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 vis.mouseClicked(e.getPoint());
@@ -115,16 +121,16 @@ public class VisualizatorForm {
                 mouseClick(p);
             }
         });
-        bot.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                throw new RuntimeException("FIX ME");
-                //TOOD call RunBotDialog
-//                RunBotDialog dlg = new RunBotDialog(vis);
-//                dlg.pack();
-//                dlg.setVisible(true);
-            }
-        });
+//        bot.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                throw new RuntimeException("FIX ME");
+//                //TOOD call RunBotDialog
+////                RunBotDialog dlg = new RunBotDialog(vis);
+////                dlg.pack();
+////                dlg.setVisible(true);
+//            }
+//        });
         zoomPlus.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -137,7 +143,19 @@ public class VisualizatorForm {
                 vis.zoomMinus();
             }
         });
-        viewUpdated();
+        leftToIndicator.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.goLeftToIndicator();
+            }
+        });
+        rightToIndicator.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.goRightToIndicator();
+            }
+        });
+        updateScrollToIndicators();
     }
 
     public void setZoom(int zoom){
@@ -154,27 +172,38 @@ public class VisualizatorForm {
 
     private void mouseMoveCandles(Point point) {
         int index = vis.getIndexAt(point);
+        setInfo(index, point);
+    }
+
+    public void setInfo(int index, Point point) {
         ArrayList<Moment> mm = vis.getSheet().moments;
         if (index<0 || index>=mm.size())
             infoLabel.setText("");
         else {
 
             String info = info4bar(candles.getBar(index));
-            int indY = point.y-indicators.getLocation().y;
+            if (point!=null) {
+                int indY = point.y - indicators.getLocation().y;
 
-            if (indY>=0)
-                info += "      "+indicators.getIndicatorInfo(index,new Point(point.x,indY));
+                if (indY >= 0)
+                    info += "      " + indicators.getIndicatorInfo(index, new Point(point.x, indY));
+            }
             infoLabel.setText(info);
         }
-
     }
 
     private void mouseClick(Point point) {
         int indY = point.y-indicators.getLocation().y;
         if (indY>=0){
             int ind = indicators.getIndicatorId(new Point(point.x,indY));
-            candles.setIndicator(ind);
+            vis.updateSelectedIndicator(ind);
+            updateScrollToIndicators();
         }
+    }
+
+    private void updateScrollToIndicators() {
+        leftToIndicator.setEnabled(vis.backIndicator>=0);
+        rightToIndicator.setEnabled(vis.backIndicator>=0);
     }
 
     private String info4bar(XBar bar) {

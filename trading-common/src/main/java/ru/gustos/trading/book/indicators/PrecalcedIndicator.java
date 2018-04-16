@@ -44,9 +44,7 @@ public class PrecalcedIndicator implements IIndicator{
     }
 
     @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
+    public Color getColorMax() { return CandlesPane.GREEN; }
 
     @Override
     public Color getColorMin() {
