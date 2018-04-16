@@ -28,6 +28,6 @@ class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
             sb.append("${e.name}:${e.value.round5()} ")
         }
         sb.append(")")
-        return super.toString()
+        return sb.toString()
     }
 }
