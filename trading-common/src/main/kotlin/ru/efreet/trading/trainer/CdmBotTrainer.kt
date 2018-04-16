@@ -45,7 +45,7 @@ class CdmBotTrainer : BotTrainer {
         println("TOP RESULTS:")
 
         for (i in maxOf(population.size - 5, 0) until population.size) {
-            println(population[i])
+            println("${metrica(population[i].args, population[i].result!!)} ${population[i]}")
         }
 
         return Pair(population.last().args, population.last().result!!)
@@ -72,7 +72,7 @@ class CdmBotTrainer : BotTrainer {
                     val m = metrica(population[it].args, population[it].result!!)
                     if (lastBest == null || m > lastBest!!) {
                         lastBest = m
-                        println("CDM: NEW BEST ${population[it]}")
+                        println("CDM: NEW BEST ($m) ${population[it]}")
                         newBest?.invoke(population[it].args, population[it].result!!)
                     }
 
