@@ -59,6 +59,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
     lateinit var exchange: Exchange
     lateinit var cache: BarsCache
     lateinit var state: State
+    var cdm = CdmBotTrainer(cmd.cpu)
 
     fun fee(): Double = (1.0 - (exchange.getFee() / 100.0) / 2.0)
 
@@ -210,7 +211,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         bars.checkBars()
 
 
-        return CdmBotTrainer().getBestParams(tmpLogic.genes, population,
+        return cdm.getBestParams(tmpLogic.genes, population,
                 {
                     val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.getTime())), false)
                     val stats = StatsCalculator().stats(history)

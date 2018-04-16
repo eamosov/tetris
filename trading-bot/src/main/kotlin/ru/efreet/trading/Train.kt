@@ -26,6 +26,7 @@ class Train {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
+            val cdm = CdmBotTrainer(cmd.cpu)
 
             val realExchange = Exchange.getExchange(cmd.exchange)
 
@@ -50,7 +51,7 @@ class Train {
 
             bars.checkBars()
 
-            val (sp, stats) = CdmBotTrainer().getBestParams(logic.genes, population,
+            val (sp, stats) = cdm.getBestParams(logic.genes, population,
                     {
                         val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, cmd.barInterval, exchange.getFee(), bars, arrayListOf(Pair(cmd.start!!, cmd.end!!)), false)
 

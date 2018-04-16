@@ -28,6 +28,7 @@ class Main {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
+            val cdm = CdmBotTrainer(cmd.cpu)
 
             val exchange = Exchange.getExchange(cmd.exchange)
             val cache = BarsCache(cmd.cachePath)
@@ -140,7 +141,7 @@ class Main {
 
                             println("Searching best strategy for ${bot.instrument} population=${population.size}, start=${bot.trainStart} end=${trainEnd}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}")
 
-                            val (sp, stats) = CdmBotTrainer().getBestParams(tmpLogic.genes, population,
+                            val (sp, stats) = cdm.getBestParams(tmpLogic.genes, population,
                                     {
                                         val history = ProfitCalculator().tradeHistory(bot.logicName, it, bot.instrument, bot.barInterval, exchange.getFee(), bars, arrayListOf(Pair(bot.trainStart, trainEnd)), false)
 

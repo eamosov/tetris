@@ -11,21 +11,23 @@ import java.util.function.Supplier
 /**
  * Created by fluder on 09/02/2018.
  */
-class CdmBotTrainer : BotTrainer {
+class CdmBotTrainer(val processors:Int) : BotTrainer {
 
     companion object {
-//        private val executor = ForkJoinPool(
-//                Runtime.getRuntime().availableProcessors() * 85 / 100,
-//                ForkJoinPool.defaultForkJoinWorkerThreadFactory,
-//                null, true)
-
-        private val executor = ForkJoinPool.commonPool()
 
         private val threadPool = ThreadPoolExecutor(4, 4,
                 0L, TimeUnit.MILLISECONDS,
                 LinkedBlockingQueue(),
                 ThreadFactoryBuilder().setDaemon(true).build())
     }
+
+    private val executor:ForkJoinPool = ForkJoinPool(
+            processors,
+            ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+            null, true);
+
+    constructor(): this (Runtime.getRuntime().availableProcessors())
+
 
     data class TrainItem<P, R>(var args: P, var result: R)
 
@@ -165,123 +167,5 @@ class CdmBotTrainer : BotTrainer {
 
         return null
     }
-
-//    override fun getBestParams(logic: BotLogic<P>,
-//                               feeP: Double,
-//                               genes: MutableMap<KMutableProperty1<Any, Any?>, BotLogicParamsDescriptor<Any, Any, Any>>,
-//                               startTime: ZonedDateTime, bars: List<XBar>, origin: List<P>): TrainerItem<P> {
-//
-//        val population: MutableList<TrainerItem<P>> = origin.map { TrainerItem(it) }.toMutableList()
-//
-//        val strategies = doCdm(logic, feeP, genes, bars, startTime, population)
-//
-//        val best = strategies.maxWith(Comparator.comparingDouble { it.params.metrica(it.stats!!) })!!
-//
-//        println("Best strategy: $best")
-//        return best
-//    }
-//
-//
-//    fun doCdm(logic: BotLogic<P>,
-//              feeP: Double,
-//              genes: MutableMap<KMutableProperty1<Any, Any?>, BotLogicParamsDescriptor<Any, Any, Any>>,
-//              bars: List<XBar>, start: ZonedDateTime, population: MutableList<TrainerItem<P>>): List<TrainerItem<P>> {
-//
-//        val futures: MutableList<CompletableFuture<Unit>> = mutableListOf()
-//
-//        (0 until population.size).mapTo(futures) {
-//            CompletableFuture.supplyAsync(Supplier {
-//                try {
-//                    population[it].stats = logic.calcProfit(population[it].params, bars, start, feeP).stats
-//                    population[it] = doCdm(logic, feeP, genes, population[it], bars, start)
-//                } catch (e: Exception) {
-//                    println("WARNING: Exception ${e.message} for ${population[it]}")
-//                    e.printStackTrace()
-//                }
-//                println("Finish cdm:  ${population[it]}")
-//            }, threadPool)
-//        }
-//
-//        val all = CompletableFuture.allOf(*(futures.toTypedArray() as Array<CompletableFuture<*>>))
-//        all.get()
-//
-//        return population
-//    }
-//
-//    fun doCdm(logic: BotLogic<P>,
-//              feeP: Double,
-//              genes: MutableMap<KMutableProperty1<Any, Any?>, BotLogicParamsDescriptor<Any, Any, Any>>,
-//              params: TrainerItem<P>, bars: List<XBar>, start: ZonedDateTime): TrainerItem<P> {
-//
-//        var c = params
-//
-//        var step = 1 + 2 * 5
-//
-//        while (true) {
-//            val n = doCdmStep(logic, feeP, genes, c, bars, start, step)
-//            if (n == null) {
-//                if (step > 1)
-//                    step -= 5
-//                else
-//                    return c
-//            } else {
-//                c = n
-//            }
-//        }
-//    }
-//
-//    fun doCdmStep(logic: BotLogic<P>,
-//                  feeP: Double,
-//                  genes: MutableMap<KMutableProperty1<Any, Any?>, BotLogicParamsDescriptor<Any, Any, Any>>,
-//                  params: TrainerItem<P>,
-//                  bars: List<XBar>, start: ZonedDateTime, step: Int): TrainerItem<P>? {
-//
-//        val origMetrica: Double = params.params.metrica(params.stats!!)
-//
-//        val futures: MutableList<CompletableFuture<TrainerItem<P>>> = mutableListOf()
-//
-//
-//        for ((prop, descriptor) in genes) {
-//
-//            for (step in arrayOf(-step, step/*, rnd(-10, 10)*/)) {
-//
-//                val f = CompletableFuture.supplyAsync(Supplier {
-//                    val copyParams = params.params.copy()
-//                    BotLogicParamsDescriptor.step(prop, descriptor, step, copyParams)
-//
-//                    val trades = logic.calcProfit(copyParams, bars, start, feeP)
-//                    return@Supplier TrainerItem(copyParams, trades.stats)
-//                }, executor)
-//
-//                futures.add(f)
-//            }
-//        }
-//
-//        for (i in 0 until 2) {
-//            val f = CompletableFuture.supplyAsync(Supplier {
-//
-//                val copyParams = params.params.copy()
-//
-//                for ((prop, descriptor) in genes) {
-//                    BotLogicParamsDescriptor.step(prop, descriptor, rnd(-100, 100), copyParams)
-//                }
-//
-//                val trades = logic.calcProfit(copyParams, bars, start, feeP)
-//                return@Supplier TrainerItem(copyParams, trades.stats)
-//            }, executor)
-//
-//            futures.add(f)
-//        }
-//
-//
-//        val allF = CompletableFuture.allOf(*futures.toTypedArray())
-//        allF.get()
-//
-//        val best = futures.map { it.get() }.maxWith(Comparator.comparingDouble { it.params.metrica(it.stats!!) })
-//        if (best!!.params.metrica(best.stats!!) > origMetrica)
-//            return best
-//
-//        return null
-//    }
 
 }

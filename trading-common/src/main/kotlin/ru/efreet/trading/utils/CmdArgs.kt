@@ -23,7 +23,8 @@ data class CmdArgs(var stoploss: Double? = null,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
-                   var seedType: SeedType = SeedType.RANDOM) {
+                   var seedType: SeedType = SeedType.RANDOM,
+                   var cpu: Int = Runtime.getRuntime().availableProcessors() - 2) {
 
     val instrument: Instrument
         get() = instruments.first()
@@ -64,6 +65,7 @@ data class CmdArgs(var stoploss: Double? = null,
                     .addOption("c", "cache", true, "cache path")
                     .addOption("f", "settings", true, "logic settings path")
                     .addOption("d", "seed", true, "SeedType")
+                    .addOption("m", "cpu", true, "cpu numbers")
 
 
             val parser = BasicParser()
@@ -124,6 +126,8 @@ data class CmdArgs(var stoploss: Double? = null,
 
             cmd.getOptionValue('f')?.let { cmdArgs.settings = it }
             cmd.getOptionValue('d')?.let { cmdArgs.seedType = SeedType.valueOf(it) }
+
+            cmd.getOptionValue('m')?.let { cmdArgs.cpu = it.toInt() }
 
             return cmdArgs
         }
