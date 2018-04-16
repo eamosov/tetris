@@ -88,7 +88,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
-        val targetGoodTrades = 0.7
+        val targetGoodTrades = 0.6
         val targetProfit = 4.0
         val targetStopLoss = 2.0
         val targetTStopLoss = 4.0
@@ -101,7 +101,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 .add("profit", funXP(stats.profit / targetProfit - 1.0, 2.0))
                 .add("sl", -funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
                 .add("tsl", -funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
-                .add("pearson", (stats.pearson - 0.95) * 10.0)
+                .add("pearson", (stats.pearson - 0.95) * 5.0)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
