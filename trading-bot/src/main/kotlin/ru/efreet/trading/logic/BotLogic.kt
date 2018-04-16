@@ -7,6 +7,7 @@ import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.Trader
+import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
 import ru.efreet.trading.utils.SortedProperties
@@ -80,7 +81,7 @@ interface BotLogic<P> {
         return getBotAdvice(barsCount() - 1, stats, trader, fillIndicators)
     }
 
-    fun metrica(params: P, stats: TradesStats): Double
+    fun metrica(params: P, stats: TradesStats): Metrica
 
     var historyBars: Long
 

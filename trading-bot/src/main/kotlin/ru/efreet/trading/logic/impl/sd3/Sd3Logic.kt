@@ -11,6 +11,7 @@ import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
+import ru.efreet.trading.trainer.Metrica
 import java.time.Duration
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ForkJoinTask
@@ -85,7 +86,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         return Math.signum(x) * (Math.pow(Math.abs(x) + 1.0, p) - 1.0)
     }
 
-    override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Double {
+    override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
         val targetGoodTrades = 0.8
         val targetProfit = 7
@@ -93,14 +94,14 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         val targetTStopLoss = 4
         val targetTrades = 100.0
 
-        return BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 5.0) +
-                BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0) +
-                BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0) +
-                funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0) +
-                funXP(stats.profit / targetProfit - 1.0, 2.0) -
-                funXP(params.stopLoss / targetStopLoss - 1.0, 0.1) -
-                funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1) +
-                (stats.pearson - 0.9) * 10.0
+        return Metrica().add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 5.0))
+                .add("fine_goodTrades", BotLogic.fine(stats.goodTrades * (1.0 / targetGoodTrades), 1.0, 2.0))
+                .add("fine_profit", BotLogic.fine(stats.profit * (1 / targetProfit), 1.0, 2.0))
+                .add("goodTrades", funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.0))
+                .add("profit", funXP(stats.profit / targetProfit - 1.0, 2.0))
+                .add("sl", -funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
+                .add("tsl", -funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
+                .add("pearson", (stats.pearson - 0.9) * 10.0)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()

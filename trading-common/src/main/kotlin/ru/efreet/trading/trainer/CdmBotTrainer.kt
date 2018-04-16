@@ -31,10 +31,10 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
 
     data class TrainItem<P, R>(var args: P, var result: R)
 
-    override fun <P, R> getBestParams(genes: List<PropertyEditor<P, Any?>>,
+    override fun <P, R, M:Comparable<M>> getBestParams(genes: List<PropertyEditor<P, Any?>>,
                                       origin: List<P>,
                                       function: (P) -> R,
-                                      metrica: (P, R) -> Double,
+                                      metrica: (P, R) -> M,
                                       copy: (P) -> P,
                                       newBest: ((P, R) -> Unit)?): Pair<P, R> {
 
@@ -47,23 +47,23 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
         println("TOP RESULTS:")
 
         for (i in maxOf(population.size - 5, 0) until population.size) {
-            println("${metrica(population[i].args, population[i].result!!).round2()} ${population[i]}")
+            println("${metrica(population[i].args, population[i].result!!)} ${population[i]}")
         }
 
         return Pair(population.last().args, population.last().result!!)
     }
 
 
-    fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
+    fun <P, R, M:Comparable<M>> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      population: MutableList<TrainItem<P, R?>>,
                      function: (P) -> R,
-                     metrica: (P, R) -> Double,
+                     metrica: (P, R) -> M,
                      copy: (P) -> P,
                      newBest: ((P, R) -> Unit)? = null) {
 
         val futures: MutableList<CompletableFuture<Unit>> = mutableListOf()
         var finished = 0
-        var lastBest: Double? = null
+        var lastBest: M? = null
 
         (0 until population.size).mapTo(futures) {
             CompletableFuture.supplyAsync(Supplier {
@@ -74,7 +74,7 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
                     val m = metrica(population[it].args, population[it].result!!)
                     if (lastBest == null || m > lastBest!!) {
                         lastBest = m
-                        println("CDM: NEW BEST (${m.round2()}) ${population[it]}")
+                        println("CDM: NEW BEST (${m}) ${population[it]}")
                         newBest?.invoke(population[it].args, population[it].result!!)
                     }
 
@@ -96,9 +96,9 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
     //val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
     val steps: Array<Int> = arrayOf(20, 5, 1)
 
-    fun <P, R> doCdm(genes: List<PropertyEditor<P, Any?>>,
+    fun <P, R, M:Comparable<M>> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      origin: TrainItem<P, R?>,
-                     function: (P) -> R, metrica: (P, R) -> Double, copy: (P) -> P): TrainItem<P, R?> {
+                     function: (P) -> R, metrica: (P, R) -> M, copy: (P) -> P): TrainItem<P, R?> {
 
         var c = origin
 
@@ -118,14 +118,14 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
         }
     }
 
-    fun <P, R> doCdmStep(genes: List<PropertyEditor<P, Any?>>,
+    fun <P, R, M:Comparable<M>> doCdmStep(genes: List<PropertyEditor<P, Any?>>,
                          origin: TrainItem<P, R?>,
                          step: Int,
                          function: (P) -> R,
-                         metrica: (P, R) -> Double,
+                         metrica: (P, R) -> M,
                          copy: (P) -> P): TrainItem<P, R?>? {
 
-        val origMetrica: Double = metrica(origin.args, origin.result!!)
+        val origMetrica: M = metrica(origin.args, origin.result!!)
 
         val futures: MutableList<CompletableFuture<TrainItem<P, R>>> = mutableListOf()
 
@@ -161,7 +161,7 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
         val allF = CompletableFuture.allOf(*futures.toTypedArray())
         allF.get()
 
-        val best = futures.map { it.get() }.maxWith(Comparator.comparingDouble { metrica(it.args, it.result) })
+        val best = futures.map { it.get() }.maxWith(Comparator.comparing<TrainItem<P,R>, M> { metrica(it.args, it.result) })
         if (metrica(best!!.args, best!!.result) > origMetrica)
             return best as TrainItem<P, R?>
 
