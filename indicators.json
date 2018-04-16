@@ -1,0 +1,16 @@
+[
+{"id" : 1, "name": "Volume"},
+
+{"id" : 2, "name": "TargetBuy"},
+
+{"id" : 3, "name": "TargetSell"},
+
+{"id" : 4, "name": "Efreet"},
+
+{"id" : 20, "name": "BoundOptimized", "ind" : 4},
+
+{"id" : 21, "name": "Success", "ind" : 4},
+{"id" : 22, "name": "Success", "ind" : 20}
+
+
+]

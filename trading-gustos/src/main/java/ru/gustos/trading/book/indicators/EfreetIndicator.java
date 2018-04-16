@@ -22,11 +22,6 @@ public class EfreetIndicator extends BaseIndicator  {
     }
 
     @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
     public String getName() {
         return "efreet";
     }
@@ -57,37 +52,11 @@ public class EfreetIndicator extends BaseIndicator  {
         logic.loadState("sd3_2018_01_16.properties");
         logic.prepare();
 
-        boolean buy = false;
-        double buyWhenPrice = 0;
-        double sellWhenPrice = 0;
         for (int i = 0; i < values.length; i++) {
 
             final BotAdvice ose = logic.getBotAdvice(i, null, null, false);
 
-            XBar bar = sheet.moments.get(i).bar;
-            if (ose.getDecision() == Decision.BUY ){
-                double price = bar.getMaxPrice();
-                if (price>buyWhenPrice || bar.getClosePrice()>bar.getOpenPrice()*1.002) {
-                    buy = true;
-                    buyWhenPrice = 0;
-                } else
-                    buyWhenPrice = Math.min(buyWhenPrice,price*1.002);
-
-                sellWhenPrice = 0;
-            } else if (ose.getDecision() == Decision.SELL){
-                double price = bar.getMinPrice();
-                if (price<sellWhenPrice || bar.getClosePrice()*1.002<bar.getOpenPrice()) {
-                    buy = false;
-                    sellWhenPrice = 10000000;
-                } else
-                    sellWhenPrice = Math.max(sellWhenPrice,price/1.002);
-
-                buyWhenPrice = 10000000;
-            }
-
-            //TODO Decision.NONE как обработать??
-
-            if (buy)
+            if (ose.getDecision()==Decision.BUY)
                 values[i] =IIndicator.YES;
             else
                 values[i] =IIndicator.NO;

@@ -165,7 +165,7 @@ public class Visualizator {
 
     public void goLeftToIndicator() {
         int ind = from+barsOnScreen()/2-zoomScale();
-        double val = sheet.getData().get(backIndicator,from);
+        double val = sheet.getData().get(backIndicator,ind);
         while (ind>0 && sheet.getData().get(backIndicator,ind)==val)
             ind--;
         setIndex(ind-barsOnScreen()/2);
@@ -173,7 +173,7 @@ public class Visualizator {
 
     public void goRightToIndicator() {
         int ind = from+barsOnScreen()/2+zoomScale();
-        double val = sheet.getData().get(backIndicator,from);
+        double val = sheet.getData().get(backIndicator,ind);
         while (ind<sheet.moments.size() && sheet.getData().get(backIndicator,ind)==val)
             ind++;
         setIndex(ind-barsOnScreen()/2);
