@@ -1,5 +1,7 @@
 package ru.efreet.trading.trainer
 
+import ru.efreet.trading.utils.round2
+
 data class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
                    var value: Double = 0.0) : Comparable<Metrica> {
 
@@ -15,5 +17,16 @@ data class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
 
     override fun compareTo(other: Metrica): Int {
         return this.value.compareTo(other.value)
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        sb.append(value)
+        sb.append(" (")
+        for (e in elements){
+            sb.append("${e.name}:${e.value.round2()} ")
+        }
+        sb.append(")")
+        return super.toString()
     }
 }
