@@ -75,9 +75,9 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
         of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
         of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 
-        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 1, 10, 1, true)
-        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 1, 10, 1, true)
-        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 1, 10, 1, true)
 
     }
 
