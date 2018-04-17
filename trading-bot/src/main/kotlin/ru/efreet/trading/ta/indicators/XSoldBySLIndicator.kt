@@ -12,7 +12,9 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
                                       val xTslIndicator: XTslIndicator<B>,
                                       val xTrendStartIndicator: XTrendStartIndicator<B>,
                                       val sl: Double,
-                                      val tsl: Double) : XCachedIndicator2<B, Boolean>(bars, prop) {
+                                      val tsl: Double,
+                                      val tp: Double,
+                                      val ttp: Double) : XCachedIndicator2<B, Boolean>(bars, prop) {
 
     override fun calculate(index: Int, bar: B): Boolean {
 
@@ -24,10 +26,17 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
         if (prevValue)
             return prevValue
 
-        if (bar.closePrice < xTrendStartIndicator.getValue(index, bar).closePrice * (1.0 - sl / 100.0))
+        val buyPrice = xTrendStartIndicator.getValue(index, bar).closePrice
+
+        if (bar.closePrice < buyPrice * (1.0 - sl / 100.0))
             return true
 
-        if (bar.closePrice < xTslIndicator.getValue(index, bar) * (1.0 - tsl / 100.0))
+        val _tsl = if (bar.closePrice > buyPrice * (1.0 + tp / 100.0))
+            ttp
+        else
+            tsl
+
+        if (bar.closePrice < xTslIndicator.getValue(index, bar) * (1.0 - _tsl / 100.0))
             return true
 
         return false

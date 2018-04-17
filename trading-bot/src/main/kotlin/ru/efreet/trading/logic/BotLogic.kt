@@ -105,6 +105,11 @@ interface BotLogic<P> {
         fun fine(x: Double, min: Double, base: Double = 2.0): Double {
             return -Math.pow(base, (-(x - min))) + 1.0
         }
+
+        fun funXP(x: Double, p: Double): Double {
+            return Math.signum(x) * (Math.pow(Math.abs(x) + 1.0, p) - 1.0)
+        }
+
     }
 
 }
