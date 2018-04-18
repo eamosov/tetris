@@ -98,6 +98,12 @@ data class XExtBar(val bar: XBar) : XBar {
         var _signalEma2 = BarGetterSetter<XExtBar>({ o, v -> o.signalEma2 = v }, { it.signalEma2 })
         var _signalEma = BarGetterSetter<XExtBar>({ o, v -> o.signalEma = v }, { it.signalEma })
 
+
+        var _signal2Ema1 = BarGetterSetter<XExtBar>({ o, v -> o.signal2Ema1 = v }, { it.signal2Ema1 })
+        var _signal2Ema2 = BarGetterSetter<XExtBar>({ o, v -> o.signal2Ema2 = v }, { it.signal2Ema2 })
+        var _signal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.signal2Ema = v }, { it.signal2Ema })
+
+
         var _sma = BarGetterSetter<XExtBar>({ o, v -> o.sma = v }, { it.sma })
         var _sd = BarGetterSetter<XExtBar>({ o, v -> o.sd = v }, { it.sd })
 
@@ -123,6 +129,10 @@ data class XExtBar(val bar: XBar) : XBar {
     var signalEma1: Double = Double.MAX_VALUE
     var signalEma2: Double = Double.MAX_VALUE
     var signalEma: Double = Double.MAX_VALUE
+
+    var signal2Ema1: Double = Double.MAX_VALUE
+    var signal2Ema2: Double = Double.MAX_VALUE
+    var signal2Ema: Double = Double.MAX_VALUE
 
     var sma: Double = Double.MAX_VALUE
     var sd: Double = Double.MAX_VALUE

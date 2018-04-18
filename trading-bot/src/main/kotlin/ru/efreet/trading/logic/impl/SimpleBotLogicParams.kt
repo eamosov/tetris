@@ -8,8 +8,10 @@ import ru.efreet.trading.logic.AbstractBotLogicParams
 data class SimpleBotLogicParams(var short: Int? = null,
                                 var long: Int? = null,
                                 var signal: Int? = null,
+                                var signal2: Int? = null,
                                 var deviationTimeFrame: Int? = null,
                                 var deviation: Int? = null,
+                                var deviation2: Int? = null,
 
                                 var dayShort: Int? = null,
                                 var dayLong: Int? = null,
@@ -18,6 +20,9 @@ data class SimpleBotLogicParams(var short: Int? = null,
 
                                 override var stopLoss: Double = 10.0,
                                 override var tStopLoss: Double = 1.5,
+
+                                override var takeProfit: Double = 3.0,
+                                override var tTakeProfit: Double = 0.0,
 
                                 var persist1: Int? = 4,
                                 var persist2: Int? = 8,

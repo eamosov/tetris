@@ -6,4 +6,6 @@ package ru.efreet.trading.logic
 interface AbstractBotLogicParams {
     var stopLoss: Double
     var tStopLoss: Double
+    var takeProfit: Double
+    var tTakeProfit: Double
 }
