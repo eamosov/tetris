@@ -29,7 +29,7 @@ public class RunBotDialog extends JDialog {
         DefaultListModel model = new DefaultListModel();
         botList.setModel(model);
         model.addElement("Oracle bot");
-        model.addElement("Efreet bot");
+        model.addElement("EfreetIndicator bot");
         model.addElement("Y bot");
         model.addElement("Random bot");
         model.addElement("Check period 15m");
@@ -71,7 +71,7 @@ public class RunBotDialog extends JDialog {
         IDecisionBot bot = null;
         if (botName.startsWith("Oracle"))
             bot = new OracleBot();
-        else if (botName.startsWith("Efreet"))
+        else if (botName.startsWith("EfreetIndicator"))
             bot = new EfreetBot();
         else if (botName.startsWith("Y "))
             bot = new YBot();

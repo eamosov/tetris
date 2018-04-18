@@ -19,7 +19,7 @@ import java.util.concurrent.ForkJoinTask
 /**
  * Created by fluder on 20/02/2018.
  */
-class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
+open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -108,7 +108,7 @@ class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, b
                 .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
                 //.add("profit", BotLogic.funXP(stats.profit / targetProfit - 1.0, 1.8))
                 .add("profit", stats.profit * 0.15)
-                .add("trades", stats.trades * 0.0175)
+                //.add("trades", stats.trades * 0.0175)
                 .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
                 .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
                 .add("tp", -BotLogic.funXP(params.takeProfit / 3 - 1.0, 0.2))

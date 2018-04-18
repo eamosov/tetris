@@ -1,7 +1,6 @@
 package ru.gustos.trading.bots;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.EfreetIndicator;
 import ru.gustos.trading.book.indicators.PredictBuyIndicator;
 import ru.gustos.trading.book.indicators.PredictSellIndicator;
 

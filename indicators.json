@@ -1,6 +1,6 @@
 [
-{"id" : 1, "name": "Efreet", "v":""},
-{"id" : 2, "name": "Efreet", "v":"_v1"},
+{"id" : 1, "name": "Efreet","logic":"sd3","state":"sd3_2018_01_16.properties"},
+{"id" : 2, "name": "Efreet","logic":"sd4","state":"sd4_2018_01_16.properties"},
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "VolumeBase"},
 {"id" : 13, "name": "VolumeToTrades"},
@@ -9,11 +9,13 @@
 {"id" : 14, "name": "PriceChangeToVolume"},
 {"id" : 15, "name": "MinMaxToVolumeS"},
 
-
-{"id" : 20, "name": "BoundOptimized", "ind" : 1},
+{"id" : 18, "name": "BoundOptimized", "ind" : 1},
+{"id" : 19, "name": "BoundOptimized", "ind" : 2},
 
 {"id" : 21, "name": "Success", "ind" : 1},
-{"id" : 22, "name": "Success", "ind" : 2}
+{"id" : 22, "name": "Success", "ind" : 2},
+{"id" : 23, "name": "Success", "ind" : 18},
+{"id" : 24, "name": "Success", "ind" : 19}
 
 
 ]
