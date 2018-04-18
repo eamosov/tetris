@@ -81,7 +81,7 @@ public class Visualizator {
         setIndex(index-barsOnScreen()/2);
     }
 
-    private int barsOnScreen(){
+    public int barsOnScreen(){
         return frame.form.getCenter().getWidth()*zoomScale()/candleWidth();
     }
 

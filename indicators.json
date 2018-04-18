@@ -1,5 +1,6 @@
 [
-{"id" : 1, "name": "Efreet"},
+{"id" : 1, "name": "Efreet", "v":""},
+{"id" : 2, "name": "Efreet", "v":"_v1"},
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "VolumeBase"},
 {"id" : 13, "name": "VolumeToTrades"},
@@ -12,7 +13,7 @@
 {"id" : 20, "name": "BoundOptimized", "ind" : 1},
 
 {"id" : 21, "name": "Success", "ind" : 1},
-{"id" : 22, "name": "Success", "ind" : 20}
+{"id" : 22, "name": "Success", "ind" : 2}
 
 
 ]

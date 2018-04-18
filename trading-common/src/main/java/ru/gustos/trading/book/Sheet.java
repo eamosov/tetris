@@ -186,5 +186,20 @@ public class Sheet {
         return indicatorsData;
     }
 
+    public double[] calcVolumes(int index, int barsBack, double fromPrice, double toPrice, int steps) {
+        double[] data = new double[steps];
+        double step = (toPrice-fromPrice-0.1)/steps;
+        int from = index-barsBack;
+        for (int i = from;i<index;i++){
+            XBar bar = moments.get(i).bar;
+            int price1 = (int)((bar.getMinPrice()-fromPrice)/step);
+            int price2 = (int)((bar.getMaxPrice()-fromPrice)/step);
+            for (int j = price1;j<=price2;j++)
+                if(j>=0 && j<steps)
+                    data[j]+=bar.getVolume()/(price2-price1+1);
+        }
+        return data;
+
+    }
 }
 

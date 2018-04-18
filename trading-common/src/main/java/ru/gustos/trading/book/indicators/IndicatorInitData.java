@@ -10,6 +10,7 @@ public class IndicatorInitData {
     public boolean show = true;
     public String classifier;
     public String indicators;
+    public String v;
 
 }
 

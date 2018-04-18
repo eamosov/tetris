@@ -15,15 +15,18 @@ import java.util.stream.Collectors;
 
 public class EfreetIndicator extends BaseIndicator  {
     public static int Id;
+    public String v;
+
 
     public EfreetIndicator(IndicatorInitData data){
         super(data);
         Id = data.id;
+        v = data.v;
     }
 
     @Override
     public String getName() {
-        return "efreet";
+        return "efreet"+v;
     }
 
     @Override
@@ -49,7 +52,7 @@ public class EfreetIndicator extends BaseIndicator  {
                                                                               .map(m -> new XExtBar(m.bar))
                                                                               .collect(Collectors.toList()));
 
-        logic.loadState("sd3_2018_01_16.properties");
+        logic.loadState("sd3_2018_01_16"+v+".properties");
         logic.prepare();
 
         for (int i = 0; i < values.length; i++) {

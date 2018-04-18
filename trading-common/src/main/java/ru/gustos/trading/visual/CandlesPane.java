@@ -39,7 +39,7 @@ public class CandlesPane extends JPanel {
             }
         });
     }
-
+    XBaseBar minMax;
     public void paint(Graphics g){
         super.paint(g);
         Sheet sheet = vis.getSheet();
@@ -47,7 +47,7 @@ public class CandlesPane extends JPanel {
         int from = vis.getIndex();
         int scale = vis.zoomScale();
         int bars = getSize().width* scale /vis.candleWidth();
-        XBaseBar minMax = sheet.getSumBar(from, bars);
+        minMax = sheet.getSumBar(from, bars);
         int to = Math.min(from + bars, sheet.moments.size());
         if (vis.graphIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
@@ -64,13 +64,30 @@ public class CandlesPane extends JPanel {
         }
 
         paintGrid(g,minMax, from,false);
+//        paintVolumes(g);
         for (int i = from; i< to; i+=scale) {
             XBar bar = getBar(i);
             paintBar(g,i,bar,minMax);
         }
         if (vis.param>0)
-        paintVolumeLine(g);
+            paintVolumeLine(g);
         paintGrid(g,minMax, from,true);
+    }
+
+    private void paintVolumes(Graphics g) {
+        int steps = 100;
+        double[] vv = vis.getSheet().calcVolumes(vis.getIndex()+vis.barsOnScreen()/2,vis.barsOnScreen()/2,minMax.getMinPrice(),minMax.getMaxPrice(),steps);
+        Pair<Double, Double> mm = VecUtils.minMax(vv);
+        double price = minMax.getMinPrice();
+        double step = (minMax.getMaxPrice()-price)/steps;
+        for (int i = 0;i<vv.length;i++){
+            int y = price2screen(price);
+            price+=step;
+            int ny = price2screen(price);
+            int r = (int)(vv[i]*255/mm.getSecond());
+            g.setColor(new Color(r,0,0));
+            g.fillRect(getWidth()/2-30,y,60,y-ny+1);
+        }
     }
 
     private void paintVolumeLine(Graphics g) {
@@ -144,7 +161,7 @@ public class CandlesPane extends JPanel {
         double gridStep = 1.005;
         price = Math.pow(gridStep,(int)(Math.log(price)/Math.log(gridStep)));
         do {
-            int y = price2screen(price,minMax);
+            int y = price2screen(price);
             if (text)
                 g.drawString(""+(int)price,getWidth()-40,y);
             else
@@ -201,7 +218,7 @@ public class CandlesPane extends JPanel {
 
     }
 
-    private int price2screen(double price, XBaseBar minMax){
+    private int price2screen(double price){
         return getHeight()*8/10-(int)((price-minMax.getMinPrice())/(minMax.getMaxPrice()-minMax.getMinPrice())*getHeight()*0.7);
     }
 
@@ -210,9 +227,9 @@ public class CandlesPane extends JPanel {
         int bound = 1;
         int x = (index-vis.getIndex())/vis.zoomScale()* w;
         g.setColor(darkColor);
-        g.drawLine(x+ w /2,price2screen(bar.getMinPrice(),minMax),x+w/2,price2screen(bar.getMaxPrice(),minMax));
-        int lo = price2screen(Math.max(bar.getOpenPrice(), bar.getClosePrice()), minMax);
-        int hi = price2screen(Math.min(bar.getOpenPrice(), bar.getClosePrice()), minMax);
+        g.drawLine(x+ w /2,price2screen(bar.getMinPrice()),x+w/2,price2screen(bar.getMaxPrice()));
+        int lo = price2screen(Math.max(bar.getOpenPrice(), bar.getClosePrice()));
+        int hi = price2screen(Math.min(bar.getOpenPrice(), bar.getClosePrice()));
         g.setColor((bar.isBearish()?RED:GREEN).brighter());
         g.fillRect(x+bound, lo,w-bound*2,hi-lo+1);
         if (hi-lo-1>0) {
