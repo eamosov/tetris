@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BarsPacker {
-    public static ArrayList<XBaseBar> packBars(List<? extends XBar> list, int volume){
+    public static ArrayList<XBaseBar> packBarsVolume(List<? extends XBar> list, int volume){
         ArrayList<XBaseBar> result = new ArrayList<XBaseBar>();
         XBaseBar last = null;
         for (XBar b : list){
@@ -21,4 +21,20 @@ public class BarsPacker {
         return result;
 
     }
+
+    public static ArrayList<XBaseBar> packBarsSign(List<? extends XBar> list){
+        ArrayList<XBaseBar> result = new ArrayList<XBaseBar>();
+        XBaseBar last = null;
+        for (XBar b : list){
+            if (last==null || last.isBullish()!=b.isBullish()){
+                last = new XBaseBar(b);
+                result.add(last);
+            } else {
+                last.addBar(b);
+            }
+        }
+        return result;
+
+    }
+
 }

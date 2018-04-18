@@ -3,6 +3,8 @@ package ru.gustos.trading.book.indicators;
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
+import java.awt.*;
+
 public class MinMaxToVolumeIndicator extends NumberIndicator {
 
     int t1;

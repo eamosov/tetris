@@ -41,7 +41,7 @@ class BarsCache(val path: String) {
                     resultSet.getLong(1)
                 }
 
-                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
                     resultSet.next()
                     mapToBar(resultSet, interval);
                 }
@@ -58,7 +58,7 @@ class BarsCache(val path: String) {
                     resultSet.getLong(1)
                 }
 
-                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
                     resultSet.next()
                     mapToBar(resultSet, interval);
                 }
@@ -75,14 +75,18 @@ class BarsCache(val path: String) {
                 resultSet.getDouble("high"),
                 resultSet.getDouble("low"),
                 resultSet.getDouble("close"),
-                resultSet.getDouble("volume"))
+                resultSet.getDouble("volume"),
+                resultSet.getDouble("volumebase"),
+                resultSet.getDouble("volumequote"),
+                resultSet.getInt("trades")
+                )
     }
 
     fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBaseBar> {
         synchronized(this) {
             val bars = mutableListOf<XBaseBar>()
             conn.createStatement().use { statement ->
-                statement.executeQuery("SELECT time, open, high, low, close, volume FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
                     while (resultSet.next()) {
                         bars.add(mapToBar(resultSet, interval))
                     }
@@ -101,7 +105,7 @@ class BarsCache(val path: String) {
             conn.autoCommit = true
             conn.createStatement().use {
                 try {
-                    it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double)")
+                    it.execute("create table ${tableName(exchange, instrument, interval)}(time bigint primary key, open double, high double, low double, close double, volume double, volumebase double, volumequote double, trades int)")
                 } catch (e: SQLiteException) {
 
                 }
@@ -113,7 +117,7 @@ class BarsCache(val path: String) {
         return synchronized(this) {
             conn.autoCommit = true
             val ret = conn.createStatement().use { statement ->
-                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
             }
             ret
         }
@@ -125,7 +129,7 @@ class BarsCache(val path: String) {
             conn.autoCommit = false
             conn.createStatement().use { statement ->
                 bars.forEach { bar ->
-                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume})")
+                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
                 }
             }
             conn.commit()

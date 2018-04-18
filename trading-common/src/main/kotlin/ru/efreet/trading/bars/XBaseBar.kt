@@ -13,6 +13,8 @@ data class XBaseBar(override var timePeriod: Duration,
                     override var minPrice: Double = Double.MAX_VALUE,
                     override var closePrice: Double = 0.0,
                     override var volume: Double = 0.0,
+                    override var volumeBase: Double = 0.0,
+                    override var volumeQuote: Double = 0.0,
                     override var trades:Int = 0) : XBar {
 
     /** Begin time of the bar  */
@@ -59,10 +61,10 @@ data class XBaseBar(override var timePeriod: Duration,
      * @param volume the volume of the bar period
      */
     constructor(timePeriod: Duration, endTime: ZonedDateTime, openPrice: Double, highPrice: Double, lowPrice: Double, closePrice: Double, volume: Double) :
-            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0)
+            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0.0,0.0,0)
 
     constructor(bar: XBar) :
-            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.trades)
+            this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.volumeBase, bar.volumeQuote,bar.trades)
 
 
     /**
@@ -95,10 +97,12 @@ data class XBaseBar(override var timePeriod: Duration,
 
         volume = volume + bar.volume
         trades += minOf(bar.trades, 1)
+        volumeBase += bar.volumeBase
+        volumeQuote += bar.volumeQuote
     }
 
     override fun toString(): String {
-        return String.format("{begin time: %s, end time: %s, close price: %f, open price: %f, min price: %f, max price: %f, volume: %f, trades: %d}",
-                beginTime, endTime, closePrice, openPrice, minPrice, maxPrice, volume, trades)
+        return String.format("{begin time: %s, end time: %s, close price: %f, open price: %f, min price: %f, max price: %f, volume: %f, volumeBase: %f, volumeQuote: %f, trades: %d}",
+                beginTime, endTime, closePrice, openPrice, minPrice, maxPrice, volume, volumeBase, volumeQuote, trades)
     }
 }

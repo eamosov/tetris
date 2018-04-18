@@ -30,8 +30,28 @@ public class IndicatorsData {
         double res = 0;
         for (int i = 0;i<scale;i++)
             res+=data.get(indicator.getId())[index+i];
-        res/=scale;
+//        res/=scale;
         return res;
+    }
+
+    public int hasYesNo(IIndicator indicator, int index,int scale) {
+        int result = 0;
+        if (scale==1) {
+            double v = data.get(indicator.getId())[index];
+            if (v==IIndicator.YES)
+                result=1;
+            else if (v==IIndicator.NO)
+                result=2;
+        } else {
+            for (int i = 0;i<scale;i++) {
+                double v = data.get(indicator.getId())[index + i];
+                if (v==IIndicator.YES)
+                    result|=1;
+                else if (v==IIndicator.NO)
+                    result|=2;
+            }
+        }
+        return result;
     }
 
     public double get(int id, int index) {

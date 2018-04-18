@@ -4,6 +4,7 @@ import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Moment;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
+import ru.gustos.trading.book.indicators.VecUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +58,24 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
             g.drawLine(x-1,prev,x,y);
             prev = y;
         }
+        drawIndicatorLines(g);
+        g.setColor(Color.blue);
+        drawProfitLine(g);
+    }
+
+    private void drawProfitLine(Graphics g) {
+        if (vis.playResult!=null && vis.backIndicator>=0) {
+
+            double[] v = VecUtils.resize(vis.playResult.money,getWidth());
+            v = VecUtils.ma(v,10);
+            VisUtils.drawLine(this,g,v,0.1);
+        }
+    }
+
+    private void drawIndicatorLines(Graphics g) {
         if (vis.backIndicator>=0){
+            int w = getWidth();
+            int total = vis.getSheet().moments.size();
             IIndicator ind = vis.getSheet().getLib().get(vis.backIndicator);
             Color tmpcol = ind.getColorMax();
             Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
@@ -91,6 +109,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
             }
 
         }
+
     }
 
     private int price2y(double price) {

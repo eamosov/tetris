@@ -6,6 +6,7 @@ import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.Binance;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
+import ru.efreet.trading.utils.BarsPacker;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.indicators.IndicatorType;
 import ru.gustos.trading.book.indicators.IndicatorsLib;
@@ -29,7 +30,8 @@ public class VisExperiments {
         IndicatorsLib lib = new IndicatorsLib("indicators.json");
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
-//        bars = BarsPacker.packBars(bars,100);
+//        bars = BarsPacker.packBarsVolume(bars,100);
+//        bars = BarsPacker.packBarsSign(bars);
         sheet.fromBars(bars);
 
         new Visualizator(sheet);

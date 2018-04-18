@@ -33,11 +33,11 @@ public class IndicatorsPane extends JPanel {
         int scale = vis.zoomScale();
         int from = vis.getIndex();
         int bars = getSize().width*scale/vis.candleWidth();
+        int to = Math.min(from + bars, sheet.moments.size());
         List<IIndicator> ii = vis.getSheet().getLib().listIndicatorsShow();
         for (int j = 0;j<ii.size();j++) {
             IIndicator ind = ii.get(j);
-            int to = Math.min(from + bars, sheet.moments.size());
-            Pair<Double,Double> minMax = SheetUtils.getIndicatorMinMax(sheet,ind,from,to);
+            Pair<Double,Double> minMax = SheetUtils.getIndicatorMinMax(sheet,ind,from,to,scale);
             for (int i = from; i < to; i+=scale)
                 paintIndicator(g, i, j, scale, ind,minMax.getFirst(),minMax.getSecond());
         }

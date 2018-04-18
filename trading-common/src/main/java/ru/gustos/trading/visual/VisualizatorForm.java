@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class VisualizatorForm {
-    private final DateTimeFormatter dateFormatter =DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    public static final DateTimeFormatter dateFormatter =DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private JPanel root;
     private JPanel top;
@@ -28,6 +28,8 @@ public class VisualizatorForm {
     private JLabel zoomLabel;
     private JButton leftToIndicator;
     private JButton rightToIndicator;
+    private JTextField param;
+    private JButton runButton;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
@@ -156,6 +158,18 @@ public class VisualizatorForm {
             }
         });
         updateScrollToIndicators();
+        param.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.setParam(Double.parseDouble(param.getText()));
+            }
+        });
+        runButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.runPlay();
+            }
+        });
     }
 
     public void setZoom(int zoom){

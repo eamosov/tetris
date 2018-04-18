@@ -41,7 +41,7 @@ public class HighCandlesIndicator implements IIndicator{
         for (int i = 0; i < values.length; i++){
             int from = Math.max(0, i - bars + 1);
             int length = i - from + 1;
-            double p = IndicatorUtils.nth(candles, from, length,length*3/4);
+            double p = VecUtils.nth(candles, from, length,length*3/4);
             double v = 0;
             for (int j = Math.max(i-bars+1,0);j<=i;j++) {
                 double d = sheet.moments.get(j).bar.getClosePrice() - sheet.moments.get(j).bar.getOpenPrice();

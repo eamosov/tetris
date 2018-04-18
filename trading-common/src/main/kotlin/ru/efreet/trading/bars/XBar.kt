@@ -36,6 +36,16 @@ interface XBar {
     var volume: Double
 
     /**
+     * @return volume made by takers of base asset
+     */
+    var volumeBase: Double
+
+    /**
+     * @return volume made by takers of quote asset
+     */
+    var volumeQuote: Double
+
+    /**
      * @return the number of trades in the period
      */
     var trades: Int

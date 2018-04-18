@@ -5,6 +5,7 @@ import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
 
+import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -21,6 +22,9 @@ public class Visualizator {
     int backIndicator = -1;
     int graphIndicator = -1;
     private ArrayList<Integer> selectedIndicators = new ArrayList<>();
+    SheetUtils.PlayResults playResult = null;
+
+    double param = 0;
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -186,6 +190,7 @@ public class Visualizator {
         selectedIndicators.add(ind);
         backIndicator = -1;
         graphIndicator = -1;
+        playResult = null;
         for (int i = 0;i<selectedIndicators.size();i++) {
             Integer id = selectedIndicators.get(i);
             IndicatorType type = sheet.getLib().get(id).getType();
@@ -195,6 +200,19 @@ public class Visualizator {
                 graphIndicator = id;
         }
         fireViewUpdated();
+    }
+
+    public void setParam(double v) {
+        param = v;
+        fireViewUpdated();
+    }
+
+    public void runPlay() {
+        if (backIndicator!=-1){
+            playResult = SheetUtils.playIndicator(sheet, backIndicator,from,sheet.moments.size()-1);
+            JOptionPane.showMessageDialog(null, playResult.toString());
+            fireViewUpdated();
+        }
     }
 }
 

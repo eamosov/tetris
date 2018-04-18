@@ -10,9 +10,6 @@ import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.Binance;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -81,7 +78,7 @@ public class Sheet {
         ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
         List<XBaseBar> bars = cache.getBars(exchName, instr, interval, from, ZonedDateTime.now());
         if (packing>0)
-            bars = BarsPacker.packBars(bars,packing);
+            bars = BarsPacker.packBarsVolume(bars,packing);
         fromBars(bars);
     }
 

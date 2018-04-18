@@ -8,6 +8,7 @@ import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
 import ru.efreet.trading.exchange.BarInterval;
+import ru.gustos.trading.book.indicators.VecUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,14 +51,14 @@ public class CandlesPane extends JPanel {
         int to = Math.min(from + bars, sheet.moments.size());
         if (vis.graphIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
-                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
+                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
         }
 
         if (vis.backIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.backIndicator);
-                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to);
+                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
         }
@@ -67,7 +68,56 @@ public class CandlesPane extends JPanel {
             XBar bar = getBar(i);
             paintBar(g,i,bar,minMax);
         }
+        if (vis.param>0)
+        paintVolumeLine(g);
         paintGrid(g,minMax, from,true);
+    }
+
+    private void paintVolumeLine(Graphics g) {
+        Sheet sheet = vis.getSheet();
+        int from = vis.getIndex();
+        int scale = vis.zoomScale();
+        int bars = getSize().width* scale /vis.candleWidth();
+        int to = Math.min(from + bars, sheet.moments.size());
+        double[] vv = new double[(to-from)/scale+2];
+        double[] volumes = new double[(to-from)/scale];
+        int j = 0;
+        for (int i = from;i<to;i+=scale) {
+            XBar b = sheet.getSumBar(i, scale);
+            volumes[j++] = b.getVolume();
+        }
+        double avg = VecUtils.avg(volumes);
+        double limit = vis.param*100;
+
+        vv[0] = 0;
+        j = 1;
+        for (int i = from;i<to;i+=scale){
+            XBar b = sheet.getSumBar(i,scale);
+            if (b.getVolume()*Math.abs(b.deltaMaxMin())>limit) {
+                double over = b.getVolume() - avg;
+                vv[j] = vv[j-1]+(b.isBearish()?-over : over);
+            } else
+                vv[j] = vv[j-1];
+            j++;
+        }
+        drawLine(g,vv);
+
+    }
+
+    private void drawLine(Graphics g, double[] vv) {
+        double min = vv[0];
+        double max = vv[0];
+        for (int i = 1;i<vv.length;i++){
+            if (vv[i]>max) max = vv[i];
+            if (vv[i]<min) min = vv[i];
+        }
+        int w = vis.candleWidth();
+        g.setColor(darkerColor);
+        for (int i = 1;i<vv.length;i++) {
+            int y1 = (int) ((0.9 - (vv[i - 1] - min) / (max - min)*0.8) * getHeight());
+            int y2 = (int) ((0.9 - (vv[i] - min) / (max - min)*0.8) * getHeight());
+            g.drawLine((i-1)* w, y1,i* w, y2);
+        }
     }
 
     public XBar getBar(int index) {
@@ -105,22 +155,21 @@ public class CandlesPane extends JPanel {
         int w = vis.candleWidth();
         int x = 0;
         ZonedDateTime time;
+        int scale = vis.zoomScale();
 
         do {
-            time = vis.getSheet().moments.get(from+x).bar.getBeginTime();
+            time = vis.getSheet().moments.get(from+x*scale).bar.getBeginTime();
             if (x/20!=(x+1)/20) {
                 if (text)
-                    g.drawString(time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),x*w,getHeight());
+                    g.drawString(time.format(VisualizatorForm.dateFormatter),x*w,getHeight());
                 else
                     g.drawLine(x*w, 0, x*w, getHeight());
             }
             x++;
-        } while (x*w<getWidth() && x+from<vis.getSheet().moments.size());
+        } while (x*w<getWidth() && x*scale+from<vis.getSheet().moments.size());
     }
 
     private void paintIndicatorBar(Graphics g, int index, int scale, IIndicator indicator, Pair<Double, Double> mm) {
-        double value = vis.getSheet().getData().get(indicator,index,scale);
-        if (Double.isNaN(value)) return;
         int w = vis.candleWidth();
         int x = (index-vis.getIndex())/scale* w;
         Color col = VisUtils.NumberColor(vis.getSheet(),index, scale,indicator, mm.getFirst(), mm.getSecond());
@@ -128,9 +177,12 @@ public class CandlesPane extends JPanel {
             g.setColor(new Color(col.getRed(),col.getGreen(),col.getBlue(),60));
             g.fillRect(x, 0, w, getHeight());
         } else if (indicator.getType()==IndicatorType.NUMBER) {
+            double value = vis.getSheet().getData().get(indicator,index,scale);
+            if (Double.isNaN(value)) return;
             g.setColor(col);
             if (indicator.fromZero()) {
-                int h = (int) (getHeight() * 0.15 * (value - mm.getFirst()) / (mm.getSecond() - mm.getFirst()));
+                double min = 0;//mm.getFirst();
+                int h = (int) (getHeight() * 0.15 * (value - min) / (mm.getSecond() - mm.getFirst()));
                 g.fillRect(x, getHeight() - h, w, h);
             } else {
 

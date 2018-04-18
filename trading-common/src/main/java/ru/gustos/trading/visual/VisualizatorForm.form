@@ -61,6 +61,25 @@
               <text value="-"/>
             </properties>
           </component>
+          <component id="a1dbf" class="javax.swing.JLabel">
+            <constraints/>
+            <properties>
+              <text value="Param:"/>
+            </properties>
+          </component>
+          <component id="41aa6" class="javax.swing.JTextField" binding="param">
+            <constraints/>
+            <properties>
+              <columns value="6"/>
+              <text value="0"/>
+            </properties>
+          </component>
+          <component id="f257c" class="javax.swing.JButton" binding="runButton" default-binding="true">
+            <constraints/>
+            <properties>
+              <text value="Run"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <grid id="11fca" binding="center" layout-manager="BorderLayout" hgap="0" vgap="0">

@@ -1,8 +1,10 @@
 package ru.gustos.trading.visual;
 
+import kotlin.Pair;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
+import ru.gustos.trading.book.indicators.VecUtils;
 
 import java.awt.*;
 
@@ -15,31 +17,20 @@ public class VisUtils {
     }
 
     public static Color NumberColor(Sheet sheet, int index, int scale, IIndicator ind, double min, double max) {
-        int r = 0, g = 0, b = 0;
-        for (int i = 0;i<scale;i++){
-            Color color = VisUtils.NumberColor(sheet, index+i, ind, min, max);
-            if (ind.getType()==IndicatorType.YESNO) {
-                if (color!=Color.lightGray) {
-                    r = Math.max(r, color.getRed());
-                    g = Math.max(g, color.getGreen());
-                    b = Math.max(b, color.getBlue());
-                }
-            } else {
-                r += color.getRed();
-                g += color.getGreen();
-                b += color.getBlue();
-            }
-        }
         if (ind.getType()==IndicatorType.YESNO) {
-            if (r==0 && g==0 && b==0) return Color.lightGray;
-            return new Color(r, g, b);
-        }else
-            return new Color(r/scale,g/scale,b/scale);
+            int v = sheet.getData().hasYesNo(ind,index,scale);
+            if (v==0) return Color.lightGray;
+            if (v==1) return ind.getColorMax();
+            if (v==2) return ind.getColorMin();
+            return lerp(ind.getColorMin(),ind.getColorMax(),0.5);
+        }else {
+            double val = sheet.getData().get(ind,index,scale);
+            return NumberColor(ind,val,min,max);
+        }
     }
 
-    public static Color NumberColor(Sheet sheet, int index, IIndicator ind, double min, double max) {
+    private static Color NumberColor(IIndicator ind, double val, double min, double max) {
         Color col = Color.lightGray;
-        double val = sheet.getData().get(ind,index);
         if (!Double.isNaN(val)) {
             if (ind.getType() == IndicatorType.YESNO) {
                 if (val == IIndicator.YES)
@@ -57,5 +48,14 @@ public class VisUtils {
             }
         }
         return col;
+    }
+
+    public static void drawLine(Component c, Graphics g, double[] v, double margin){
+        Pair<Double, Double> mm = VecUtils.minMax(v);
+        for (int i = 1;i<v.length;i++){
+            int y1 = (int)((1-margin-(v[i-1]-mm.getFirst())/(mm.getSecond()-mm.getFirst())*(1-margin*2))*c.getHeight());
+            int y2 = (int)((1-margin-(v[i]-mm.getFirst())/(mm.getSecond()-mm.getFirst())*(1-margin*2))*c.getHeight());
+            g.drawLine(i,y1,i+1,y2);
+        }
     }
 }

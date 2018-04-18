@@ -46,7 +46,7 @@ public class VisualizatorDemo{
 
 
         Sheet sheet = new Sheet(exch,instr,interval,lib);
-//        bars = BarsPacker.packBars(bars,100);
+//        bars = BarsPacker.packBarsVolume(bars,100);
         sheet.fromBars(bars);
 
         new Visualizator(sheet);

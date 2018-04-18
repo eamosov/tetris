@@ -1,23 +1,19 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class VolumeIndicator extends BaseIndicator{
-
-    public static final Color COLOR = new Color(0,0,192);
-    public static final Color COLORMIN = new Color(192,192,192);
+public class MinMaxToVolumeSIndicator extends BaseIndicator{
 
 
-    public VolumeIndicator(IndicatorInitData data){
+    public MinMaxToVolumeSIndicator(IndicatorInitData data){
         super(data);
     }
 
     @Override
     public String getName() {
-        return "Volume";
+        return "MinMaxToVolume";
     }
 
     @Override
@@ -28,19 +24,18 @@ public class VolumeIndicator extends BaseIndicator{
     @Override
     public void calcValues(Sheet sheet, double[] values) {
         for (int i = 0;i<values.length;i++)
-            values[i] =  sheet.moments.get(i).bar.getVolume();
+            values[i] =  Math.abs(sheet.moments.get(i).bar.deltaMaxMin())/Math.max(0.1,sheet.moments.get(i).bar.getVolume());
     }
 
     @Override
     public Color getColorMax() {
-        return COLOR;
+        return VolumeIndicator.COLOR;
     }
 
-    public Color getColorMin() {        return COLORMIN;    }
+    public Color getColorMin() {        return VolumeIndicator.COLORMIN;    }
 
     @Override
     public boolean fromZero() {
         return true;
     }
 }
-

@@ -44,6 +44,16 @@ data class XExtBar(val bar: XBar) : XBar {
         set(value) {
             bar.volume = value
         }
+    override var volumeBase: Double
+        get() = bar.volumeBase
+        set(value) {
+            bar.volumeBase = value
+        }
+    override var volumeQuote: Double
+        get() = bar.volumeQuote
+        set(value) {
+            bar.volumeQuote = value
+        }
     override var trades: Int
         get() = bar.trades
         set(value) {

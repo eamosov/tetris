@@ -6,6 +6,8 @@ import ru.efreet.trading.Decision;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
 
+import java.util.Arrays;
+
 public class SheetUtils {
 
     public static void FillDecisions(Sheet sheet){
@@ -130,16 +132,14 @@ public class SheetUtils {
         return new Pair<>(min,max);
     }
 
-    public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, IIndicator ind, int from, int to) {
+    public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, IIndicator ind, int from, int to, int scale) {
         double min = ind.fromZero()?0:Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;
         if (ind.getType()== IndicatorType.NUMBER){
-            for (int i = from; i < to; i++){
-                double val = sheet.getData().get(ind,i);
-                if (!Double.isNaN(val)) {
-                    if (val < min) min = val;
-                    if (val > max) max = val;
-                }
+            for (int i = from; i < to; i+=scale){
+                double val = sheet.getData().get(ind,i,scale);
+                if (val < min) min = val;
+                if (val > max) max = val;
             }
             if (!ind.fromZero()){
                 double m = Math.max(Math.abs(min),Math.abs(max));
@@ -178,4 +178,69 @@ public class SheetUtils {
         return sellValues;
     }
 
+    public static PlayResults playIndicator(Sheet sheet, int indicator, int from, int to) {
+        double[] v = sheet.getData().get(indicator);
+        double money = 1000;
+        double buyCost = 0;
+        double btc = 0;
+        double fee = 0.9995;
+        PlayResults result = new PlayResults();
+        int profitable = 0;
+        double bestPrice = 0;
+        result.bestPossibleProfit = 1;
+        result.money = new double[v.length];
+        Arrays.fill(result.money,money);
+        double moneyWhenBuy = 0;
+        for (int i = from;i<to;i++){
+            if (money>0 && v[i]!=0){
+                moneyWhenBuy = money;
+                bestPrice = buyCost = sheet.moments.get(i).bar.getClosePrice()/fee;
+                btc += money/buyCost;
+                money = 0;
+                result.trades++;
+            } else if (btc>0){
+                double sellCost = sheet.moments.get(i).bar.getClosePrice() * fee;
+                double min = Double.MAX_VALUE;
+                for (int j = -2;j<=2;j++)
+                    if (i+j>=0 && i+j<sheet.moments.size())
+                        min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * fee);
+                bestPrice = Math.max(bestPrice,min);
+                if (v[i]==0 || i==to-1) {
+                    money += btc * sellCost;
+                    btc = 0;
+                    result.bestPossibleProfit*=bestPrice/sellCost;
+                    if (sellCost > buyCost) {
+                        profitable++;
+                        result.successProfit += sellCost / buyCost;
+                    } else {
+                        result.looseProfit += sellCost / buyCost;
+                    }
+                }
+            }
+            result.money[i] = money==0?moneyWhenBuy:money;
+        }
+        if (to<result.money.length)
+            Arrays.fill(result.money,to,result.money.length,money);
+
+        result.profit = money/1000;
+        result.profitable = ((double)profitable)/result.trades;
+        result.successProfit/=Math.max(1,profitable);
+        result.looseProfit/=Math.max(1,result.trades-profitable);
+        result.bestPossibleProfit*=result.profit;
+        return result;
+    }
+
+    public static class PlayResults {
+        public int trades;
+        public double profit;
+        public double profitable;
+        public double successProfit;
+        public double looseProfit;
+        public double bestPossibleProfit;
+        public double[] money;
+
+        public String toString(){
+            return String.format("trades: %d\nprofitable %%: %.4g\nprofit: %.4g\nsuccessProfit: %.4g\nlooseProfit: %.4g\nbestPossible: %.4g", trades,profitable,profit,successProfit,looseProfit,bestPossibleProfit);
+        }
+    }
 }

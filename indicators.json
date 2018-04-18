@@ -1,15 +1,17 @@
 [
-{"id" : 1, "name": "Volume"},
+{"id" : 1, "name": "Efreet"},
+{"id" : 11, "name": "Volume"},
+{"id" : 12, "name": "VolumeBase"},
+{"id" : 13, "name": "VolumeToTrades"},
 
-{"id" : 2, "name": "TargetBuy"},
 
-{"id" : 3, "name": "TargetSell"},
+{"id" : 14, "name": "PriceChangeToVolume"},
+{"id" : 15, "name": "MinMaxToVolumeS"},
 
-{"id" : 4, "name": "Efreet"},
 
-{"id" : 20, "name": "BoundOptimized", "ind" : 4},
+{"id" : 20, "name": "BoundOptimized", "ind" : 1},
 
-{"id" : 21, "name": "Success", "ind" : 4},
+{"id" : 21, "name": "Success", "ind" : 1},
 {"id" : 22, "name": "Success", "ind" : 20}
 
 
