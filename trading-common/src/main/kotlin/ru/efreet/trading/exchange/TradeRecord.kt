@@ -12,7 +12,7 @@ import java.time.ZonedDateTime
 /**
  * Created by fluder on 25/02/2018.
  */
-@DatabaseTable(tableName = "trades")
+@DatabaseTable
 data class TradeRecord(
 
         @DatabaseField(id = true)

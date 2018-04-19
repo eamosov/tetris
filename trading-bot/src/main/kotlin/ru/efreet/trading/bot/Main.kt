@@ -10,10 +10,7 @@ import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
-import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.Periodical
-import ru.efreet.trading.utils.loadFromJson
-import ru.efreet.trading.utils.round2
+import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.ZonedDateTime
 
@@ -127,7 +124,7 @@ class Main {
                             tmpLogic.setParams(curParams)
                             tmpLogic.setMinMax(curParams, div, hardBound)
 
-                            val population = tmpLogic.seed(cmd.seedType, cmd.population ?: 20)
+                            val population = tmpLogic.seed(SeedType.RANDOM, cmd.population ?: 20)
                             population.add(curParams)
 
                             val trainEnd = ZonedDateTime.now().truncatedTo(bot.barInterval)

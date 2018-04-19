@@ -46,60 +46,51 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     init {
         _params = SimpleBotLogicParams(
-                short = 1,
                 long = 50,
                 signal = 203,
                 signal2 = 203,
-                deviationTimeFrame = 25,
-                deviation = 12,
-                deviation2 = 12,
-                dayShort = 331,
                 dayLong = 1494,
                 daySignal = 112,
-                daySignal2 = 537,
-                stopLoss = 2.034337868566384,
-                tStopLoss = 4.236120532724698,
-                takeProfit = 10.0,
-                tTakeProfit = 0.0,
-                persist1 = 4,
-                persist2 = 8,
-                persist3 = 1
+                daySignal2 = 537
+//                persist1 = 4,
+//                persist2 = 8,
+//                persist3 = 1
         )
 
-        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
-        of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
+//        of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
+//        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+        //of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
+        //of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
+//        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
+//        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
+//
+//        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
+//        of(SimpleBotLogicParams::tTakeProfit, "logic.sd3.tTakeProfit", 0.1, 5.0, 0.05, true)
 
-        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
-        //of(SimpleBotLogicParams::tTakeProfit, "logic.sd3.tTakeProfit", 0.1, 5.0, 0.05, true)
 
-
-        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 1, 10, 1, true)
-        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 1, 10, 1, true)
-        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 1, 10, 1, true)
+//        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 1, 10, 1, true)
 
     }
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
         val targetGoodTrades = 0.7
-        val targetProfit = 5.0
-        val targetStopLoss = 2.0
-        val targetTStopLoss = 3.0
-        //val targetTrades = 120.0
+        val targetProfit = 3.0
+//        val targetStopLoss = 2.0
+//        val targetTStopLoss = 1.0
+//        val targetTrades = 120.0
 
         return Metrica()
                 //.add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), targetTrades), targetTrades, 3.0))
@@ -109,10 +100,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 //.add("profit", BotLogic.funXP(stats.profit / targetProfit - 1.0, 1.8))
                 .add("profit", stats.profit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
-                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
-                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
-                .add("tp", -BotLogic.funXP(params.takeProfit / 3 - 1.0, 0.2))
-                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.5 - 1.0, 0.1))
+//                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
+//                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
+//                .add("tp", -BotLogic.funXP(params.takeProfit / 5.0 - 1.0, 0.1))
+//                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.2 - 1.0, 0.1))
                 .add("pearson", (stats.pearson - 0.95) * 20.0)
     }
 

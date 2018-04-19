@@ -25,5 +25,6 @@ data class TradeHistory(val startUsd: Double,
                         val start: ZonedDateTime,
                         val end: ZonedDateTime) : Serializable {
 
+
 }
 

@@ -1,6 +1,5 @@
 package ru.efreet.trading
 
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import org.jfree.chart.ChartFactory
 import org.jfree.chart.ChartPanel
 import org.jfree.chart.axis.DateAxis
@@ -23,6 +22,7 @@ import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.CmdArgs
+import ru.efreet.trading.utils.loadFromJson
 import ru.efreet.trading.utils.toJson
 import java.awt.Color
 import java.text.SimpleDateFormat
@@ -39,7 +39,7 @@ class Graph {
 
         val stats = StatsCalculator().stats(history)
 
-        for (trade in history.trades){
+        for (trade in history.trades) {
             println("TRADE: ${trade}")
         }
 
@@ -126,7 +126,7 @@ class Graph {
                 marker.label = "B" + trade.decisionArgs.toString()
             } else {
                 marker.paint = Color.RED
-                marker.label = "S"+ trade.decisionArgs.toString()
+                marker.label = "S" + trade.decisionArgs.toString()
             }
 //                if (trade.profit != null)
 //                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"
@@ -191,34 +191,34 @@ class Graph {
 
             val cmd = CmdArgs.parse(args)
 
-//            cmd.exchange = "binance"
-//            cmd.barInterval =  BarInterval.ONE_MIN
-//            cmd.start = ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
-//            cmd.end = ZonedDateTime.parse("2018-11-01T01:00Z[GMT]")
-//            cmd.logicPropertiesPath = "sd3.properties"
-//            cmd.logicName = "sd3"
+            val history: TradeHistory
 
-            val cache = BarsCache(cmd.cachePath)
+            if (cmd.settings?.contains(".properties") == true) {
 
+                val cache = BarsCache(cmd.cachePath)
 
+                val exchange = Exchange.getExchange(cmd.exchange)
 
-            val exchange = Exchange.getExchange(cmd.exchange)
+                val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                logic.loadState(cmd.settings!!)
 
-            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-            logic.loadState(cmd.settings!!)
+                val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
+                val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
+                bars.checkBars()
 
-            val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
-            val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
-            bars.checkBars()
+                val sp = logic.getParams()
 
-            val sp = logic.getParams()
+                println(sp.toJson())
 
-            println(sp.toJson())
-
-            val history = ProfitCalculator().tradeHistory(cmd.logicName,
-                    sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
-                    listOf(Pair(cmd.start!!, ZonedDateTime.now())),
-                    true)
+                history = ProfitCalculator().tradeHistory(cmd.logicName,
+                        sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
+                        listOf(Pair(cmd.start!!, ZonedDateTime.now())),
+                        true)
+            } else if (cmd.settings?.endsWith(".json") == true) {
+                history = loadFromJson(cmd.settings!!)
+            } else {
+                throw RuntimeException("invalid ${cmd.settings}")
+            }
 
             Graph().drawHistory(history)
         }
