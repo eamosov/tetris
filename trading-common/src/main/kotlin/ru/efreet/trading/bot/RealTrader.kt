@@ -116,7 +116,10 @@ class RealTrader(tradesDbPath: String, jdbcConnection: Connection, val exchange:
             val bk = "trades_backup_" + System.currentTimeMillis() / 1000
             println("Recreating trades table, backup old as $bk")
 
-            jc.update("ALTER TABLE trades RENAME TO $bk", arrayOf(), arrayOf())
+            try {
+                jc.update("ALTER TABLE trades RENAME TO $bk", arrayOf(), arrayOf())
+            }catch (e: SQLException) {
+            }
             TableUtils.dropTable(dao, true)
             TableUtils.createTableIfNotExists(jdbcConn, TradeRecord::class.java)
         }
