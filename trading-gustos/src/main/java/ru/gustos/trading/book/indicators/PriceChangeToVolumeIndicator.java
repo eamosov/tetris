@@ -24,7 +24,7 @@ public class PriceChangeToVolumeIndicator extends BaseIndicator{
     @Override
     public void calcValues(Sheet sheet, double[] values) {
         for (int i = 0;i<values.length;i++)
-            values[i] =  sheet.moments.get(i).bar.getVolume()/Math.max(5,Math.abs(sheet.moments.get(i).bar.delta()));
+            values[i] =  sheet.moments.get(i).bar.getVolumeBase()/Math.max(10,Math.abs(sheet.moments.get(i).bar.deltaMaxMin()));
 //            values[i] =  Math.abs(sheet.moments.get(i).bar.delta())/Math.max(0.1,sheet.moments.get(i).bar.getVolume());
     }
 

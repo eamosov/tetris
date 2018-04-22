@@ -36,15 +36,17 @@ public class IndicatorsData {
 
     public int hasYesNo(IIndicator indicator, int index,int scale) {
         int result = 0;
+        double[] data = this.data.get(indicator.getId());
         if (scale==1) {
-            double v = data.get(indicator.getId())[index];
+            double v = data[index];
             if (v==IIndicator.YES)
                 result=1;
             else if (v==IIndicator.NO)
                 result=2;
         } else {
             for (int i = 0;i<scale;i++) {
-                double v = data.get(indicator.getId())[index + i];
+                if (index+i>=data.length) break;
+                double v = data[index + i];
                 if (v==IIndicator.YES)
                     result|=1;
                 else if (v==IIndicator.NO)
