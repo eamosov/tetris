@@ -11,11 +11,13 @@ import java.util.function.Supplier
 /**
  * Created by fluder on 09/02/2018.
  */
-class CdmBotTrainer(val processors:Int) : BotTrainer {
+class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessors(), val steps: Array<Int> = arrayOf(20, 5, 1)) : BotTrainer {
 
     companion object {
 
-        private val threadPool = ThreadPoolExecutor(4, 4,
+        val cpus = Runtime.getRuntime().availableProcessors();
+
+        private val threadPool = ThreadPoolExecutor(cpus / 7 + 1, cpus / 7 + 1,
                 0L, TimeUnit.MILLISECONDS,
                 LinkedBlockingQueue(),
                 ThreadFactoryBuilder().setDaemon(true).build())
@@ -25,9 +27,6 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
             processors,
             ForkJoinPool.defaultForkJoinWorkerThreadFactory,
             null, true);
-
-    constructor(): this (Runtime.getRuntime().availableProcessors())
-
 
     data class TrainItem<P, R>(var args: P, var result: R)
 
@@ -100,9 +99,6 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
         all.get()
     }
 
-    //val steps: Array<Double> = arrayOf(0.2, 0.1, 0.05, 0.02, 0.01, 0.001)
-    val steps: Array<Int> = arrayOf(20, 5, 1)
-
     fun <P, R, M:Comparable<M>> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      origin: TrainItem<P, R?>,
                      function: (P) -> R, metrica: (P, R) -> M, copy: (P) -> P): TrainItem<P, R?> {
@@ -134,41 +130,52 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
 
         val origMetrica: M = metrica(origin.args, origin.result!!)
 
-        val futures: MutableList<CompletableFuture<TrainItem<P, R>>> = mutableListOf()
+        val futures: MutableList<CompletableFuture<Triple<PropertyEditor<P, Any?>, Int, TrainItem<P, R>>>> = mutableListOf()
 
-
+        //Посчитать метрику при изменении каждой координату на шаг step
         for (gene in genes) {
-
-            for (step in arrayOf(-step, step/*, rnd(-10, 10)*/)) {
-
-                val f = CompletableFuture.supplyAsync(Supplier {
-                    val copyParams = copy(origin.args)
-                    gene.step(copyParams, step)
-                    return@Supplier TrainItem(copyParams, function(copyParams))
+            arrayOf(-step, step).mapTo(futures) {
+                CompletableFuture.supplyAsync(Supplier {
+                    val steppedParams = copy(origin.args)
+                    gene.step(steppedParams, it)
+                    return@Supplier Triple(gene, it, TrainItem(steppedParams, function(steppedParams)))
                 }, executor)
-
-                futures.add(f)
             }
         }
 
-        for (i in 0 until 2) {
-            val f = CompletableFuture.supplyAsync(Supplier {
-                val copyParams = copy(origin.args)
-                for (gene in genes) {
-                    //gene.step(copyParams, rnd(-100, 100))
-                    gene.step(copyParams, rnd(-step * 10, step * 10))
-                }
-                return@Supplier TrainItem(copyParams, function(copyParams))
-            }, executor)
+        //Несколько случайных прыжков
+        val rFutures = (0 .. 2).map { CompletableFuture.supplyAsync(Supplier {
+            val steppedParams = copy(origin.args)
+            for (gene in genes) {
+                gene.step(steppedParams, rnd(-step * 10, step * 10))
+            }
+            return@Supplier TrainItem(steppedParams, function(steppedParams))
+        }, executor) }
 
-            futures.add(f)
-        }
+        //Найдем изменения, которые привели к росту метрики
+        val goodResults = CompletableFuture.allOf(*futures.toTypedArray())
+                .get()
+                .let { futures.map { it.get() } }
+                .filter { metrica(it.third.args, it.third.result) > origMetrica }
+                .toMutableList()
 
+        //Все результаты
+        val allResults = arrayListOf<TrainItem<P, R>>()
 
-        val allF = CompletableFuture.allOf(*futures.toTypedArray())
-        allF.get()
+        //Добавим всем результаты по отдельным координатам
+        allResults.addAll(goodResults.map { it.third })
 
-        val best = futures.map { it.get() }.maxWith(Comparator.comparing<TrainItem<P,R>, M> { metrica(it.args, it.result) })
+        //Добавим результат по всем координатам, где был рост
+        val steppedParams = copy(origin.args)
+        goodResults.forEach { it.first.step(steppedParams, it.second) }
+        allResults.add(TrainItem(steppedParams, function(steppedParams)))
+
+        //Добавим все результаты случайных прыжков
+        allResults.addAll(CompletableFuture.allOf(*rFutures.toTypedArray()).get().let { rFutures.map { it.get() } })
+
+        //Найдем лучший
+        val best = allResults.maxWith(Comparator.comparing<TrainItem<P,R>, M> { metrica(it.args, it.result) })
+
         if (metrica(best!!.args, best!!.result) > origMetrica)
             return best as TrainItem<P, R?>
 

@@ -7,7 +7,10 @@ abstract class XCachedIndicator<B>(bars: List<B>, val prop: BarGetterSetter<B>) 
 
     abstract fun calculate(index: Int, bar: B): Double
 
-    abstract fun prepare()
+    open fun prepare() {
+        for (i in 0 until bars.size)
+            getValue(i, bars[i])
+    }
 
     protected fun setValue(bar: B, value: Double) {
         prop.set(bar, value)

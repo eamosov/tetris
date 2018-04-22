@@ -73,6 +73,14 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
         logic.loadState(state.properties)
 
+        val _maxParamsDeviation= state.maxParamsDeviation
+        state.maxParamsDeviation = 50.0
+        val (params, _stats) = tuneParams(logic.getParams(), 100, false)
+        println("Initial optimisation of random parameters have ended with stats: $_stats")
+        logic.setParams(params)
+        state.maxParamsDeviation = _maxParamsDeviation
+
+
         println(logic.logState())
 
         val historyStart = state.time.minus(state.interval.duration.multipliedBy(logic.historyBars))
@@ -92,7 +100,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         while (state.time.plus(state.tradeDuration).isBefore(end)) {
 
-            val (params, _stats) = tuneParams(logic.getParams())
+            val (params, _stats) = tuneParams(logic.getParams(), state.population)
             logic.setParams(params)
             logic.saveState(state.properties, _stats.toString())
 
@@ -135,24 +143,27 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         Graph().drawHistory(tradeHistory)
     }
 
-    fun tuneParams(curParams: SimpleBotLogicParams): Pair<SimpleBotLogicParams, TradesStats> {
+    fun tuneParams(curParams: SimpleBotLogicParams, populationSize: Int, inclCurParams: Boolean = true): Pair<SimpleBotLogicParams, TradesStats> {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
-        tmpLogic.setParams(curParams)
+        //tmpLogic.setParams(curParams)
         tmpLogic.setMinMax(curParams, state.maxParamsDeviation, state.hardBounds)
 
-        val population = tmpLogic.seed(SeedType.RANDOM, state.population)
-        population.add(curParams)
+        val population = tmpLogic.seed(SeedType.RANDOM, populationSize)
+        if (inclCurParams)
+            population.add(curParams)
 
-        val bars = exchange.loadBars(state.instrument, state.interval, state.trainStart.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars)).truncatedTo(state.interval), state.time.truncatedTo(state.interval))
-        println("Searching best strategy for ${state.instrument} population=${population.size}, start=${state.trainStart} end=${state.time}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
+        val trainStart = state.time.minusDays(45)
+
+        val bars = exchange.loadBars(state.instrument, state.interval, trainStart.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars)).truncatedTo(state.interval), state.time.truncatedTo(state.interval))
+        println("Searching best strategy for ${state.instrument} population=${population.size}, start=${trainStart} end=${state.time}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
         bars.checkBars()
 
 
         return cdm.getBestParams(tmpLogic.genes, population,
                 {
-                    val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(state.trainStart, state.time)), false)
+                    val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.time)), false)
                     val stats = StatsCalculator().stats(history)
                     stats
                 },

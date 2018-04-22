@@ -8,9 +8,9 @@ import ru.efreet.trading.bars.XExtBar
  */
 class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
                                       prop: BarGetterSetter2<B, Boolean>,
-                                      val xLastTrendIndicator: XLastTrendIndicator<B>,
+                                      val xLastTrendIndicator: XLastDecisionIndicator<B>,
                                       val xTslIndicator: XTslIndicator<B>,
-                                      val xTrendStartIndicator: XTrendStartIndicator<B>,
+                                      val xTrendStartIndicator: XDecisionStartIndicator<B>,
                                       val sl: Double,
                                       val tsl: Double,
                                       val tp: Double,

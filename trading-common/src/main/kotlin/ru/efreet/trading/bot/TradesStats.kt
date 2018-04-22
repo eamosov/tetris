@@ -1,6 +1,5 @@
 package ru.efreet.trading.bot
 
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import java.time.ZonedDateTime
 
 data class TradesStats(var trades: Int = 0,
@@ -12,5 +11,6 @@ data class TradesStats(var trades: Int = 0,
                        var sma10: Double = 0.0,
                        var pearson:Double = 0.0,
                        var start: ZonedDateTime,
-                       var end: ZonedDateTime
+                       var end: ZonedDateTime,
+                       var avrProfitPerDay: Double = 0.0
 )

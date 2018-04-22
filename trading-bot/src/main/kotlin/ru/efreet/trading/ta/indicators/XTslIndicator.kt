@@ -9,7 +9,7 @@ import ru.efreet.trading.bars.XExtBar
  */
 class XTslIndicator<B : XExtBar>(bars: List<B>,
                                  prop: BarGetterSetter<B>,
-                                 val xLastTrendIndicator: XLastTrendIndicator<B>,
+                                 val xLastTrendIndicator: XLastDecisionIndicator<B>,
                                  val closePriceIndicator: XClosePriceIndicator) : XCachedIndicator<B>(bars, prop) {
 
     override fun calculate(index: Int, bar: B): Double {
@@ -28,10 +28,5 @@ class XTslIndicator<B : XExtBar>(bars: List<B>,
         } else {
             closePrice
         }
-    }
-
-    override fun prepare() {
-        for (i in 0 until bars.size)
-            getValue(i, bars[i])
     }
 }

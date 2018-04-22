@@ -33,14 +33,14 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     lateinit var sd: XStandardDeviationIndicator<XExtBar>
 
 
-    lateinit var dayShortEma: XEMAIndicator<XExtBar>
-    lateinit var dayLongEma: XEMAIndicator<XExtBar>
+    lateinit var dayShortEma: XCachedIndicator<XExtBar>
+    lateinit var dayLongEma: XCachedIndicator<XExtBar>
     lateinit var dayMacd: XMACDIndicator<XExtBar>
-    lateinit var daySignalEma: XEMAIndicator<XExtBar>
-    lateinit var daySignal2Ema: XEMAIndicator<XExtBar>
+    lateinit var daySignalEma: XCachedIndicator<XExtBar>
+    lateinit var daySignal2Ema: XCachedIndicator<XExtBar>
 
-    lateinit var lastTrendIndicator: XLastTrendIndicator<XExtBar>
-    lateinit var trendStartIndicator: XTrendStartIndicator<XExtBar>
+    lateinit var lastDecisionIndicator: XLastDecisionIndicator<XExtBar>
+    lateinit var decisionStartIndicator: XDecisionStartIndicator<XExtBar>
     lateinit var tslIndicator: XTslIndicator<XExtBar>
     lateinit var soldBySLIndicator: XSoldBySLIndicator<XExtBar>
 
@@ -61,12 +61,12 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //        of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
 //        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
 
-        //of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
 
-        //of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
@@ -78,16 +78,16 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //        of(SimpleBotLogicParams::tTakeProfit, "logic.sd3.tTakeProfit", 0.1, 5.0, 0.05, true)
 
 
-//        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 1, 10, 1, true)
-//        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 1, 10, 1, true)
-//        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 1, 10, 1, true)
+        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 50, 1, true)
+        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 50, 1, true)
+        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 50, 1, true)
 
     }
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
         val targetGoodTrades = 0.7
-        val targetProfit = 3.0
+        val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
 //        val targetStopLoss = 2.0
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
@@ -120,15 +120,15 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         sma = XSMAIndicator(bars, XExtBar._sma, closePrice, _params.deviationTimeFrame!!)
         sd = XStandardDeviationIndicator(bars, XExtBar._sd, closePrice, sma, _params.deviationTimeFrame!!)
 
-        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
-        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
+        dayShortEma = XMcGinleyIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
+        dayLongEma = XMcGinleyIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
-        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
-        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
-        lastTrendIndicator = XLastTrendIndicator(bars, XExtBar._lastTrend, { index, bar -> getTrend(index, bar) })
-        trendStartIndicator = XTrendStartIndicator(bars, XExtBar._trendStart, lastTrendIndicator)
-        tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastTrendIndicator, closePrice)
-        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastTrendIndicator, tslIndicator, trendStartIndicator, _params.stopLoss, _params.tStopLoss, _params.takeProfit, _params.tTakeProfit)
+        daySignalEma = XMcGinleyIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
+        daySignal2Ema = XMcGinleyIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
+        lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, bar -> getTrendDecision(index, bar) })
+        decisionStartIndicator = XDecisionStartIndicator(bars, XExtBar._decisionStart, lastDecisionIndicator)
+        tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastDecisionIndicator, closePrice)
+        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastDecisionIndicator, tslIndicator, decisionStartIndicator, _params.stopLoss, _params.tStopLoss, _params.takeProfit, _params.tTakeProfit)
 
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
@@ -149,33 +149,33 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         soldBySLIndicator.prepare()
     }
 
-    fun localUpTrend(index: Int, bar: XExtBar): Boolean {
+    private fun localUpTrend(index: Int, bar: XExtBar): Boolean {
         return macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index])
     }
 
-    fun localDownTrend(index: Int, bar: XExtBar): Boolean {
+    private fun localDownTrend(index: Int, bar: XExtBar): Boolean {
         return macd.getValue(index, bars[index]) < signal2Ema.getValue(index, bars[index])
     }
 
-    fun dayUpTrend(index: Int, bar: XExtBar): Boolean {
+    private fun dayUpTrend(index: Int, bar: XExtBar): Boolean {
         return dayMacd.getValue(index, bars[index]) > daySignalEma.getValue(index, bars[index])
     }
 
-    fun dayDownTrend(index: Int, bar: XExtBar): Boolean {
+    private fun dayDownTrend(index: Int, bar: XExtBar): Boolean {
         return dayMacd.getValue(index, bars[index]) < daySignal2Ema.getValue(index, bars[index])
     }
 
-    fun getTrend(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
+    private fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
 
         val sd = sd.getValue(index, bar)
         val sma = sma.getValue(index, bar)
         val price = closePrice.getValue(index, bar)
 
-        if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it, bar) }) {
-            return Pair(Decision.BUY, mapOf(Pair("down", "true")))
+        return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it, bar) }) {
+            Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
-            return when {
+            when {
                 price < sma - sd * _params.deviation!! / 10.0
                         && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it, bar) } //проверять последние 10 баров
                         && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it, bar) }
@@ -200,7 +200,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 Pair("tsl", tslIndicator),
                 Pair("sl", object : XIndicator<XExtBar> {
                     override fun getValue(index: Int, bar: XExtBar): Double {
-                        return trendStartIndicator.getValue(index, bar).closePrice
+                        return decisionStartIndicator.getValue(index, bar).closePrice
                     }
                 })
         )
@@ -215,9 +215,22 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         synchronized(this) {
 
             val bar = getBar(index)
-            val (decision, decisionArgs) = lastTrendIndicator.getValue(index, bar)
+            val (decision, decisionArgs) = lastDecisionIndicator.getValue(index, bar)
 
             val indicators = if (fillIndicators) getIndicators(index, bar) else null
+
+
+            if (soldBySLIndicator.getValue(index, bar)) {
+                return BotAdvice(bar.endTime,
+                        Decision.SELL,
+                        mapOf(Pair("sl", "true")),
+                        instrument,
+                        bar.closePrice,
+                        trader?.availableAsset(instrument) ?: 0.0,
+                        bar,
+                        indicators)
+            }
+
 
             //Если SELL, то безусловно продаем
             if (decision == Decision.SELL) {
@@ -227,17 +240,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 return BotAdvice(bar.endTime,
                         decision,
                         decisionArgs,
-                        instrument,
-                        bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
-                        bar,
-                        indicators)
-            }
-
-            if (soldBySLIndicator.getValue(index, bar)) {
-                return BotAdvice(bar.endTime,
-                        Decision.SELL,
-                        mapOf(Pair("sl", "true")),
                         instrument,
                         bar.closePrice,
                         trader?.availableAsset(instrument) ?: 0.0,

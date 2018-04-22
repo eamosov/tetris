@@ -27,7 +27,7 @@ class Train {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
-            val cdm = CdmBotTrainer(cmd.cpu)
+            val cdm = CdmBotTrainer(cmd.cpu, arrayOf(160, 80, 40, 20, 5, 1))
 
             val realExchange = Exchange.getExchange(cmd.exchange)
 

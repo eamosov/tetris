@@ -112,8 +112,8 @@ data class XExtBar(val bar: XBar) : XBar {
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
         var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignal2Ema })
 
-        var _lastTrend = BarGetterSetter2<XExtBar, Pair<Decision, Map<String, String>>>({ o, v -> o.lastTrend = v }, { it.lastTrend })
-        var _trendStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.trendStart = v }, { it.trendStart })
+        var _lastDecision = BarGetterSetter2<XExtBar, Pair<Decision, Map<String, String>>>({ o, v -> o.lastDecision = v }, { it.lastDecision })
+        var _decisionStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.decisionStart = v }, { it.decisionStart })
         var _tslIndicator = BarGetterSetter<XExtBar>({ o, v -> o.tslIndicator = v }, { it.tslIndicator })
         var _soldBySLIndicator = BarGetterSetter2<XExtBar, Boolean>({ o, v -> o.soldBySLIndicator = v }, { it.soldBySLIndicator })
     }
@@ -142,8 +142,8 @@ data class XExtBar(val bar: XBar) : XBar {
     var daySignalEma: Double = Double.MAX_VALUE
     var daySignal2Ema: Double = Double.MAX_VALUE
 
-    var lastTrend: Pair<Decision, Map<String, String>>? = null
-    var trendStart: XExtBar? = null
+    var lastDecision: Pair<Decision, Map<String, String>>? = null
+    var decisionStart: XExtBar? = null
     var tslIndicator: Double = Double.MAX_VALUE
     var soldBySLIndicator: Boolean? = null
 }
