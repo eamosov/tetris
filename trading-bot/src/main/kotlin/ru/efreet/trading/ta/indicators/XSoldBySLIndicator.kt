@@ -26,18 +26,28 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
         if (prevValue)
             return prevValue
 
+        //цена покупки
         val buyPrice = xTrendStartIndicator.getValue(index, bar).closePrice
 
+        //если текущая цена опустилась на sl меньше, чем цена покупки, то выход по SL
         if (bar.closePrice < buyPrice * (1.0 - sl / 100.0))
             return true
 
-        val _tsl = if (bar.closePrice > buyPrice * (1.0 + tp / 100.0))
-            ttp
-        else
-            tsl
+        //если мы в плюсе
+        if (bar.closePrice > buyPrice * 0.9995) {
 
-        if (bar.closePrice < xTslIndicator.getValue(index, bar) * (1.0 - _tsl / 100.0))
-            return true
+            val maxPrice = xTslIndicator.getValue(index, bar)
+
+            val _tsl = if (maxPrice > buyPrice * (1.0 + tp / 100.0))
+            //если цена достигла tp
+                ttp
+            else
+                tsl
+
+            if (bar.closePrice < maxPrice * (1.0 - _tsl / 100.0))
+                return true
+
+        }
 
         return false
     }

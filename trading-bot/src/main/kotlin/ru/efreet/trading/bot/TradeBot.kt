@@ -1,9 +1,6 @@
 package ru.efreet.trading.bot
 
-import ru.efreet.trading.exchange.BarInterval
-import ru.efreet.trading.exchange.Exchange
-import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.exchange.TradeRecord
+import ru.efreet.trading.exchange.*
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
@@ -34,13 +31,12 @@ class TradeBot(val exchange: Exchange,
 
     private var logStateTimer = Periodical(Duration.ofMinutes(5))
 
-    val trader = when {
-        testOnly == true -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
-        else -> RealTrader(tradesDbPath, barsCache.getConnection(), exchange, baseLimit, exchange.getName(), instrument)
-    }
+    private val tradeRecordDao = TradeRecordDao(barsCache.getConnection())
 
-    val asset get() = instrument.asset!!
-    val base get() = instrument.base!!
+    private val trader = when {
+        testOnly -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
+        else -> RealTrader(tradeRecordDao, exchange, baseLimit, exchange.getName(), instrument)
+    }
 
     init {
         barsCache.createTable(exchange.getName(), instrument, BarInterval.ONE_SECOND)

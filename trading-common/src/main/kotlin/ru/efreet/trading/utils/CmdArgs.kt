@@ -8,22 +8,17 @@ import java.time.ZonedDateTime
 /**
  * Created by fluder on 17/02/2018.
  */
-data class CmdArgs(var stoploss: Double? = null,
-                   var start: ZonedDateTime? = null,
+data class CmdArgs(var start: ZonedDateTime? = null,
                    var end: ZonedDateTime? = null,
                    var population: Int? = null,
-                   var resetStrategy: Boolean = false,
-                   var resetUsd: Boolean = false,
                    var train: Int? = null,
                    var exchange: String = "binance",
                    var instruments: List<Instrument> = arrayListOf(Instrument("BTC", "USDT")),
                    var barInterval: BarInterval = BarInterval.ONE_MIN,
                    var testOnly: Boolean = false,
-                   var trainPeriod: Long? = null,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
-                   var seedType: SeedType = SeedType.RANDOM,
                    var cpu: Int = Runtime.getRuntime().availableProcessors() - 2) {
 
     val instrument: Instrument
@@ -49,22 +44,17 @@ data class CmdArgs(var stoploss: Double? = null,
 
             val options = Options()
 
-                    .addOption("l", "stoploss", true, "stop loss in %")
                     .addOption("s", "start", true, "start date")
                     .addOption("e", "end", true, "end date")
                     .addOption("p", "population", true, "population")
-                    .addOption("r", "reset", false, "reset strategy")
-                    .addOption("u", "usd", false, "reset usd to 1000")
                     .addOption("a", "train", true, "train days")
                     .addOption("x", "exchange", true, "exchange (poloniex,trading)")
                     .addOption("i", "instrument", true, "instrument, default BTC_USDT")
                     .addOption("t", "interval", true, "interval, default ONE_MIN")
                     .addOption("n", "test", false, "test only, default false")
-                    .addOption("o", "tperiod", true, "train period in hours")
                     .addOption("g", "logic", true, "logic (macd, sd(default))")
                     .addOption("c", "cache", true, "cache path")
                     .addOption("f", "settings", true, "logic settings path")
-                    .addOption("d", "seed", true, "SeedType")
                     .addOption("m", "cpu", true, "cpu numbers")
 
 
@@ -82,9 +72,6 @@ data class CmdArgs(var stoploss: Double? = null,
                 return cmdArgs
             }
 
-            if (cmd.hasOption('l'))
-                cmdArgs.stoploss = cmd.getOptionValue('l').toDouble()
-
             if (cmd.hasOption('s')) {
                 cmdArgs.start = parseTime(cmd.getOptionValue('s'))
             }
@@ -97,21 +84,11 @@ data class CmdArgs(var stoploss: Double? = null,
                 cmdArgs.population = cmd.getOptionValue('p').toInt()
             }
 
-            if (cmd.hasOption('r')) {
-                cmdArgs.resetStrategy = true
-            }
-
-            if (cmd.hasOption('u')) {
-                cmdArgs.resetUsd = true
-            }
-
             cmd.getOptionValue('a')?.let { cmdArgs.train = it.toInt() }
 
             if (cmd.hasOption('n')) {
                 cmdArgs.testOnly = true
             }
-
-            cmd.getOptionValue('o')?.let { cmdArgs.trainPeriod = it.toLong() }
 
             cmd.getOptionValue('x')?.let { cmdArgs.exchange = it }
 
@@ -125,7 +102,6 @@ data class CmdArgs(var stoploss: Double? = null,
             cmd.getOptionValue('c')?.let { cmdArgs.cachePath = it }
 
             cmd.getOptionValue('f')?.let { cmdArgs.settings = it }
-            cmd.getOptionValue('d')?.let { cmdArgs.seedType = SeedType.valueOf(it) }
 
             cmd.getOptionValue('m')?.let { cmdArgs.cpu = it.toInt() }
 

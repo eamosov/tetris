@@ -16,10 +16,10 @@ public class CdmTest {
      * Параметры, которые надо оптиимизировать
      */
     public static class Params {
-        public int x;
+        public double x;
         public double y;
 
-        public Params(int x, double y) {
+        public Params(double x, double y) {
             this.x = x;
             this.y = y;
         }
@@ -42,19 +42,19 @@ public class CdmTest {
 
         PropertyEditorFactory properties = PropertyEditorFactory.of(Params.class);
 
-        properties.of(Integer.class, "x", "x", 0, 1000, 1, false);
-        properties.of(Double.class, "y", "y", 0.0, 1000.0, 0.1, false);
+        properties.of(Double.class, "x", "x", -100, 100, 0.1, false);
+        properties.of(Double.class, "y", "y", -100.0, 100.0, 0.1, false);
 
         //Начальное множество параметров - исходных точек оптимизации
         List<Params> origin = new ArrayList<>();
-        origin.add(new Params(1, 1.0));
-        origin.add(new Params(2, 2.0));
+        origin.add(new Params(23.0, 15.0));
+        origin.add(new Params(-16.0, 12.0));
 
         Pair<Params, Double> best = new CdmBotTrainer().getBestParams(
             properties.getGenes(),
             origin, // исходные точки
             p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
-                return - Math.pow(p.x - 10, 2) - Math.pow(p.y - 10, 2);
+                return 1 / (Math.abs(p.x + p.y) + 3 * Math.abs(p.y - p.x));
             },
             (p, r) -> { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
                 return r * 2;

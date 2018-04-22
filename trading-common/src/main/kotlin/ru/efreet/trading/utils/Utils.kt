@@ -58,7 +58,7 @@ inline fun Double.round5(): Double {
 }
 
 inline fun <reified T> loadFromJson(path: String): T {
-    return GsonBuilder().create().fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
+    return GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).create().fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
 }
 
 fun Any.storeAsJson(path: String) {
@@ -66,7 +66,7 @@ fun Any.storeAsJson(path: String) {
 }
 
 fun Any.toJson(): String {
-    return GsonBuilder().setPrettyPrinting().create().toJson(this)
+    return GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).setPrettyPrinting().create().toJson(this)
 }
 
 fun List<Pair<ZonedDateTime, Double>>.sma(timeFrame: Int): List<Pair<ZonedDateTime, Double>> {
@@ -113,10 +113,10 @@ fun List<Pair<ZonedDateTime, Double>>.dema(timeFrame: Int): List<Pair<ZonedDateT
     return out
 }
 
-fun roundAmount(amount:Double, price:Double):Double{
+fun roundAmount(amount: Double, price: Double): Double {
     var k = 1.0
-    while ((1.0 / price) * k < 1.0){
-        k = k*10.0
+    while ((1.0 / price) * k < 1.0) {
+        k = k * 10.0
     }
 
     return (amount * k).toInt() / k

@@ -5,6 +5,7 @@ import ru.efreet.trading.bars.XExtBar
 
 /**
  * Created by fluder on 17/03/2018.
+ * Индикатор, возвращающий максимальную цену c момента покупки
  */
 class XTslIndicator<B : XExtBar>(bars: List<B>,
                                  prop: BarGetterSetter<B>,

@@ -11,6 +11,7 @@ import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.utils.CmdArgs
+import ru.efreet.trading.utils.SeedType
 import ru.efreet.trading.utils.toJson
 
 /**
@@ -41,7 +42,7 @@ class Train {
             val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             logic.loadState(cmd.settings!!)
 
-            val population = logic.seed(cmd.seedType, cmd.population ?: 10)
+            val population = logic.seed(SeedType.RANDOM, cmd.population ?: 10)
             if (logic.isInitialized())
                 population.add(logic.getParams().copy())
 
