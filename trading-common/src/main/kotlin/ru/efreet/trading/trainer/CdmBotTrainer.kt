@@ -31,6 +31,9 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
 
     data class TrainItem<P, R>(var args: P, var result: R)
 
+    @JvmField
+    var logs : Boolean = true
+
     override fun <P, R, M:Comparable<M>> getBestParams(genes: List<PropertyEditor<P, Any?>>,
                                       origin: List<P>,
                                       function: (P) -> R,
@@ -44,10 +47,13 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
 
         population.sortBy { metrica(it.args, it.result!!) }
 
-        println("TOP RESULTS:")
-
-        for (i in maxOf(population.size - 5, 0) until population.size) {
-            println("${metrica(population[i].args, population[i].result!!)} ${population[i]}")
+        if (logs){
+            println("TOP RESULTS:")
+            for (i in maxOf(population.size - 5, 0) until population.size) {
+                val metrica1 = metrica(population[i].args, population[i].result!!)
+                val trainItem = population[i]
+                println("$metrica1 $trainItem")
+            }
         }
 
         return Pair(population.last().args, population.last().result!!)
@@ -74,11 +80,12 @@ class CdmBotTrainer(val processors:Int) : BotTrainer {
                     val m = metrica(population[it].args, population[it].result!!)
                     if (lastBest == null || m > lastBest!!) {
                         lastBest = m
-                        println("CDM: NEW BEST (${m}) ${population[it]}")
+                        if (logs)
+                            println("CDM: NEW BEST (${m}) ${population[it]}")
                         newBest?.invoke(population[it].args, population[it].result!!)
                     }
-
-                    print("CDM: (${(finished * 100.0 / population.size).round2()} %): $finished\r")
+                    if (logs)
+                        print("CDM: (${(finished * 100.0 / population.size).round2()} %): $finished\r")
 
                 } catch (e: Exception) {
                     println("WARNING: Exception ${e.message} for ${population[it]}")

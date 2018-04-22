@@ -25,6 +25,7 @@ public class Visualizator {
     SheetUtils.PlayResults playResult = null;
 
     double param = 0;
+    int averageWindow = 50;
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -213,6 +214,11 @@ public class Visualizator {
             JOptionPane.showMessageDialog(null, playResult.toString());
             fireViewUpdated();
         }
+    }
+
+    public void setAverageWindow(int v) {
+        averageWindow = v;
+        fireViewUpdated();
     }
 }
 

@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ru.gustos.trading.visual.VisualizatorForm">
   <grid id="27dc6" binding="root" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="776" height="489"/>
+      <xy x="20" y="20" width="979" height="491"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -70,7 +70,7 @@
           <component id="41aa6" class="javax.swing.JTextField" binding="param">
             <constraints/>
             <properties>
-              <columns value="6"/>
+              <columns value="4"/>
               <text value="0"/>
             </properties>
           </component>
@@ -78,6 +78,18 @@
             <constraints/>
             <properties>
               <text value="Run"/>
+            </properties>
+          </component>
+          <component id="d3bd8" class="javax.swing.JLabel">
+            <constraints/>
+            <properties>
+              <text value="Avg:"/>
+            </properties>
+          </component>
+          <component id="f8f49" class="javax.swing.JTextField" binding="avg">
+            <constraints/>
+            <properties>
+              <columns value="4"/>
             </properties>
           </component>
         </children>

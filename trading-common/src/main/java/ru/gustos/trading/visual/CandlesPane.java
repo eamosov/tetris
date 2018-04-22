@@ -72,6 +72,53 @@ public class CandlesPane extends JPanel {
         if (vis.param>0)
             paintVolumeLine(g);
         paintGrid(g,minMax, from,true);
+        if (vis.averageWindow>0)
+            paintAverage(g);
+    }
+
+    private int prevWindow = -1;
+    private double[] avg;
+    private double[] disp;
+    private void paintAverage(Graphics g) {
+        Sheet sheet = vis.getSheet();
+        int from = vis.getIndex();
+        int scale = vis.zoomScale();
+        int bars = getSize().width* scale /vis.candleWidth();
+        int to = Math.min(from + bars, sheet.moments.size());
+        int window = vis.averageWindow;
+        if (window!=prevWindow){
+            double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
+            Pair<double[], double[]> rr = VecUtils.emaAndDisp(v, window);
+//            Pair<double[], double[]> rr2 = VecUtils.emaAndMed(v, window);
+            avg = rr.getFirst();
+            disp = rr.getSecond();
+//            for (int i = 0;i<disp.length;i++)
+//                disp[i] = Math.min(disp[i],rr2.getSecond()[i]);
+            prevWindow = window;
+        }
+        int w = vis.candleWidth();
+        double a = VecUtils.avg(this.avg, from, scale);
+        double d = VecUtils.avg(disp, from, scale);
+        int ya = price2screen(a);
+        int yminus = price2screen(a-2*d);
+        int yplus = price2screen(a+2*d);
+        ((Graphics2D)g).setStroke(new BasicStroke(3f));
+        for (int i = 1;i<bars;i++) {
+            a = VecUtils.avg(this.avg, from + i * scale, scale);
+            int y = price2screen(a);
+            g.setColor(BLUE);
+            g.drawLine((i-1)* w, ya,i* w, y);
+            ya = y;
+            g.setColor(darkColor);
+            d = VecUtils.avg(disp, from + i * scale, scale);
+            y = price2screen(a-2*d);
+            g.drawLine((i-1)* w, yminus,i* w, y);
+            yminus = y;
+            y = price2screen(a+2*d);
+            g.drawLine((i-1)* w, yplus,i* w, y);
+            yplus = y;
+        }
+
     }
 
     private void paintVolumes(Graphics g) {

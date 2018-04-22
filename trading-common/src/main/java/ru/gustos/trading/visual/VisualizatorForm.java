@@ -30,6 +30,7 @@ public class VisualizatorForm {
     private JButton rightToIndicator;
     private JTextField param;
     private JButton runButton;
+    private JTextField avg;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
@@ -168,6 +169,13 @@ public class VisualizatorForm {
             @Override
             public void actionPerformed(ActionEvent e) {
                 vis.runPlay();
+            }
+        });
+        avg.setText(Integer.toString(vis.averageWindow));
+        avg.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.setAverageWindow(Integer.parseInt(avg.getText()));
             }
         });
     }

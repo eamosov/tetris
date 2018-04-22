@@ -2,6 +2,7 @@ package ru.gustos.trading.book.indicators;
 
 import kotlin.Pair;
 
+import java.io.*;
 import java.util.ArrayList;
 
 public class VecUtils {
@@ -12,6 +13,14 @@ public class VecUtils {
         for (int i = 0;i<v.length;i++)
             sum+=v[i];
         return sum/v.length;
+    }
+
+    public static double avg(double[] v, int from, int count) {
+        double sum = 0;
+        count = Math.min(count,v.length-from);
+        for (int i = 0;i<count;i++)
+            sum+=v[i+from];
+        return sum/count;
     }
 
     public static double diviation(double[] v, double avg){
@@ -170,4 +179,84 @@ public class VecUtils {
         }
         return new Pair<>(min,max);
     }
+
+    public static double[] ema(double[] v, int t) {
+        double[] res = new double[v.length];
+        double k = 2.0/(t+1);
+        res[0] = v[0];
+        for (int i = 1;i<res.length;i++)
+            res[i] = (v[i]-res[i-1])*k+res[i-1];
+
+        return res;
+    }
+
+    public static Pair<double[],double[]> emaAndDisp(double[] v, int t) {
+        double[] ema = new double[v.length];
+        double[] disp = new double[v.length];
+        double k = 2.0/(t+1);
+        ema[0] = v[0];
+        disp[0] = 0;
+        for (int i = 1;i<v.length;i++) {
+            ema[i] = (v[i] - ema[i - 1]) * k + ema[i - 1];
+            double d = v[i]-ema[i];
+            d*=d;
+            disp[i] = (d-disp[i-1])*k + disp[i-1];
+        }
+        for (int i = 1;i<v.length;i++)
+            disp[i] = Math.sqrt(disp[i]);
+
+        return new Pair<>(ema,disp);
+    }
+
+    public static Pair<double[],double[]> emaAndMed(double[] v, int t) {
+        double[] ema = new double[v.length];
+        double[] temp = new double[v.length];
+        double[] disp = new double[v.length];
+        double k = 2.0/(t+1);
+        ema[0] = v[0];
+        temp[0] = 0;
+        for (int i = 1;i<v.length;i++) {
+            ema[i] = (v[i] - ema[i - 1]) * k + ema[i - 1];
+            double d = v[i]-ema[i];
+            temp[i] = Math.abs(d);
+        }
+        for (int i = t;i<v.length;i++)
+            disp[i] = median(temp,i-t,t);
+
+        return new Pair<>(ema,disp);
+    }
+
+    public static double[] disp(double[] v, double[] avg, int t) {
+        double[] res = new double[v.length];
+        for (int i = t;i<res.length;i++){
+            double a = avg[i];
+            double s = 0;
+            for (int j = 0;j<t;j++){
+                double d = v[i - j] - a;
+                s+= d*d;
+            }
+            res[i] = Math.sqrt(s/t);
+        }
+
+        return res;
+    }
+
+    public static void toFile(String path, double[] v) throws Exception {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(path))){
+            out.writeInt(v.length);
+            for (int i = 0;i<v.length;i++){
+                out.writeDouble(v[i]);
+            }
+        }
+    }
+
+    public static double[] fromFile(String path) throws Exception{
+        try (DataInputStream in = new DataInputStream(new FileInputStream(path))){
+            double[] v = new double[in.readInt()];
+            for (int i = 0;i<v.length;i++)
+                v[i] = in.readDouble();
+            return v;
+        }
+    }
+
 }

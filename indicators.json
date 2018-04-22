@@ -1,21 +1,25 @@
 [
 {"id" : 1, "name": "Efreet","logic":"sd3","state":"sd3_2018_01_16.properties"},
 {"id" : 2, "name": "Efreet","logic":"sd4","state":"sd4_2018_01_16.properties"},
+{"id" : 3, "name": "Group", "indicators":"1,2"},
+
 {"id" : 11, "name": "Volume"},
-{"id" : 12, "name": "VolumeBase"},
-{"id" : 13, "name": "VolumeToTrades"},
+{"id" : 12, "name": "RSI","period":1,"t1":100},
+{"id" : 13, "name": "RSI","period":16,"t1":90},
+{"id" : 14, "name": "RSI","period":16,"t1":180},
+{"id" : 15, "name": "RSI","period":64,"t1":157},
+
+{"id" : 21, "name": "Grow", "t1":4},
+{"id" : 22, "name": "Grow", "t1":6},
+{"id" : 23, "name": "Grow", "t1":12},
+
+{"id" : 31, "name": "BoundOptimized", "ind" : 21},
 
 
-{"id" : 14, "name": "PriceChangeToVolume"},
-{"id" : 15, "name": "MinMaxToVolumeS"},
+{"id" : 51, "name": "Success", "ind" : 21},
+{"id" : 52, "name": "Success", "ind" : 22},
+{"id" : 53, "name": "Success", "ind" : 23},
 
-{"id" : 18, "name": "BoundOptimized", "ind" : 1},
-{"id" : 19, "name": "BoundOptimized", "ind" : 2},
-
-{"id" : 21, "name": "Success", "ind" : 1},
-{"id" : 22, "name": "Success", "ind" : 2},
-{"id" : 23, "name": "Success", "ind" : 18},
-{"id" : 24, "name": "Success", "ind" : 19}
-
+{"id" : 73, "name": "Dema", "t1" : 70, "t2" : 30, "t3" : 23}
 
 ]

@@ -1,6 +1,7 @@
 package ru.gustos.trading.book.ml;
 
 import ru.efreet.trading.bars.XBar;
+import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
 
@@ -8,11 +9,7 @@ public class DemaBot {
     static Sheet sheet;
 
     public static void main(String[] args) throws Exception {
-        Sheet sheet = new Sheet();
-        sheet.fromCache(100);
-//            sheet.fromExchange();
-        SheetUtils.FillDecisions(sheet);
-        sheet.calcIndicators();
+        Sheet sheet = TestUtils.makeSheet();
 
 //        int from = 12000;
         int from = 1;
@@ -63,3 +60,4 @@ public class DemaBot {
 
     }
 }
+

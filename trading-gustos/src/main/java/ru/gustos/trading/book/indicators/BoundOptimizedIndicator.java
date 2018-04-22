@@ -1,5 +1,6 @@
 package ru.gustos.trading.book.indicators;
 
+import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
@@ -38,7 +39,7 @@ public class BoundOptimizedIndicator extends BaseIndicator{
         double[] data = sheet.getData().get(ind);
 
         boolean buy = false;
-        double buyWhenPrice = 0;
+        double buyWhenPrice = 10000000;
         double sellWhenPrice = 0;
         for (int i = 0; i < values.length; i++) {
 
@@ -46,21 +47,21 @@ public class BoundOptimizedIndicator extends BaseIndicator{
 
             XBar bar = sheet.moments.get(i).bar;
             if (v == IIndicator.YES ){
-                double price = bar.getMaxPrice();
-                if (price>buyWhenPrice || bar.getClosePrice()>bar.getOpenPrice()*1.001) {
+                double price = bar.getClosePrice();
+                if (bar.getClosePrice()>bar.getOpenPrice()) {
                     buy = true;
                     buyWhenPrice = 0;
                 } else
-                    buyWhenPrice = Math.min(buyWhenPrice,price*1.001);
+                    buyWhenPrice = Math.min(buyWhenPrice,price);
 
                 sellWhenPrice = 0;
             } else {
-                double price = bar.getMinPrice();
-                if (price<sellWhenPrice || bar.getClosePrice()*1.001<bar.getOpenPrice()) {
+                double price = bar.getClosePrice();
+                if (price<sellWhenPrice || bar.getClosePrice()<bar.getOpenPrice()) {
                     buy = false;
                     sellWhenPrice = 10000000;
                 } else
-                    sellWhenPrice = Math.max(sellWhenPrice,price/1.001);
+                    sellWhenPrice = Math.max(sellWhenPrice,price);
 
                 buyWhenPrice = 10000000;
             }

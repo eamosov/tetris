@@ -132,6 +132,19 @@ public class SheetUtils {
         return new Pair<>(min,max);
     }
 
+    public static Pair<Double, Double> getMinMaxClose(Sheet sheet, int from, int to) {
+        double min = Double.MAX_VALUE;
+        double max = 0;
+        for (int i = from; i < to; i++){
+            double close = sheet.moments.get(i).bar.getClosePrice();
+            if (close<min)
+                min = close;
+            if (close>max)
+                max = close;
+        }
+        return new Pair<>(min,max);
+    }
+
     public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, IIndicator ind, int from, int to, int scale) {
         double min = ind.fromZero()?0:Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;

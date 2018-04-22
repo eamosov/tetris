@@ -6,6 +6,7 @@ public class IndicatorInitData {
     public int period;
     public boolean positive;
     public int t1,t2,t3;
+    public boolean b1,b2,b3;
     public int ind;
     public boolean show = true;
     public String classifier;
