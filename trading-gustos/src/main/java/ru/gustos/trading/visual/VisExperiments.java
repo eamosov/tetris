@@ -19,7 +19,8 @@ import java.util.Random;
 
 public class VisExperiments {
     public static void main(String[] args) throws Exception {
-        new Visualizator(TestUtils.makeSheet());
+        Visualizator vis = new Visualizator(TestUtils.makeSheet());
+        vis.updateSelectedIndicator(12);
 
     }
 }

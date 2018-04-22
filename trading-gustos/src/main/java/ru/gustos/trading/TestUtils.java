@@ -29,7 +29,7 @@ public class TestUtils {
         IndicatorsLib lib = new IndicatorsLib("indicators.json");
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
-        bars = BarsPacker.packBarsVolume(bars,100);
+//        bars = BarsPacker.packBarsVolume(bars,100);
 //        bars = BarsPacker.packBarsSign(bars);
         sheet.fromBars(bars);
         return sheet;

@@ -4,10 +4,12 @@
 {"id" : 3, "name": "Group", "indicators":"1,2"},
 
 {"id" : 11, "name": "Volume"},
-{"id" : 12, "name": "RSI","period":1,"t1":100},
-{"id" : 13, "name": "RSI","period":16,"t1":90},
-{"id" : 14, "name": "RSI","period":16,"t1":180},
-{"id" : 15, "name": "RSI","period":64,"t1":157},
+{"id" : 12, "name": "PriceChangeToVolume"},
+
+{"id" : 13, "name": "RSI","period":1,"t1":100},
+{"id" : 14, "name": "RSI","period":16,"t1":90},
+{"id" : 15, "name": "RSI","period":16,"t1":180},
+{"id" : 16, "name": "RSI","period":64,"t1":157},
 
 {"id" : 21, "name": "Grow", "t1":4},
 {"id" : 22, "name": "Grow", "t1":6},
