@@ -1,27 +1,8 @@
 [
 {"id" : 1, "name": "Efreet","logic":"sd3","state":"sd3_2018_01_16.properties"},
-{"id" : 2, "name": "Efreet","logic":"sd4","state":"sd4_2018_01_16.properties"},
-{"id" : 3, "name": "Group", "indicators":"1,2"},
-
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "PriceChangeToVolume"},
 
-{"id" : 13, "name": "RSI","period":1,"t1":100},
-{"id" : 14, "name": "RSI","period":16,"t1":90},
-{"id" : 15, "name": "RSI","period":16,"t1":180},
-{"id" : 16, "name": "RSI","period":64,"t1":157},
-
-{"id" : 21, "name": "Grow", "t1":4},
-{"id" : 22, "name": "Grow", "t1":6},
-{"id" : 23, "name": "Grow", "t1":12},
-
-{"id" : 31, "name": "BoundOptimized", "ind" : 21},
-
-
-{"id" : 51, "name": "Success", "ind" : 21},
-{"id" : 52, "name": "Success", "ind" : 22},
-{"id" : 53, "name": "Success", "ind" : 23},
-
-{"id" : 73, "name": "Dema", "t1" : 70, "t2" : 30, "t3" : 23}
+{"id" : 51, "name": "Success", "ind" : 1}
 
 ]

@@ -208,6 +208,93 @@ public class VecUtils {
         return new Pair<>(ema,disp);
     }
 
+    public static Pair<double[],double[]> gustosEmaAndDisp(double[] v, int t, double[] volumes, int volumeT) {
+        double[] ema = new double[v.length];
+        double[] disp = new double[v.length];
+        ema[0] = v[0];
+        disp[0] = 0;
+        double prevVolume = volumes[0];
+        for (int i = 1;i<v.length;i++) {
+            double vol = (volumes[i]-prevVolume)*2.0/(volumeT+1) + prevVolume;
+            prevVolume = vol;
+            double vk = volumes[i]/vol;
+
+            ema[i] = (v[i] - ema[i - 1]) * 2.0/(t/vk+1) + ema[i - 1];
+            double d = v[i]-ema[i];
+            d*=d;
+            disp[i] = (d-disp[i-1])*2.0/(t+1) + disp[i-1];
+        }
+        for (int i = 1;i<v.length;i++)
+            disp[i] = Math.sqrt(disp[i]);
+
+        return new Pair<>(ema,disp);
+    }
+
+    public static Pair<double[],double[]> mcginleyAndDisp(double[] v, int t) {
+        double[] mc = new double[v.length];
+        double[] disp = new double[v.length];
+        double k = 2.0/(t+1);
+        mc[0] = v[0];
+        disp[0] = 0;
+        for (int i = 1;i<v.length;i++) {
+            double a = v[i] / mc[i - 1];
+            a*=a;
+            a*=a;
+            mc[i] = mc[i-1]+(v[i]-mc[i-1])/(0.6*t*a);
+            double d = Math.abs(v[i]-mc[i]);
+            d=d*d;
+//            a = d / Math.max(1,disp[i - 1]);
+//            a*=a;
+//            disp[i] = disp[i-1]+(d-disp[i-1])/(0.6*t*a);
+            disp[i] = (d-disp[i-1])*k + disp[i-1];
+
+        }
+        for (int i = 1;i<v.length;i++)
+            disp[i] = Math.sqrt(disp[i]);
+
+        return new Pair<>(mc,disp);
+    }
+
+    public static Pair<double[],double[]> gustosMcginleyAndDisp(double[] v, int t, double[] volumes, int volT) {
+        double[] mc = new double[v.length];
+        double[] disp = new double[v.length];
+        double[] volumesAvg = ema(volumes,volT);
+        double k = 2.0/(t+1);
+        mc[0] = v[0];
+        disp[0] = 0;
+        for (int i = 1;i<v.length;i++) {
+            double a = v[i] / mc[i - 1];
+            double volumek = volumes[i]/Math.max(1,volumesAvg[i]);
+            a*=a;
+            a*=a;
+            double next = mc[i - 1] + (v[i] - mc[i - 1]) / (0.6 * t * a);
+            if (volumek<=1)
+                mc[i] = mc[i-1]*(1-volumek)+next*volumek;
+            else {
+                double vk = volumek;
+                double pn = 0;
+                while (vk>1) {
+                    pn = next;
+                    next = next + (v[i] - next) / (0.6 * t * a);
+                    vk-=1;
+                }
+                mc[i] = pn*(1-volumek)+next*volumek;
+
+            }
+            double d = Math.abs(v[i]-mc[i]);
+            d=d*d;
+//            a = d / Math.max(1,disp[i - 1]);
+//            a*=a;
+//            disp[i] = disp[i-1]+(d-disp[i-1])/(0.6*t*a);
+            disp[i] = (d-disp[i-1])*k + disp[i-1];
+
+        }
+        for (int i = 1;i<v.length;i++)
+            disp[i] = Math.sqrt(disp[i]);
+
+        return new Pair<>(mc,disp);
+    }
+
     public static Pair<double[],double[]> emaAndMed(double[] v, int t) {
         double[] ema = new double[v.length];
         double[] temp = new double[v.length];

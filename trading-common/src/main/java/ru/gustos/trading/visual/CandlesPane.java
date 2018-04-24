@@ -7,14 +7,11 @@ import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
-import ru.efreet.trading.exchange.BarInterval;
 import ru.gustos.trading.book.indicators.VecUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class CandlesPane extends JPanel {
     public static final Color RED = new Color(164, 32, 21);
@@ -88,7 +85,9 @@ public class CandlesPane extends JPanel {
         int window = vis.averageWindow;
         if (window!=prevWindow){
             double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
-            Pair<double[], double[]> rr = VecUtils.emaAndDisp(v, window);
+            double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
+            Pair<double[], double[]> rr = VecUtils.gustosMcginleyAndDisp(v, window, vols, window*4);
+//            Pair<double[], double[]> rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
 //            Pair<double[], double[]> rr2 = VecUtils.emaAndMed(v, window);
             avg = rr.getFirst();
             disp = rr.getSecond();
