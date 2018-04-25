@@ -196,7 +196,7 @@ public class SheetUtils {
         double money = 1000;
         double buyCost = 0;
         double btc = 0;
-        double fee = 0.9995;
+        double fee = 0.0005;
         PlayResults result = new PlayResults();
         int profitable = 0;
         double bestPrice = 0;
@@ -207,16 +207,16 @@ public class SheetUtils {
         for (int i = from;i<to;i++){
             if (money>0 && v[i]!=0){
                 moneyWhenBuy = money;
-                bestPrice = buyCost = sheet.moments.get(i).bar.getClosePrice()/fee;
+                bestPrice = buyCost = sheet.moments.get(i).bar.getClosePrice()/(1-fee);
                 btc += money/buyCost;
                 money = 0;
                 result.trades++;
             } else if (btc>0){
-                double sellCost = sheet.moments.get(i).bar.getClosePrice() * fee;
+                double sellCost = sheet.moments.get(i).bar.getClosePrice() * (1+fee);
                 double min = Double.MAX_VALUE;
                 for (int j = -2;j<=2;j++)
                     if (i+j>=0 && i+j<sheet.moments.size())
-                        min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * fee);
+                        min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * (1+fee));
                 bestPrice = Math.max(bestPrice,min);
                 if (v[i]==0 || i==to-1) {
                     money += btc * sellCost;

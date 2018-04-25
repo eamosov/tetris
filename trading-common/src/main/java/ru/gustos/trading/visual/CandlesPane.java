@@ -69,11 +69,12 @@ public class CandlesPane extends JPanel {
         if (vis.param>0)
             paintVolumeLine(g);
         paintGrid(g,minMax, from,true);
-        if (vis.averageWindow>0)
+        if (vis.averageWindow>0 && !vis.averageType.equalsIgnoreCase("None"))
             paintAverage(g);
     }
 
     private int prevWindow = -1;
+    private String prevAvgType = "";
     private double[] avg;
     private double[] disp;
     private void paintAverage(Graphics g) {
@@ -83,10 +84,18 @@ public class CandlesPane extends JPanel {
         int bars = getSize().width* scale /vis.candleWidth();
         int to = Math.min(from + bars, sheet.moments.size());
         int window = vis.averageWindow;
-        if (window!=prevWindow){
+        if (window!=prevWindow || !prevAvgType.equals(vis.averageType)){
             double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
             double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
-            Pair<double[], double[]> rr = VecUtils.gustosMcginleyAndDisp(v, window, vols, window*4);
+            Pair<double[], double[]> rr;
+            if (vis.averageType.equalsIgnoreCase("gustos"))
+                rr = VecUtils.gustosMcginleyAndDisp(v, window, vols, window*4);
+            else if (vis.averageType.equalsIgnoreCase("gustos ema"))
+                rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
+            else if (vis.averageType.equalsIgnoreCase("gustos ema2"))
+                rr = VecUtils.gustosEmaAndDisp2(v, window, vols, window*4);
+            else
+                rr = VecUtils.emaAndMed(v, window);
 //            Pair<double[], double[]> rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
 //            Pair<double[], double[]> rr2 = VecUtils.emaAndMed(v, window);
             avg = rr.getFirst();
@@ -94,6 +103,7 @@ public class CandlesPane extends JPanel {
 //            for (int i = 0;i<disp.length;i++)
 //                disp[i] = Math.min(disp[i],rr2.getSecond()[i]);
             prevWindow = window;
+            prevAvgType = vis.averageType;
         }
         int w = vis.candleWidth();
         double a = VecUtils.avg(this.avg, from, scale);

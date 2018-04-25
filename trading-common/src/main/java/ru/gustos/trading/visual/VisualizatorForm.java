@@ -6,6 +6,8 @@ import ru.gustos.trading.book.Moment;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -31,6 +33,7 @@ public class VisualizatorForm {
     private JTextField param;
     private JButton runButton;
     private JTextField avg;
+    private JComboBox averageType;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
@@ -172,10 +175,18 @@ public class VisualizatorForm {
             }
         });
         avg.setText(Integer.toString(vis.averageWindow));
+        averageType.setSelectedItem(vis.averageType);
         avg.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                vis.setAverageWindow(Integer.parseInt(avg.getText()));
+                vis.setAverage((String)averageType.getSelectedItem(),Integer.parseInt(avg.getText()));
+            }
+        });
+        averageType.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.setAverage((String)averageType.getSelectedItem(),Integer.parseInt(avg.getText()));
+
             }
         });
     }

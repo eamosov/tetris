@@ -86,6 +86,18 @@
               <text value="Avg:"/>
             </properties>
           </component>
+          <component id="9ab6c" class="javax.swing.JComboBox" binding="averageType">
+            <constraints/>
+            <properties>
+              <model>
+                <item value="Gustos"/>
+                <item value="Gustos ema"/>
+                <item value="Gustos ema2"/>
+                <item value="BB"/>
+                <item value="None"/>
+              </model>
+            </properties>
+          </component>
           <component id="f8f49" class="javax.swing.JTextField" binding="avg">
             <constraints/>
             <properties>

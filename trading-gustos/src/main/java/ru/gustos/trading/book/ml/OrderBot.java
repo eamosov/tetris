@@ -14,7 +14,7 @@ public class OrderBot {
     static Sheet sheet;
 
     public static void main(String[] args) throws Exception {
-        Sheet sheet = TestUtils.makeSheetEmptyLib(100);
+        Sheet sheet = TestUtils.makeSheetEmptyLib(0);
 
 //        int from = 12000;
         int from = 1;
@@ -33,7 +33,9 @@ public class OrderBot {
         double fee = 0.0005;
 
         double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
-        Pair<double[], double[]> pp = VecUtils.emaAndDisp(v, 50);
+        double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
+        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 150, vols, 600);
+//        Pair<double[], double[]> pp = VecUtils.emaAndDisp(v, 150);
         double[] ema = pp.getFirst();
         double[] disp = pp.getSecond();
 
@@ -46,16 +48,24 @@ public class OrderBot {
             XBar bar = sheet.moments.get(i).bar;
 
             if (money>0){
-                if (bar.getMinPrice()<buyOrder && bar.getMaxPrice()>buyOrder){
+                if (bar.getClosePrice()<ema[i]-disp[i]*2)
+                    buyOrder = bar.getClosePrice();
+                if (bar.getMinPrice()<=buyOrder && bar.getMaxPrice()>=buyOrder){
+                    buyOrder = bar.getClosePrice();
                     btc = money/buyOrder*(1-fee);
                     money = 0;
                     buyPrice = buyOrder*(1+fee);
                     count++;
                     buyIndex = i;
-                }
-                buyOrder = ema[i]-disp[i]*2;
+                    buyOrder = 0;
+                } else
+                    buyOrder = ema[i]-disp[i]*2;
             } else if (btc>0){
-                if (bar.getMinPrice()<sellOrder && bar.getMaxPrice()>sellOrder){
+                if (bar.getClosePrice()>ema[i]+disp[i]*2)
+                    sellOrder = bar.getClosePrice();
+
+                if (bar.getMinPrice()<=sellOrder && bar.getMaxPrice()>=sellOrder){
+                    sellOrder = bar.getClosePrice();
                     money = btc*sellOrder*(1-fee);
                     btc = 0;
                     System.out.println(String.format("money: %d, time: %d", (int)money,i-buyIndex));
@@ -64,9 +74,9 @@ public class OrderBot {
                         profitable++;
                     for (int j = buyIndex;j<i;j++)
                         g[j] = good? IIndicator.YES: IIndicator.NO;
-
-                }
-                sellOrder = ema[i]+disp[i]*2;
+                    sellOrder = 0;
+                } else
+                    sellOrder = ema[i]+disp[i]*2;
             }
         }
         System.out.println(String.format("profitable: %.3g, count: %d", profitable*1.0/count,count));

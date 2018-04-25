@@ -26,6 +26,7 @@ public class Visualizator {
 
     double param = 0;
     int averageWindow = 50;
+    String averageType = "Gustos";
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -216,8 +217,9 @@ public class Visualizator {
         }
     }
 
-    public void setAverageWindow(int v) {
-        averageWindow = v;
+    public void setAverage(String type, int window) {
+        averageWindow = window;
+        averageType = type;
         fireViewUpdated();
     }
 }
