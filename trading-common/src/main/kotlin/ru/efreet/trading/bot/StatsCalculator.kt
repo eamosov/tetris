@@ -34,7 +34,7 @@ class StatsCalculator {
 
                 if (i > 0 && history.trades[i - 1].decision == Decision.BUY) {
                     if (trade.fundsAfter != 0.0 && history.trades[i - 1].fundsAfter != 0.0) {
-                        val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].fundsAfter!!
+                        val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].usdBefore!!
                         if (tradeProfit > 1)
                             tradesWithProfit++
 
@@ -69,10 +69,15 @@ class StatsCalculator {
 
         val avrProfitPerDay = Math.pow(profit, 24.0 / Duration.between(history.start, history.end).toHours().toDouble())
 
+        var profit2 = 1.0
+        profits.asSequence()
+                .filter { it.second < 1.05 }
+                .forEach { profit2 *= it.second }
+
         return TradesStats(
                 profits.size,
                 if (profits.size > 0) tradesWithProfit.toDouble() / profits.size else 0.0,
-                profit,
+                profit2,
                 avrProfitPerTrade,
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,

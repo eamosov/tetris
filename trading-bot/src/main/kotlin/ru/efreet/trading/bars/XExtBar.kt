@@ -86,6 +86,9 @@ data class XExtBar(val bar: XBar) : XBar {
             return ret
         }
 
+        var _closePrice = BarGetterSetter<XExtBar>({ o, v -> o.closePrice = v }, { it.closePrice })
+        var _volume = BarGetterSetter<XExtBar>({ o, v -> o.volume = v }, { it.volume })
+
         var _shortEma1 = BarGetterSetter<XExtBar>({ o, v -> o.shortEma1 = v }, { it.shortEma1 })
         var _shortEma2 = BarGetterSetter<XExtBar>({ o, v -> o.shortEma2 = v }, { it.shortEma2 })
         var _shortEma = BarGetterSetter<XExtBar>({ o, v -> o.shortEma = v }, { it.shortEma })
@@ -106,6 +109,7 @@ data class XExtBar(val bar: XBar) : XBar {
 
         var _sma = BarGetterSetter<XExtBar>({ o, v -> o.sma = v }, { it.sma })
         var _sd = BarGetterSetter<XExtBar>({ o, v -> o.sd = v }, { it.sd })
+        var _avrVolume = BarGetterSetter<XExtBar>({ o, v -> o.avrVolume = v }, { it.avrVolume })
 
         var _dayShortEma = BarGetterSetter<XExtBar>({ o, v -> o.dayShortEma = v }, { it.dayShortEma })
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
@@ -136,6 +140,8 @@ data class XExtBar(val bar: XBar) : XBar {
 
     var sma: Double = Double.MAX_VALUE
     var sd: Double = Double.MAX_VALUE
+    var avrVolume: Double = Double.MAX_VALUE
+
 
     var dayShortEma: Double = Double.MAX_VALUE
     var dayLongEma: Double = Double.MAX_VALUE
