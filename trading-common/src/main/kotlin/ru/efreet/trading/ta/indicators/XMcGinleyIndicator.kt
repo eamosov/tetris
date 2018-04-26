@@ -11,11 +11,26 @@ class XMcGinleyIndicator<B>(bars: List<B>,
     override fun calculate(index: Int, bar: B): Double {
 
         if (index == 0) {
-            return indicator.getValue(0, bar)
+            return indicator.getValue(0)
         }
 
-        val pMD = getValue(index - 1, bars[index - 1])
-        val value = indicator.getValue(index, bar)
-        return pMD + (value - pMD) / (0.6 * timeFrame * Math.pow(value / pMD, 4.0))
+        val md = getValue(index - 1)
+        val value = indicator.getValue(index)
+        return md + (value - md) / (0.6 * timeFrame * Math.pow(value / md, 4.0))
     }
+
+    override fun prepare() {
+        if (bars.isEmpty())
+            return
+
+        var md = indicator.getValue(0)
+        setPropValue(bars[0], md)
+
+        for (i in 1 until bars.size){
+            val value = indicator.getValue(i)
+            md += (value - md) / (0.6 * timeFrame * Math.pow(value / md, 4.0))
+            setPropValue(bars[i], md)
+        }
+    }
+
 }
