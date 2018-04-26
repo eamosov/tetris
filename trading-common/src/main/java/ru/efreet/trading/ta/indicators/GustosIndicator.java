@@ -8,10 +8,12 @@ import java.util.List;
 public class GustosIndicator<B> extends XCachedIndicator<B> {
 
     final int timeframe;
+    final int timeframeVolumes;
     final BarGetterSetter<B> price;
     final BarGetterSetter<B> volume;
     final BarGetterSetter<B> avrPrice;
     final BarGetterSetter<B> avrVolume;
+    final BarGetterSetter<B> avrDispSquared;
 
     public GustosIndicator(List<B> bars,
                            BarGetterSetter<B> prop,
@@ -19,13 +21,16 @@ public class GustosIndicator<B> extends XCachedIndicator<B> {
                            BarGetterSetter<B> volume,
                            BarGetterSetter<B> avrPrice,
                            BarGetterSetter<B> avrVolume,
-                           int timeframe) {
+                           BarGetterSetter<B> avrDispSquared,
+                           int timeframe, int timeframeVolumes) {
         super(bars, prop);
         this.timeframe = timeframe;
+        this.timeframeVolumes = timeframeVolumes;
         this.price = price;
         this.volume = volume;
         this.avrPrice = avrPrice;
         this.avrVolume = avrVolume;
+        this.avrDispSquared = avrDispSquared;
     }
 
     /**
@@ -40,35 +45,41 @@ public class GustosIndicator<B> extends XCachedIndicator<B> {
 
         final List<B> bars = getBars();
 
-        //timeframe - просто константа - параметр индикатора, можно добавить ещё
-        System.out.println(timeframe);
+        double price = this.price.get(bar);
+        double volume = this.volume.get(bar);
+        double prevAvgPrice = avrPrice.get(bars.get(index - 1));
+        double prevAvgVolume = avrVolume.get(bars.get(index - 1));
+        double prevDisp = avrDispSquared.get(bars.get(index - 1));
 
-        //Предыдущие значение индикатора(размер коридора)
-        double prevValue = getValue(index - 1);
+        double avgVolume = (volume - prevAvgVolume) * 2 / (1 + timeframeVolumes) + prevAvgVolume;
+        double avgPrice, avgDisp;
 
-        //Цена на баре index
-        System.out.println(price.get(bar));
+        double volumek = volume/Math.max(1,avgVolume);
+        double a = price / prevAvgPrice;
+        a*=a;
+        a*=a;
+        double next = prevAvgPrice + (price - prevAvgPrice) / (0.6 * timeframe * a);
+        if (volumek<=1)
+            avgPrice = prevAvgPrice*(1-volumek)+next*volumek;
+        else {
+            double vk = volumek;
+            double pn = 0;
+            while (vk>1) {
+                pn = next;
+                next = next + (price - next) / (0.6 * timeframe * a);
+                vk-=1;
+            }
+            avgPrice = pn*(1-volumek)+next*volumek;
 
-        //Объем на баре index
-        System.out.println(volume.get(bar));
+        }
+        double d = Math.abs(price-avgPrice);
+        d=d*d;
+        avgDisp = (d-prevDisp)*2/(1+timeframe) + prevDisp;
 
-        //Цена на баре index - 1
-        System.out.println(price.get(bars.get(index - 1)));
+        avrVolume.set(bar, avgVolume);
+        avrPrice.set(bar,avgPrice);
+        avrDispSquared.set(bar,avgDisp);
 
-        //Объем на баре index - 1
-        System.out.println(volume.get(bars.get(index - 1)));
-
-        //Средняя цена на баре index -1
-        System.out.println(avrPrice.get(bars.get(index - 1)));
-
-        //Средний объем на баре index -1
-        System.out.println(avrVolume.get(bars.get(index - 1)));
-
-        //Записать среднюю цену на баре index
-        avrPrice.set(bar, 0.0);
-
-        //Записать средний объем на баре index
-        avrVolume.set(bar, 0.0);
 
         //Возвращаем текущее значение индикатора на баре index (размер коридора)
         return 0;

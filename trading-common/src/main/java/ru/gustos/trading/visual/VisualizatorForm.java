@@ -6,11 +6,7 @@ import ru.gustos.trading.book.Moment;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
@@ -71,7 +67,7 @@ public class VisualizatorForm {
         indexField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                IndexEntered();
+                TimeEntered();
             }
         });
         panelWithLine.addMouseMotionListener(new MouseMotionListener() {
@@ -251,9 +247,9 @@ public class VisualizatorForm {
         indexField.setText(dateFormatter.format(vis.getSheet().moments.get(vis.getIndex()).bar.getBeginTime()).replace('T',' '));
     }
 
-    private void IndexEntered() {
+    private void TimeEntered() {
         String text = indexField.getText().trim().replace(' ','T');
-        ZonedDateTime time = LocalDate.parse(text, dateFormatter).atStartOfDay(ZoneId.of("UTC"));
+        ZonedDateTime time = ZonedDateTime.of(LocalDateTime.parse(text, dateFormatter), ZoneId.of("UTC"));
         vis.setIndex(vis.getSheet().getBarIndex(time));
     }
 
