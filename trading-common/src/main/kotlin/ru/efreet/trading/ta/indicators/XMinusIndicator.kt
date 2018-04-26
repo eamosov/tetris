@@ -5,7 +5,7 @@ package ru.efreet.trading.ta.indicators
  */
 class XMinusIndicator<B>(val a: XIndicator<B>,
                          val b: XIndicator<B>) : XIndicator<B> {
-    override fun getValue(index: Int, bar: B): Double {
-        return a.getValue(index, bar) - b.getValue(index, bar)
+    override fun getValue(index: Int): Double {
+        return a.getValue(index) - b.getValue(index)
     }
 }

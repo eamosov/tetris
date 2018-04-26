@@ -11,16 +11,16 @@ class XVarianceIndicator<B>(val bars: List<B>,
                          val timeFrame: Int) : XIndicator<B> {
 
 
-    override fun getValue(index: Int, bar:B): Double {
+    override fun getValue(index: Int): Double {
 
         val st = System.currentTimeMillis()
 
         val startIndex = Math.max(0, index - timeFrame + 1)
         val numberOfObservations = index - startIndex + 1
         var variance = 0.0
-        val average = smaIndicator.getValue(index, bar)
+        val average = smaIndicator.getValue(index)
         for (i in startIndex..index) {
-            variance += (indicator.getValue(i, bars[i]) - average).pow2()
+            variance += (indicator.getValue(i) - average).pow2()
         }
         variance = variance / numberOfObservations
 

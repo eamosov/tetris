@@ -13,17 +13,17 @@ class XTslIndicator<B : XExtBar>(bars: List<B>,
                                  val closePriceIndicator: XClosePriceIndicator) : XCachedIndicator<B>(bars, prop) {
 
     override fun calculate(index: Int, bar: B): Double {
-        val cur = xLastTrendIndicator.getValue(index, bar)
-        val closePrice = closePriceIndicator.getValue(index, bar)
+        val cur = xLastTrendIndicator.getValue(index)
+        val closePrice = closePriceIndicator.getValue(index)
 
         if (index == 0)
             return closePrice
 
         return if (cur.first == Decision.BUY) {
-            if (xLastTrendIndicator.getValue(index - 1, bars[index - 1]).first == Decision.SELL) {
+            if (xLastTrendIndicator.getValue(index - 1).first == Decision.SELL) {
                 closePrice
             } else {
-                maxOf(getValue(index - 1, bars[index - 1]), closePrice)
+                maxOf(getValue(index - 1), closePrice)
             }
         } else {
             closePrice

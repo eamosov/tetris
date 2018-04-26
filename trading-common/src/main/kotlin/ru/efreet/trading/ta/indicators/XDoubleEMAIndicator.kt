@@ -14,13 +14,13 @@ class XDoubleEMAIndicator<B>(bars: List<B>,
     val emaEma = XEMAIndicator<B>(bars, emaEmaProp, ema, timeFrame)
 
     override fun calculate(index: Int, bar: B): Double {
-        return ema.getValue(index, bar) * 2 - emaEma.getValue(index, bar)
+        return ema.getValue(index) * 2 - emaEma.getValue(index)
     }
 
     override fun prepare() {
         ema.prepare()
         emaEma.prepare()
         for (i in 0 until bars.size)
-            getValue(i, bars[i])
+            getValue(i)
     }
 }

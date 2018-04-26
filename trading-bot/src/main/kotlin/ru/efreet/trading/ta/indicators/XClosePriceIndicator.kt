@@ -7,7 +7,7 @@ import ru.efreet.trading.bars.XExtBar
  */
 class XClosePriceIndicator(bars: List<XExtBar>) : XAbstractIndicator<XExtBar>(bars) {
 
-    override fun getValue(index: Int, bar: XExtBar): Double {
-        return bar.closePrice
+    override fun getValue(index: Int): Double {
+        return bars[index].closePrice
     }
 }

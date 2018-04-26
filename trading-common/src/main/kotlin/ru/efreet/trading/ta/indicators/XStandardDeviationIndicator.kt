@@ -18,17 +18,17 @@ class XStandardDeviationIndicator<B>(bars: List<B>,
         var sums2 = DoubleArray(bars.size, { 0.0 })
         for (index in 0 until bars.size) {
             val bar = bars[index]
-            sums2[index] = indicator.getValue(index, bar).pow2()
+            sums2[index] = indicator.getValue(index).pow2()
             if (index > 0) {
                 sums2[index] += sums2[index - 1]
             }
             if (index >= timeFrame) {
-                sums2[index] -= indicator.getValue(index - timeFrame, bars[index - timeFrame]).pow2()
+                sums2[index] -= indicator.getValue(index - timeFrame).pow2()
             }
             val realTimeFrame = minOf(timeFrame, index + 1)
             val value = sums2[index] / realTimeFrame // среднее квадратов
 
-            setValue(bar, Math.sqrt(value - smaIndicator.getValue(index, bar).pow2()))
+            setPropValue(bar, Math.sqrt(value - smaIndicator.getValue(index).pow2()))
         }
 
 //        for (i in 0 until bars.size)
@@ -36,6 +36,6 @@ class XStandardDeviationIndicator<B>(bars: List<B>,
     }
 
     override fun calculate(index: Int, bar: B): Double {
-        return Math.sqrt(variance.getValue(index, bar))
+        return Math.sqrt(variance.getValue(index))
     }
 }

@@ -23,11 +23,11 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     val closePrice = XClosePriceIndicator(bars)
 
-    lateinit var shortEma: XDoubleEMAIndicator<XExtBar>
-    lateinit var longEma: XDoubleEMAIndicator<XExtBar>
+    lateinit var shortEma: XCachedIndicator<XExtBar>
+    lateinit var longEma: XCachedIndicator<XExtBar>
     lateinit var macd: XMACDIndicator<XExtBar>
-    lateinit var signalEma: XDoubleEMAIndicator<XExtBar>
-    lateinit var signal2Ema: XDoubleEMAIndicator<XExtBar>
+    lateinit var signalEma: XCachedIndicator<XExtBar>
+    lateinit var signal2Ema: XCachedIndicator<XExtBar>
 
     lateinit var sma: XSMAIndicator<XExtBar>
     lateinit var sd: XStandardDeviationIndicator<XExtBar>
@@ -111,20 +111,24 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     override fun prepare() {
 
+//        shortEma = XMcGinleyIndicator(bars, XExtBar._shortEma, closePrice, _params.short!!)
+//        longEma = XMcGinleyIndicator(bars, XExtBar._longEma, closePrice, _params.long!!)
         shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, _params.short!!)
         longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, _params.long!!)
         macd = XMACDIndicator(shortEma, longEma)
+//        signalEma = XMcGinleyIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
+//        signal2Ema = XMcGinleyIndicator(bars, XExtBar._signal2Ema, macd, _params.signal2!!)
         signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
         signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, _params.signal2!!)
 
         sma = XSMAIndicator(bars, XExtBar._sma, closePrice, _params.deviationTimeFrame!!)
         sd = XStandardDeviationIndicator(bars, XExtBar._sd, closePrice, sma, _params.deviationTimeFrame!!)
 
-        dayShortEma = XMcGinleyIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
-        dayLongEma = XMcGinleyIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
+        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
+        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
-        daySignalEma = XMcGinleyIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
-        daySignal2Ema = XMcGinleyIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
+        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
+        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, bar -> getTrendDecision(index, bar) })
         decisionStartIndicator = XDecisionStartIndicator(bars, XExtBar._decisionStart, lastDecisionIndicator)
         tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastDecisionIndicator, closePrice)
@@ -149,39 +153,39 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         soldBySLIndicator.prepare()
     }
 
-    private fun localUpTrend(index: Int, bar: XExtBar): Boolean {
-        return macd.getValue(index, bars[index]) > signalEma.getValue(index, bars[index])
+    private fun localUpTrend(index: Int): Boolean {
+        return macd.getValue(index) > signalEma.getValue(index)
     }
 
-    private fun localDownTrend(index: Int, bar: XExtBar): Boolean {
-        return macd.getValue(index, bars[index]) < signal2Ema.getValue(index, bars[index])
+    private fun localDownTrend(index: Int): Boolean {
+        return macd.getValue(index) < signal2Ema.getValue(index)
     }
 
-    private fun dayUpTrend(index: Int, bar: XExtBar): Boolean {
-        return dayMacd.getValue(index, bars[index]) > daySignalEma.getValue(index, bars[index])
+    private fun dayUpTrend(index: Int): Boolean {
+        return dayMacd.getValue(index) > daySignalEma.getValue(index)
     }
 
-    private fun dayDownTrend(index: Int, bar: XExtBar): Boolean {
-        return dayMacd.getValue(index, bars[index]) < daySignal2Ema.getValue(index, bars[index])
+    private fun dayDownTrend(index: Int): Boolean {
+        return dayMacd.getValue(index) < daySignal2Ema.getValue(index)
     }
 
     private fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
 
-        val sd = sd.getValue(index, bar)
-        val sma = sma.getValue(index, bar)
-        val price = closePrice.getValue(index, bar)
+        val sd = sd.getValue(index)
+        val sma = sma.getValue(index)
+        val price = closePrice.getValue(index)
 
-        return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it, bar) }) {
+        return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it) }) {
             Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
             when {
                 price < sma - sd * _params.deviation!! / 10.0
-                        && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it, bar) } //проверять последние 10 баров
-                        && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it, bar) }
+                        && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it) } //проверять последние 10 баров
+                        && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it) }
                 -> Pair(Decision.BUY, mapOf(Pair("up", "true"))) //проверять последние 2 бара
 
-                price > sma + sd * _params.deviation2!! / 10.0 && localDownTrend(index, bar) -> Pair(Decision.SELL, emptyMap())
+                price > sma + sd * _params.deviation2!! / 10.0 && localDownTrend(index) -> Pair(Decision.SELL, emptyMap())
                 else -> Pair(Decision.NONE, emptyMap())
             }
         }
@@ -199,8 +203,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 Pair("dayLongEma", dayLongEma),
                 Pair("tsl", tslIndicator),
                 Pair("sl", object : XIndicator<XExtBar> {
-                    override fun getValue(index: Int, bar: XExtBar): Double {
-                        return decisionStartIndicator.getValue(index, bar).closePrice
+                    override fun getValue(index: Int): Double {
+                        return decisionStartIndicator.getValue(index).closePrice
                     }
                 })
         )
@@ -215,12 +219,12 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         synchronized(this) {
 
             val bar = getBar(index)
-            val (decision, decisionArgs) = lastDecisionIndicator.getValue(index, bar)
+            val (decision, decisionArgs) = lastDecisionIndicator.getValue(index)
 
             val indicators = if (fillIndicators) getIndicators(index, bar) else null
 
 
-            if (soldBySLIndicator.getValue(index, bar)) {
+            if (soldBySLIndicator.getValue(index)) {
                 return BotAdvice(bar.endTime,
                         Decision.SELL,
                         mapOf(Pair("sl", "true")),

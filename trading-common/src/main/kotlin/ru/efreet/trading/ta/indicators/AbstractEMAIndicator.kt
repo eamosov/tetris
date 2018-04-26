@@ -7,13 +7,27 @@ abstract class AbstractEMAIndicator<B>(bars: List<B>,
                                        prop: BarGetterSetter<B>,
                                        val indicator: XIndicator<B>,
                                        val timeFrame: Int,
-                                       val multiplier: Double) : XCachedIndicator<B>(bars, prop) {
+                                       private val multiplier: Double) : XCachedIndicator<B>(bars, prop) {
 
     override fun calculate(index: Int, bar: B): Double {
         if (index == 0) {
-            return indicator.getValue(0, bar)
+            return indicator.getValue(0)
         }
-        val prevValue = getValue(index - 1, bars[index - 1])
-        return ((indicator.getValue(index, bar) - prevValue) * multiplier) + prevValue
+        val prevValue = getValue(index - 1)
+        return ((indicator.getValue(index) - prevValue) * multiplier) + prevValue
+    }
+
+    override fun prepare() {
+        if (bars.isEmpty())
+            return
+
+        var ema = indicator.getValue(0)
+        setPropValue(bars[0], ema)
+
+        for (i in 1 until bars.size) {
+            ema += ((indicator.getValue(i) - ema) * multiplier)
+            setPropValue(bars[i], ema)
+        }
+
     }
 }

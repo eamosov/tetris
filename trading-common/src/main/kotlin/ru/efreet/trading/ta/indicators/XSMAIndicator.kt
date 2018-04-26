@@ -12,23 +12,23 @@ class XSMAIndicator<B>(bars: List<B>,
 
         var sums = DoubleArray(bars.size, { 0.0 })
         for (index in 0 until bars.size) {
-            sums[index] = indicator.getValue(index, bars[index])
+            sums[index] = indicator.getValue(index)
             if (index > 0) {
                 sums[index] += sums[index - 1]
             }
             if (index >= timeFrame) {
-                sums[index] -= indicator.getValue(index - timeFrame, bars[index - timeFrame])
+                sums[index] -= indicator.getValue(index - timeFrame)
             }
             val realTimeFrame = Math.min(timeFrame, index + 1)
             val value = sums[index] / realTimeFrame
-            setValue(bars[index], value)
+            setPropValue(bars[index], value)
         }
     }
 
     override fun calculate(index: Int, bar: B): Double {
         var sum = 0.0
         for (i in Math.max(0, index - timeFrame + 1)..index) {
-            sum += indicator.getValue(i, bars[i])
+            sum += indicator.getValue(i)
         }
 
         val realTimeFrame = Math.min(timeFrame, index + 1)

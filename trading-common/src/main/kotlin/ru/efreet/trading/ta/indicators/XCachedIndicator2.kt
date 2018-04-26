@@ -7,7 +7,10 @@ abstract class XCachedIndicator2<B,V>(bars: List<B>, val prop: BarGetterSetter2<
 
     abstract fun calculate(index: Int, bar: B): V
 
-    abstract fun prepare()
+    open fun prepare() {
+        for (i in 0 until bars.size)
+            getValue(i)
+    }
 
     private fun setValue(bar: B, value: V) {
         prop.set(bar, value)
@@ -17,7 +20,8 @@ abstract class XCachedIndicator2<B,V>(bars: List<B>, val prop: BarGetterSetter2<
         return prop.get(bar)
     }
 
-    override fun getValue(index: Int, bar: B): V {
+    override fun getValue(index: Int): V {
+        val bar = bars[index]
         var v = getValue(bar)
         if (v == null) {
             v = calculate(index, bar)

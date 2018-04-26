@@ -14,13 +14,8 @@ class XLastDecisionIndicator<B>(bars: List<B>, prop: BarGetterSetter2<B, Pair<De
         return when {
             s.first != Decision.NONE -> s
             index == 0 -> Pair(Decision.SELL, emptyMap())
-            else -> getValue(index - 1, bars[index - 1])
+            else -> getValue(index - 1)
         }
 
-    }
-
-    override fun prepare() {
-        for (i in 0 until bars.size)
-            getValue(i, bars[i])
     }
 }

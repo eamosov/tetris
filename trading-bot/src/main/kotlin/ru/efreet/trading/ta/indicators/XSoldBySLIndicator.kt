@@ -18,16 +18,16 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
 
     override fun calculate(index: Int, bar: B): Boolean {
 
-        val trend = xLastTrendIndicator.getValue(index, bar)
+        val trend = xLastTrendIndicator.getValue(index)
         if (trend.first == Decision.SELL)
             return false
 
-        val prevValue = if (index > 0) getValue(index - 1, bars[index - 1]) else false
+        val prevValue = if (index > 0) getValue(index - 1) else false
         if (prevValue)
             return prevValue
 
         //цена покупки
-        val buyPrice = xTrendStartIndicator.getValue(index, bar).closePrice
+        val buyPrice = xTrendStartIndicator.getValue(index).closePrice
 
         //если текущая цена опустилась на sl меньше, чем цена покупки, то выход по SL
         if (bar.closePrice < buyPrice * (1.0 - sl / 100.0))
@@ -36,7 +36,7 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
         //если мы в плюсе
         if (bar.closePrice > buyPrice * 0.9995) {
 
-            val maxPrice = xTslIndicator.getValue(index, bar)
+            val maxPrice = xTslIndicator.getValue(index)
 
             val _tsl = if (maxPrice > buyPrice * (1.0 + tp / 100.0))
             //если цена достигла tp
@@ -50,10 +50,5 @@ class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
         }
 
         return false
-    }
-
-    override fun prepare() {
-        for (i in 0 until bars.size)
-            getValue(i, bars[i])
     }
 }

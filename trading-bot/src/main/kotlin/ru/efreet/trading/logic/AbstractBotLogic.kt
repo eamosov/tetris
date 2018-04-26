@@ -147,7 +147,7 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
     override fun barsCount(): Int = bars.size
 
     protected fun getIndicators(index: Int, bar: XExtBar): Map<String, Double> =
-            indicators().mapValues { it.value.getValue(index, bar) }
+            indicators().mapValues { it.value.getValue(index) }
 
     override fun metrica(params: P, stats: TradesStats): Metrica {
 
