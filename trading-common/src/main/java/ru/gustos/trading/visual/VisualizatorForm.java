@@ -19,7 +19,6 @@ public class VisualizatorForm {
     private JButton right;
     private JPanel center;
     private JTextField indexField;
-    private JLabel infoLabel;
     private JButton bot;
     private JButton zoomPlus;
     private JButton zoomMinus;
@@ -34,6 +33,7 @@ public class VisualizatorForm {
     private TimelinePanel timeline;
     private CandlesPane candles;
     private IndicatorsPane indicators;
+    private IndicatorOptionsPane indicatorOptions;
 
     private Visualizator vis;
 
@@ -63,6 +63,9 @@ public class VisualizatorForm {
 
         indicators = new IndicatorsPane(vis);
         panelWithLine.add(indicators,BorderLayout.SOUTH);
+
+        indicatorOptions = new IndicatorOptionsPane(vis);
+        center.add(indicatorOptions,BorderLayout.SOUTH);
 
         indexField.addActionListener(new ActionListener() {
             @Override
@@ -207,7 +210,7 @@ public class VisualizatorForm {
     public void setInfo(int index, Point point) {
         ArrayList<Moment> mm = vis.getSheet().moments;
         if (index<0 || index>=mm.size())
-            infoLabel.setText("");
+            candles.setInfoText("");
         else {
 
             String info = info4bar(candles.getBar(index));
@@ -217,7 +220,7 @@ public class VisualizatorForm {
                 if (indY >= 0)
                     info += "      " + indicators.getIndicatorInfo(index, new Point(point.x, indY));
             }
-            infoLabel.setText(info);
+            candles.setInfoText(info);
         }
     }
 

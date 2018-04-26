@@ -3,6 +3,21 @@
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "PriceChangeToVolume"},
 
+{"id" : 21, "name": "Sd3Number", "ind" : 1, "param": "shortEma"},
+{"id" : 22, "name": "Sd3Number", "ind" : 1, "param": "longEma"},
+{"id" : 23, "name": "Sd3Number", "ind" : 1, "param": "macd"},
+{"id" : 24, "name": "Sd3Number", "ind" : 1, "param": "signalEma"},
+{"id" : 25, "name": "Sd3Number", "ind" : 1, "param": "signal2Ema"},
+{"id" : 28, "name": "Sd3Number", "ind" : 1, "param": "dayShortEma"},
+{"id" : 29, "name": "Sd3Number", "ind" : 1, "param": "dayLongEma"},
+{"id" : 30, "name": "Sd3Number", "ind" : 1, "param": "dayMacd"},
+{"id" : 31, "name": "Sd3Number", "ind" : 1, "param": "daySignalEma"},
+{"id" : 32, "name": "Sd3Number", "ind" : 1, "param": "daySignal2Ema"},
+{"id" : 33, "name": "Sd3Number", "ind" : 1, "param": "tsl"},
+{"id" : 34, "name": "Sd3Number", "ind" : 1, "param": "sma"},
+{"id" : 35, "name": "Sd3Number", "ind" : 1, "param": "sd-"},
+{"id" : 36, "name": "Sd3Number", "ind" : 1, "param": "sd+"},
+
 {"id" : 51, "name": "Success", "ind" : 1}
 
 ]

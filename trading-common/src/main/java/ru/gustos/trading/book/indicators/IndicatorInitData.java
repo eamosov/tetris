@@ -13,6 +13,7 @@ public class IndicatorInitData {
     public String indicators;
     public String logic;
     public String state;
+    public String param;
 
 }
 

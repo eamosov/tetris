@@ -9,3 +9,4 @@ class XMinusIndicator<B>(val a: XIndicator<B>,
         return a.getValue(index) - b.getValue(index)
     }
 }
+

@@ -16,4 +16,8 @@ public abstract class BaseIndicator implements IIndicator{
     public boolean showOnPane() {
         return show;
     }
+
+    public void setShow(boolean show){
+        this.show = show;
+    }
 }

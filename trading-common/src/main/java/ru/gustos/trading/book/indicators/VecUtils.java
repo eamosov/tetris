@@ -366,4 +366,10 @@ public class VecUtils {
         }
     }
 
+    public static double[] add(double[] v1, double[] v2, int k) {
+        double[] res = new double[v1.length];
+        for (int i = 0;i<v1.length;i++)
+            res[i] = v1[i]+v2[i]*k;
+        return res;
+    }
 }

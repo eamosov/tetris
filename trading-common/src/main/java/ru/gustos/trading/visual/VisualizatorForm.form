@@ -112,12 +112,6 @@
         <border type="none"/>
         <children/>
       </grid>
-      <component id="7f9b5" class="javax.swing.JLabel" binding="infoLabel">
-        <constraints border-constraint="South"/>
-        <properties>
-          <text value="time: 03.12.2017, open: 1200, close: 1700, volume: 100, min: 1000, max: 2000"/>
-        </properties>
-      </component>
     </children>
   </grid>
 </form>

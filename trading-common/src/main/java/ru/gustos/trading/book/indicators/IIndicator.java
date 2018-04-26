@@ -16,7 +16,8 @@ public interface IIndicator {
         return false;
     }
 
-    default boolean showOnPane() { return true; }
+    default boolean showOnPane() { return !priceLine(); }
+    default boolean priceLine() { return false; }
 
     Color getColorMax();
     Color getColorMin();

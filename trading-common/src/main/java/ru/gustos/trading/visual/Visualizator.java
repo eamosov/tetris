@@ -43,7 +43,7 @@ public class Visualizator {
         viewListeners.add(VisualizatorMouseListener.class,listener);
     }
 
-    private void fireViewUpdated(){
+    public void fireViewUpdated(){
         Arrays.stream(viewListeners.getListeners(VisualizatorViewListener.class)).forEach(VisualizatorViewListener::visualizatorViewChanged);
     }
 

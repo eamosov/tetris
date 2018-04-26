@@ -47,11 +47,13 @@ public class OrderBot {
         for (int i = from;i<to;i++){
             XBar bar = sheet.moments.get(i).bar;
 
+            double close = bar.getClosePrice();
             if (money>0){
-                if (bar.getClosePrice()<ema[i]-disp[i]*2)
-                    buyOrder = bar.getClosePrice();
-                if (bar.getMinPrice()<=buyOrder && bar.getMaxPrice()>=buyOrder){
-                    buyOrder = bar.getClosePrice();
+                boolean check = bar.getMinPrice() <= buyOrder && bar.getMaxPrice() >= buyOrder;
+                if (!check && close <ema[i]-disp[i]*2)
+                    buyOrder = close;
+                if (check){
+//                    buyOrder = bar.getClosePrice();
                     btc = money/buyOrder*(1-fee);
                     money = 0;
                     buyPrice = buyOrder*(1+fee);
@@ -61,10 +63,11 @@ public class OrderBot {
                 } else
                     buyOrder = ema[i]-disp[i]*2;
             } else if (btc>0){
-                if (bar.getClosePrice()>ema[i]+disp[i]*2)
-                    sellOrder = bar.getClosePrice();
+                boolean check = bar.getMinPrice() <= sellOrder && bar.getMaxPrice() >= sellOrder;
+                if (!check && close >ema[i]+disp[i]*2)
+                    sellOrder = close;
 
-                if (bar.getMinPrice()<=sellOrder && bar.getMaxPrice()>=sellOrder){
+                if (check){
                     sellOrder = bar.getClosePrice();
                     money = btc*sellOrder*(1-fee);
                     btc = 0;

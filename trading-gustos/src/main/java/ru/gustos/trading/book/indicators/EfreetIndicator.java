@@ -16,6 +16,7 @@ public class EfreetIndicator extends BaseIndicator {
     public static int Id;
     String logic;
     String state;
+    BotLogic botLogic;
 
     public EfreetIndicator(IndicatorInitData data) {
         super(data);
@@ -47,28 +48,27 @@ public class EfreetIndicator extends BaseIndicator {
     @Override
     public void calcValues(Sheet sheet, double[] values) {
 
-        final BotLogic logic = LogicFactory.Companion.getLogic(this.logic,
+        botLogic = LogicFactory.Companion.getLogic(this.logic,
                                                                Instrument.Companion.getBTC_USDT(),
                                                                BarInterval.ONE_MIN,
                                                                sheet.moments.stream()
                                                                             .map(m -> new XExtBar(m.bar))
                                                                             .collect(Collectors.toList()));
 
-        logic.loadState(state);
-        logic.prepare();
+        botLogic.loadState(state);
+        botLogic.prepare();
 
         for (int i = 0; i < values.length; i++) {
 
-            final BotAdvice ose = logic.getBotAdvice(i, null, null, false);
+            final BotAdvice ose = botLogic.getBotAdvice(i, null, null, true);
 
-            if (ose.getDecision() == Decision.BUY) {
-                values[i] = IIndicator.YES;
-            } else {
-                values[i] = IIndicator.NO;
-            }
+            values[i] = ose.getDecision() == Decision.BUY ? IIndicator.YES : IIndicator.NO;
+
         }
 
     }
 }
+
+
 
 

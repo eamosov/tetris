@@ -25,9 +25,12 @@ public class CandlesPane extends JPanel {
 
 
     private Visualizator vis;
+    private JLabel infoLabel;
 
     public CandlesPane(Visualizator vis) {
         this.vis = vis;
+        infoLabel = new JLabel();
+        add(infoLabel);
         setBackground(Color.white);
         vis.addListener(new VisualizatorViewListener() {
             @Override
@@ -71,6 +74,15 @@ public class CandlesPane extends JPanel {
         paintGrid(g,minMax, from,true);
         if (vis.averageWindow>0 && !vis.averageType.equalsIgnoreCase("None"))
             paintAverage(g);
+        for (IIndicator ii : vis.getSheet().getLib().listIndicators()){
+            if (ii.priceLine() && ii.showOnPane()){
+                paintPriceLine(g,ii);
+            }
+        }
+    }
+
+    private void paintPriceLine(Graphics g, IIndicator ii) {
+        paintPriceLine(g,vis.getSheet().getData().get(ii.getId()), darkColor, 2f);
     }
 
     private int prevWindow = -1;
@@ -105,27 +117,48 @@ public class CandlesPane extends JPanel {
             prevWindow = window;
             prevAvgType = vis.averageType;
         }
+        paintPriceLine(g,this.avg, BLUE, 2f);
+        paintPriceLine(g,VecUtils.add(this.avg,disp,2), darkColor, 2f);
+        paintPriceLine(g,VecUtils.add(this.avg,disp,-2), darkColor, 2f);
+//        int w = vis.candleWidth();
+//        double a = VecUtils.avg(this.avg, from, scale);
+//        double d = VecUtils.avg(disp, from, scale);
+//        int ya = price2screen(a);
+//        int yminus = price2screen(a-2*d);
+//        int yplus = price2screen(a+2*d);
+//        ((Graphics2D)g).setStroke(new BasicStroke(3f));
+//        for (int i = 1;i<bars;i++) {
+//            a = VecUtils.avg(this.avg, from + i * scale, scale);
+//            int y = price2screen(a);
+//            g.setColor(BLUE);
+//            g.drawLine((i-1)* w, ya,i* w, y);
+//            ya = y;
+//            g.setColor(darkColor);
+//            d = VecUtils.avg(disp, from + i * scale, scale);
+//            y = price2screen(a-2*d);
+//            g.drawLine((i-1)* w, yminus,i* w, y);
+//            yminus = y;
+//            y = price2screen(a+2*d);
+//            g.drawLine((i-1)* w, yplus,i* w, y);
+//            yplus = y;
+//        }
+
+    }
+
+    private void paintPriceLine(Graphics g, double[] values, Color color, float stroke) {
+        int from = vis.getIndex();
+        int scale = vis.zoomScale();
+        int bars = getSize().width* scale /vis.candleWidth();
         int w = vis.candleWidth();
-        double a = VecUtils.avg(this.avg, from, scale);
-        double d = VecUtils.avg(disp, from, scale);
+        double a = VecUtils.avg(values, from, scale);
         int ya = price2screen(a);
-        int yminus = price2screen(a-2*d);
-        int yplus = price2screen(a+2*d);
-        ((Graphics2D)g).setStroke(new BasicStroke(3f));
+        ((Graphics2D)g).setStroke(new BasicStroke(stroke));
+        g.setColor(color);
         for (int i = 1;i<bars;i++) {
-            a = VecUtils.avg(this.avg, from + i * scale, scale);
+            a = VecUtils.avg(values, from + i * scale, scale);
             int y = price2screen(a);
-            g.setColor(BLUE);
             g.drawLine((i-1)* w, ya,i* w, y);
             ya = y;
-            g.setColor(darkColor);
-            d = VecUtils.avg(disp, from + i * scale, scale);
-            y = price2screen(a-2*d);
-            g.drawLine((i-1)* w, yminus,i* w, y);
-            yminus = y;
-            y = price2screen(a+2*d);
-            g.drawLine((i-1)* w, yplus,i* w, y);
-            yplus = y;
         }
 
     }
@@ -294,4 +327,8 @@ public class CandlesPane extends JPanel {
         }
     }
 
+    public void setInfoText(String s) {
+        infoLabel.setText(s);
+    }
 }
+
