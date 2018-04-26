@@ -29,9 +29,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     lateinit var signalEma: XCachedIndicator<XExtBar>
     lateinit var signal2Ema: XCachedIndicator<XExtBar>
 
-    lateinit var sma: XSMAIndicator<XExtBar>
-    lateinit var sd: XStandardDeviationIndicator<XExtBar>
-
+    lateinit var sma: XIndicator<XExtBar>
+    lateinit var sd: XCachedIndicator<XExtBar>
 
     lateinit var dayShortEma: XCachedIndicator<XExtBar>
     lateinit var dayLongEma: XCachedIndicator<XExtBar>
@@ -57,9 +56,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //                persist3 = 1
         )
 
-//        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
-//        of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
-//        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
+        of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
 
         of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
@@ -88,7 +88,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
         val targetGoodTrades = 0.7
         val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
-//        val targetStopLoss = 2.0
+        val targetStopLoss = 3
+        val targetAvrProfitPerTrade = 1.005
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
 
@@ -97,14 +98,17 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 //.add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
                 .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0))
                 .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
-                //.add("profit", BotLogic.funXP(stats.profit / targetProfit - 1.0, 1.8))
+                .add("ppt", BotLogic.funXP(stats.avrProfitPerTrade / targetAvrProfitPerTrade - 1.0, 3.0))
                 .add("profit", stats.profit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
-//                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.1))
+                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 2.0))
+                .add("persist1", -BotLogic.funXP(params.persist1!!.toDouble() - 1.0, 0.02))
+                .add("persist2", -BotLogic.funXP(params.persist2!!.toDouble() - 1.0, 0.02))
+                .add("persist3", -BotLogic.funXP(params.persist3!!.toDouble() - 1.0, 0.02))
 //                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
 //                .add("tp", -BotLogic.funXP(params.takeProfit / 5.0 - 1.0, 0.1))
 //                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.2 - 1.0, 0.1))
-                .add("pearson", (stats.pearson - 0.95) * 20.0)
+                .add("pearson", (stats.pearson - 0.98) * 100.0)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
@@ -121,8 +125,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
         signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, _params.signal2!!)
 
-        sma = XSMAIndicator(bars, XExtBar._sma, closePrice, _params.deviationTimeFrame!!)
-        sd = XStandardDeviationIndicator(bars, XExtBar._sd, closePrice, sma, _params.deviationTimeFrame!!)
+        sd = GustosIndicator(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
+        sma = object : XIndicator<XExtBar> {
+            override fun getValue(index: Int): Double = getBar(index).sma
+        }
 
         dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
         dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
@@ -137,7 +143,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { sma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })
@@ -172,7 +177,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     private fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
 
         val sd = sd.getValue(index)
-        val sma = sma.getValue(index)
+        val sma = bar.sma
         val price = closePrice.getValue(index)
 
         return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it) }) {
