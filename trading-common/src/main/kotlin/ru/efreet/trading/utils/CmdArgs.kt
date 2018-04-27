@@ -19,7 +19,8 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
-                   var cpu: Int = Runtime.getRuntime().availableProcessors() - 2) {
+                   var cpu: Int = Runtime.getRuntime().availableProcessors() - 2,
+                   var steps:Array<Int> = arrayOf(1, 5, 20)) {
 
     val instrument: Instrument
         get() = instruments.first()
@@ -56,6 +57,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                     .addOption("c", "cache", true, "cache path")
                     .addOption("f", "settings", true, "logic settings path")
                     .addOption("m", "cpu", true, "cpu numbers")
+                    .addOption("d", "steps", true, "CDM steps, default 1,5,20")
 
 
             val parser = BasicParser()
@@ -104,6 +106,8 @@ data class CmdArgs(var start: ZonedDateTime? = null,
             cmd.getOptionValue('f')?.let { cmdArgs.settings = it }
 
             cmd.getOptionValue('m')?.let { cmdArgs.cpu = it.toInt() }
+
+            cmd.getOptionValue('d')?.let { cmdArgs.steps = it.split(",").map { it.toInt() }.toTypedArray() }
 
             return cmdArgs
         }

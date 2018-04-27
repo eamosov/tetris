@@ -71,7 +71,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
 
-//        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 20.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 //
 //        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
@@ -88,7 +88,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
         val targetGoodTrades = 0.7
         val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
-        val targetStopLoss = 3
+        val targetStopLoss = 10
         val targetAvrProfitPerTrade = 1.005
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
@@ -101,14 +101,14 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 .add("ppt", BotLogic.funXP(stats.avrProfitPerTrade / targetAvrProfitPerTrade - 1.0, 3.0))
                 .add("profit", stats.profit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
-                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 2.0))
+                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.5))
                 .add("persist1", -BotLogic.funXP(params.persist1!!.toDouble() - 1.0, 0.02))
                 .add("persist2", -BotLogic.funXP(params.persist2!!.toDouble() - 1.0, 0.02))
                 .add("persist3", -BotLogic.funXP(params.persist3!!.toDouble() - 1.0, 0.02))
 //                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
 //                .add("tp", -BotLogic.funXP(params.takeProfit / 5.0 - 1.0, 0.1))
 //                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.2 - 1.0, 0.1))
-                .add("pearson", (stats.pearson - 0.98) * 100.0)
+                .add("pearson", (stats.pearson - 0.98) * 30.0)
     }
 
     override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()

@@ -44,7 +44,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
     lateinit var exchange: Exchange
     lateinit var cache: BarsCache
     lateinit var state: State
-    var cdm = CdmBotTrainer(cmd.cpu)
+    var cdm = CdmBotTrainer(cmd.cpu, cmd.steps)
 
     fun fee(): Double = (1.0 - (exchange.getFee() / 100.0) / 2.0)
 
