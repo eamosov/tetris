@@ -4,7 +4,7 @@
   "startTime": "2018-03-01T00:00Z[GMT]",
   "usd": 1000.0,
   "asset": 0.0,
-  "trainStart": "2018-01-16T00:00Z[GMT]",
+  "trainDays": 45,
   "instrument": {
     "asset": "BTC",
     "base": "USDT"

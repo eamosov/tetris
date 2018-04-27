@@ -25,11 +25,11 @@ data class State(var name: String,
                  var startTime: ZonedDateTime = time,
                  var usd: Double = 1000.0,
                  var asset: Double = 0.0,
-                 var trainStart: ZonedDateTime,
+                 var trainDays: Long = 45,
                  var instrument: Instrument,
                  var interval: BarInterval,
                  var maxParamsDeviation: Double = 10.0,
-                 var hardBounds: Boolean = true,
+                 var hardBounds: Boolean = false,
                  val tradeDuration: Duration = Duration.ofHours(24),
                  var population: Int = 20,
                  var historyPath: String = "simulate_history.json",
@@ -147,14 +147,14 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
-        //tmpLogic.setParams(curParams)
+        tmpLogic.setParams(curParams)
         tmpLogic.setMinMax(curParams, state.maxParamsDeviation, state.hardBounds)
 
         val population = tmpLogic.seed(SeedType.RANDOM, populationSize)
         if (inclCurParams)
             population.add(curParams)
 
-        val trainStart = state.time.minusDays(45)
+        val trainStart = state.time.minusDays(state.trainDays)
 
         val bars = exchange.loadBars(state.instrument, state.interval, trainStart.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars)).truncatedTo(state.interval), state.time.truncatedTo(state.interval))
         println("Searching best strategy for ${state.instrument} population=${population.size}, start=${trainStart} end=${state.time}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
@@ -182,7 +182,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             return loadFromJson(statePath)
         } catch (e: Exception) {
             println("Create new ${statePath}")
-            return State(name = "sd3", instrument = Instrument.BTC_USDT, interval = BarInterval.ONE_MIN, time = ZonedDateTime.now(), trainStart = ZonedDateTime.parse("2017-09-01T00:00Z[GMT]"))
+            return State(name = "sd3", instrument = Instrument.BTC_USDT, interval = BarInterval.ONE_MIN, time = ZonedDateTime.parse("2018-03-01T00:00Z[GMT]"))
         }
     }
 

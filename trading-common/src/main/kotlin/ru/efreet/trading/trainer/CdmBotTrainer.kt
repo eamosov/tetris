@@ -11,7 +11,7 @@ import java.util.function.Supplier
 /**
  * Created by fluder on 09/02/2018.
  */
-class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessors(), val steps: Array<Int> = arrayOf(20, 5, 1)) : BotTrainer {
+class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessors(), val steps: Array<Int> = arrayOf(1, 5, 20)) : BotTrainer {
 
     companion object {
 

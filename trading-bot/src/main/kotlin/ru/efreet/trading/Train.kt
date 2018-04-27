@@ -27,7 +27,7 @@ class Train {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
-            val cdm = CdmBotTrainer(cmd.cpu, arrayOf(40, 20, 5, 1))
+            val cdm = CdmBotTrainer(cmd.cpu, arrayOf(1, 5, 20, 40))
 
             val realExchange = Exchange.getExchange(cmd.exchange)
 
@@ -65,7 +65,7 @@ class Train {
                             val savePath = cmd.settings + ".out"
                             println("Saving intermediate logic's properties to ${savePath}")
                             val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-                            logic.setMinMax(params, 20.0, false)
+                            logic.setMinMax(params, 50.0, false)
                             logic.setParams(params)
                             logic.saveState(savePath, stats.toString())
                         }

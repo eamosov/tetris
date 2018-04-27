@@ -82,7 +82,7 @@ class StatsCalculator {
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                pearson,
+                if (pearson.isNaN()) 0.0 else pearson,
                 history.start,
                 history.end,
                 avrProfitPerDay
