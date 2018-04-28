@@ -1,5 +1,6 @@
 package ru.gustos.trading.book.indicators;
 
+import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.ml.Exporter;
 import ru.gustos.trading.visual.CandlesPane;
@@ -35,20 +36,13 @@ public class ClassifierIndicator extends BaseIndicator{
 
     @Override
     public void calcValues(Sheet sheet, double[] values) {
-        System.out.println("working on classifier "+getName());
-        String s = doExport(sheet, TargetBuyIndicator.Id,false);
-        string2file("d:/tetrislibs/tempexam.arff",s);
-        BufferedReader br = null;
-        Arrays.fill(values,0);
+
+        Instances data = Exporter.makeDataSet(sheet, 250, 0, sheet.moments.size());
         try {
-            br = new BufferedReader(new FileReader("d:/tetrislibs/tempexam.arff"));
-            Instances examData = new Instances(br);
-            examData.setClassIndex(examData.numAttributes() - 1);
-            br.close();
 
             Classifier c = (Classifier)weka.core.SerializationHelper.read("d:/tetrislibs/models/" + classifier);
-            Evaluation evaluation = new Evaluation(examData);
-            double[] result = evaluation.evaluateModel(c, examData);
+            Evaluation evaluation = new Evaluation(data);
+            double[] result = evaluation.evaluateModel(c, data);
 
             for (int i = 0;i<result.length;i++)
                 values[Exporter.lastFrom+i] = result[i]>0.5?IIndicator.YES:0;
@@ -69,3 +63,4 @@ public class ClassifierIndicator extends BaseIndicator{
         return Color.darkGray;
     }
 }
+

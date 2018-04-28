@@ -68,7 +68,7 @@ public class OrderBot {
                     sellOrder = close;
 
                 if (check){
-                    sellOrder = bar.getClosePrice();
+//                    sellOrder = bar.getClosePrice();
                     money = btc*sellOrder*(1-fee);
                     btc = 0;
                     System.out.println(String.format("money: %d, time: %d", (int)money,i-buyIndex));

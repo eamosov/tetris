@@ -90,11 +90,11 @@
             <constraints/>
             <properties>
               <model>
+                <item value="None"/>
                 <item value="Gustos"/>
                 <item value="Gustos ema"/>
                 <item value="Gustos ema2"/>
                 <item value="BB"/>
-                <item value="None"/>
               </model>
             </properties>
           </component>

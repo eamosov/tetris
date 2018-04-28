@@ -12,6 +12,7 @@ import ru.gustos.trading.book.indicators.VecUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 public class CandlesPane extends JPanel {
     public static final Color RED = new Color(164, 32, 21);
@@ -59,6 +60,7 @@ public class CandlesPane extends JPanel {
         if (vis.backIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.backIndicator);
                 Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
+                prevMark = null;
                 for (int i = from; i< to; i+=scale)
                     paintIndicatorBar(g,i,scale,ii,mm);
         }
@@ -275,6 +277,7 @@ public class CandlesPane extends JPanel {
         } while (x*w<getWidth() && x*scale+from<vis.getSheet().moments.size());
     }
 
+    String prevMark = null;
     private void paintIndicatorBar(Graphics g, int index, int scale, IIndicator indicator, Pair<Double, Double> mm) {
         int w = vis.candleWidth();
         int x = (index-vis.getIndex())/scale* w;
@@ -282,6 +285,13 @@ public class CandlesPane extends JPanel {
         if (indicator.getType()==IndicatorType.YESNO){
             g.setColor(new Color(col.getRed(),col.getGreen(),col.getBlue(),60));
             g.fillRect(x, 0, w, getHeight());
+            Map<String, String> markMap = indicator.getMark(index);
+            String mark = markMap==null?"":markMap.toString();
+            g.setColor(darkerColor);
+            if (mark!=null && !mark.equals(prevMark)) {
+                g.drawString(mark, x, 35);
+                prevMark = mark;
+            }
         } else if (indicator.getType()==IndicatorType.NUMBER) {
             double value = vis.getSheet().getData().get(indicator,index,scale);
             if (Double.isNaN(value)) return;

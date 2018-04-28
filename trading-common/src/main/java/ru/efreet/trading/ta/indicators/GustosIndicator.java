@@ -66,6 +66,7 @@ public class GustosIndicator<B> extends XCachedIndicator<B> {
         a *= a;
         double next = prevAvgPrice + (price - prevAvgPrice) / (0.6 * timeframe * a);
         if (volumek <= 1) {
+            volumek = Math.pow(volumek, 1.7);
             avgPrice = prevAvgPrice * (1 - volumek) + next * volumek;
         } else {
             double vk = volumek;

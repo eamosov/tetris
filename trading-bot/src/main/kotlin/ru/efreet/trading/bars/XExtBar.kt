@@ -97,6 +97,14 @@ data class XExtBar(val bar: XBar) : XBar {
         var _longEma2 = BarGetterSetter<XExtBar>({ o, v -> o.longEma2 = v }, { it.longEma2 })
         var _longEma = BarGetterSetter<XExtBar>({ o, v -> o.longEma = v }, { it.longEma })
 
+        var _shortEma1Sell = BarGetterSetter<XExtBar>({ o, v -> o.shortEma1Sell = v }, { it.shortEma1Sell })
+        var _shortEma2Sell = BarGetterSetter<XExtBar>({ o, v -> o.shortEma2Sell = v }, { it.shortEma2Sell })
+        var _shortEmaSell = BarGetterSetter<XExtBar>({ o, v -> o.shortEmaSell = v }, { it.shortEmaSell })
+
+        var _longEma1Sell = BarGetterSetter<XExtBar>({ o, v -> o.longEma1Sell = v }, { it.longEma1Sell })
+        var _longEma2Sell = BarGetterSetter<XExtBar>({ o, v -> o.longEma2Sell = v }, { it.longEma2Sell })
+        var _longEmaSell = BarGetterSetter<XExtBar>({ o, v -> o.longEmaSell = v }, { it.longEmaSell })
+
         var _signalEma1 = BarGetterSetter<XExtBar>({ o, v -> o.signalEma1 = v }, { it.signalEma1 })
         var _signalEma2 = BarGetterSetter<XExtBar>({ o, v -> o.signalEma2 = v }, { it.signalEma2 })
         var _signalEma = BarGetterSetter<XExtBar>({ o, v -> o.signalEma = v }, { it.signalEma })
@@ -110,6 +118,9 @@ data class XExtBar(val bar: XBar) : XBar {
         var _sma = BarGetterSetter<XExtBar>({ o, v -> o.sma = v }, { it.sma })
         var _sd = BarGetterSetter<XExtBar>({ o, v -> o.sd = v }, { it.sd })
         var _avrVolume = BarGetterSetter<XExtBar>({ o, v -> o.avrVolume = v }, { it.avrVolume })
+        var _smaSell = BarGetterSetter<XExtBar>({ o, v -> o.smaSell = v }, { it.smaSell })
+        var _sdSell= BarGetterSetter<XExtBar>({ o, v -> o.sdSell = v }, { it.sdSell })
+        var _avrVolumeSell = BarGetterSetter<XExtBar>({ o, v -> o.avrVolumeSell = v }, { it.avrVolumeSell })
 
         var _dayShortEma = BarGetterSetter<XExtBar>({ o, v -> o.dayShortEma = v }, { it.dayShortEma })
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
@@ -130,6 +141,14 @@ data class XExtBar(val bar: XBar) : XBar {
     var longEma2: Double = Double.MAX_VALUE
     var longEma: Double = Double.MAX_VALUE
 
+    var shortEma1Sell: Double = Double.MAX_VALUE
+    var shortEma2Sell: Double = Double.MAX_VALUE
+    var shortEmaSell: Double = Double.MAX_VALUE
+
+    var longEma1Sell: Double = Double.MAX_VALUE
+    var longEma2Sell: Double = Double.MAX_VALUE
+    var longEmaSell: Double = Double.MAX_VALUE
+
     var signalEma1: Double = Double.MAX_VALUE
     var signalEma2: Double = Double.MAX_VALUE
     var signalEma: Double = Double.MAX_VALUE
@@ -141,6 +160,10 @@ data class XExtBar(val bar: XBar) : XBar {
     var sma: Double = Double.MAX_VALUE
     var sd: Double = Double.MAX_VALUE
     var avrVolume: Double = Double.MAX_VALUE
+
+    var smaSell: Double = Double.MAX_VALUE
+    var sdSell: Double = Double.MAX_VALUE
+    var avrVolumeSell: Double = Double.MAX_VALUE
 
 
     var dayShortEma: Double = Double.MAX_VALUE

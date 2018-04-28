@@ -51,12 +51,14 @@ public class VisualizatorForm {
                 vis.goRight();
             }
         });
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         PanelWithVerticalLine panelWithLine = new PanelWithVerticalLine(vis);
         panelWithLine.setLayout(new BorderLayout());
-        center.add(panelWithLine, BorderLayout.CENTER);
+        center.add(split, BorderLayout.CENTER);
 
         timeline = new TimelinePanel(vis);
-        center.add(timeline, BorderLayout.NORTH);
+        split.setTopComponent(timeline);
+        split.setBottomComponent(panelWithLine);
 
         candles = new CandlesPane(vis);
         panelWithLine.add(candles, BorderLayout.CENTER);

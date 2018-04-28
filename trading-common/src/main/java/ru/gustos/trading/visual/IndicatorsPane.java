@@ -53,7 +53,7 @@ public class IndicatorsPane extends JPanel {
 
     public String getIndicatorInfo(int index, Point p) {
         IIndicator indicator = vis.getSheet().getLib().get(getIndicatorId(p));
-        return indicator.getName()+" "+vis.getSheet().getData().get(indicator,index);
+        return indicator.getName()+" "+vis.getSheet().getData().get(indicator,index)+" "+indicator.getMark(index);
     }
 
     public int getIndicatorId(Point point) {

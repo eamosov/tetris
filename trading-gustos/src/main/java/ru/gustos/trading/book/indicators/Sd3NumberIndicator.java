@@ -7,9 +7,7 @@ import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
-import ru.efreet.trading.ta.indicators.XCachedIndicator;
-import ru.efreet.trading.ta.indicators.XIndicator;
-import ru.efreet.trading.ta.indicators.XPlusKIndicator;
+import ru.efreet.trading.ta.indicators.*;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
@@ -18,22 +16,26 @@ import java.util.stream.Collectors;
 public class Sd3NumberIndicator extends BaseIndicator {
     int ind;
     String param;
+    boolean length;
+    boolean yesno;
 
     public Sd3NumberIndicator(IndicatorInitData data) {
         super(data);
         ind = data.ind;
         param = data.param;
         show = data.show && !priceLine();
+        length = data.b1;
+        yesno = data.b2;
     }
 
     @Override
     public String getName() {
-        return "sd3_"+ind+"_"+param;
+        return "sd3_"+ind+"_"+param+"_"+length+"_"+yesno;
     }
 
     @Override
     public IndicatorType getType() {
-        return IndicatorType.NUMBER;
+        return yesno?IndicatorType.YESNO:IndicatorType.NUMBER;
     }
 
     @Override
@@ -68,10 +70,10 @@ public class Sd3NumberIndicator extends BaseIndicator {
                 return sd3.signal2Ema;
             case "sma":
                 return sd3.sma;
-            case "sd":
-                return sd3.sd;
+            case "smaSell":
+                return sd3.sma;
             case "sd+":
-                return new XPlusKIndicator<>(sd3.sma,sd3.sd,sd3.getParams().getDeviation2()*0.1);
+                return new XPlusKIndicator<>(sd3.smaSell,sd3.sdSell,sd3.getParams().getDeviation2()*0.1);
             case "sd-":
                 return new XPlusKIndicator<>(sd3.sma,sd3.sd,-sd3.getParams().getDeviation()*0.1);
             case "dayShortEma":
@@ -86,6 +88,14 @@ public class Sd3NumberIndicator extends BaseIndicator {
                 return sd3.daySignal2Ema;
             case "tsl":
                 return sd3.tslIndicator;
+            case "dayDownTrend":
+                return new XMinusIndicator<>(sd3.dayMacd,sd3.daySignal2Ema);
+            case "localUpTrend":
+                return new XMinusIndicator<>(sd3.macd,sd3.signalEma);
+            case "localDownTrend":
+                return new XMinusIndicator<>(sd3.macd,sd3.signal2Ema);
+            case "dayUpTrend":
+                return new XMinusIndicator<>(sd3.dayMacd,sd3.daySignalEma);
         }
         return null;
     }
@@ -94,10 +104,23 @@ public class Sd3NumberIndicator extends BaseIndicator {
     public void calcValues(Sheet sheet, double[] values) {
 
         XIndicator<XExtBar> v = values(sheet);
+        if (!length) {
+            for (int i = 0; i < values.length; i++) {
+                double vv = v.getValue(i);
+                values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
+            }
+        }else {
+            int l = 0;
+            for (int i = 0; i < values.length; i++) {
+                double val = v.getValue(i);
+                if (val>0)
+                    l++;
+                else
+                    l = 0;
+                values[i] = l;
+            }
 
-        for (int i = 0; i < values.length; i++)
-            values[i] = v.getValue(i);
-
+        }
 
 
     }

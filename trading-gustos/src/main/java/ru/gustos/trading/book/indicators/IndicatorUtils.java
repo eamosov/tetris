@@ -10,15 +10,15 @@ public class IndicatorUtils{
     public static int bars(IndicatorPeriod period,Sheet sheet){
         switch (period){
             case TENMINUTES:
-                return 2;
+                return 3;
             case HOUR:
-                return 4;
-            case DAY:
-                return 6;
-            case WEEK:
-                return 8;
-            case MONTH:
                 return 10;
+            case DAY:
+                return 60;
+            case WEEK:
+                return 300;
+            case MONTH:
+                return 3000;
         }
 //        switch (period){
 //            case TENMINUTES:

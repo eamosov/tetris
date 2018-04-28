@@ -34,7 +34,8 @@ public class Exporter {
     static HashSet<Integer> ignored = null;
     private static HashSet<Integer> ignore(){
         if (ignored!=null) return ignored;
-        HashSet<Integer> ignore = new HashSet<>(Arrays.stream(new Integer[]{2, 3, EfreetSuccessIndicator.Id,PredictBuyIndicator.Id,PredictSellIndicator.Id,DemaTradeSuccIndicator.Id}).collect(Collectors.toList()));
+        HashSet<Integer> ignore = new HashSet<>();//Arrays.stream(new Integer[]{2, 3, EfreetSuccessIndicator.Id,PredictBuyIndicator.Id,PredictSellIndicator.Id,DemaTradeSuccIndicator.Id}).collect(Collectors.toList()));
+        ignore.add(1);
         for (int i = 200;i<=1000;i++)
             ignore.add(i);
         return ignored = ignore;
@@ -109,10 +110,10 @@ public class Exporter {
         int from,to;
         if (train) {
             from = sheet.getBarIndex(ZonedDateTime.of(2017, 12, 1, 0, 0, 0, 0, ZoneId.systemDefault()));
-            to = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 15, 0, 0, 0, 0, ZoneId.systemDefault()));
+            to = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
         } else {
-            from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 15, 0, 0, 0, 0, ZoneId.systemDefault()));
-            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 11, 0, 0, 0, 0, ZoneId.systemDefault()));
+            from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
+            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 27, 0, 0, 0, 0, ZoneId.systemDefault()));
         }
         lastFrom = from;
         lastTo = to;
@@ -168,20 +169,12 @@ public class Exporter {
         Sheet sheet = new Sheet();
         sheet.fromCache();
         SheetUtils.FillDecisions(sheet);
-        sheet.calcIndicatorsNoPredict();
-        String s = doExport(sheet, TargetBuyIndicator.Id,true);
+        sheet.calcIndicators();
+        String s = doExport(sheet, 250,true);
         string2file("d:/tetrislibs/"+lastName+".arff",s);
-        s = doExport(sheet, TargetSellIndicator.Id,true);
-        string2file("d:/tetrislibs/"+lastName+".arff",s);
-        s = doExport(sheet, TargetBuyIndicator.Id,false);
-        string2file("d:/tetrislibs/"+lastName+".arff",s);
-        s = doExport(sheet, TargetSellIndicator.Id,false);
+        s = doExport(sheet, 250,false);
         string2file("d:/tetrislibs/"+lastName+".arff",s);
 
-        s = doExport(sheet, DemaTradeSuccIndicator.Id,true,true);
-        string2file("d:/tetrislibs/"+lastName+".arff",s);
-        s = doExport(sheet, DemaTradeSuccIndicator.Id,false,true);
-        string2file("d:/tetrislibs/"+lastName+".arff",s);
 
     }
 }

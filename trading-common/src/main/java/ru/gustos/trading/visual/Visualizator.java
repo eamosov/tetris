@@ -1,5 +1,6 @@
 package ru.gustos.trading.visual;
 
+import ru.gustos.trading.book.PlayIndicator;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.IIndicator;
@@ -22,11 +23,11 @@ public class Visualizator {
     int backIndicator = -1;
     int graphIndicator = -1;
     private ArrayList<Integer> selectedIndicators = new ArrayList<>();
-    SheetUtils.PlayResults playResult = null;
+    PlayIndicator.PlayResults playResult = null;
 
     double param = 0;
     int averageWindow = 50;
-    String averageType = "Gustos";
+    String averageType = "None";
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -211,7 +212,7 @@ public class Visualizator {
 
     public void runPlay() {
         if (backIndicator!=-1){
-            playResult = SheetUtils.playIndicator(sheet, backIndicator,from,sheet.moments.size()-1);
+            playResult = new PlayIndicator().playIndicator(sheet, backIndicator,from,sheet.moments.size()-1);
             JOptionPane.showMessageDialog(null, playResult.toString());
             fireViewUpdated();
         }

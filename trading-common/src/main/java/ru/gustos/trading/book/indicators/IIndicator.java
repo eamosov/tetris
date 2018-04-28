@@ -3,6 +3,8 @@ package ru.gustos.trading.book.indicators;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public interface IIndicator {
     double YES = 1.0;
@@ -18,6 +20,8 @@ public interface IIndicator {
 
     default boolean showOnPane() { return !priceLine(); }
     default boolean priceLine() { return false; }
+
+    default Map<String,String> getMark(int ind){ return new HashMap<>();}
 
     Color getColorMax();
     Color getColorMin();

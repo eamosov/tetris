@@ -5,21 +5,35 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class DemaIndicator extends NumberIndicator {
+public class DemaIndicator extends BaseIndicator {
 
     int t1,t2,t3;
+    boolean yesno;
 
     public DemaIndicator(IndicatorInitData data){
         super(data);
         t1 = data.t1;
         t2 = data.t2;
         t3 = data.t3;
+        yesno = data.b1;
     }
 
     @Override
     public String getName() {
-        return "dema_"+t1;
+        return "dema_"+t1+"_"+yesno;
     }
+
+    public IndicatorType getType() {
+        return yesno?IndicatorType.YESNO:IndicatorType.NUMBER;
+    }
+
+    @Override
+    public Color getColorMax() {
+        return CandlesPane.GREEN;
+    }
+
+    @Override
+    public Color getColorMin() {        return CandlesPane.RED;    }
 
     @Override
     public void calcValues(Sheet sheet, double[] values) {
@@ -48,7 +62,8 @@ public class DemaIndicator extends NumberIndicator {
             demas[i] = (emas[i] - demas[i-1])*ks+demas[i-1];
             double ds = emas[i]*2 - demas[i];
 
-            values[i] = macd - ds;
+            double vv = macd - ds;
+            values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
 
 //            double macd = ema2[i]-ema1[i];
 //            emas[i] = (macd-emas[i-1])*ks+emas[i-1];

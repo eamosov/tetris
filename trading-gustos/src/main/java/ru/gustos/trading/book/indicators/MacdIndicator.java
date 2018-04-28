@@ -5,19 +5,34 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class MacdIndicator  extends NumberIndicator {
+public class MacdIndicator  extends BaseIndicator {
     int t1,t2,t3;
+    boolean yesno;
 
     public MacdIndicator(IndicatorInitData data){
         super(data);
         t1 = data.t1;
         t2 = data.t2;
         t3 = data.t3;
+        yesno = data.b1;
     }
 
     @Override
+    public IndicatorType getType() {
+        return yesno?IndicatorType.YESNO:IndicatorType.NUMBER;
+    }
+
+    @Override
+    public Color getColorMax() {
+        return CandlesPane.GREEN;
+    }
+
+    @Override
+    public Color getColorMin() {        return CandlesPane.RED;    }
+
+    @Override
     public String getName() {
-        return "macd_"+t1;
+        return "macd_"+t1+"_"+yesno;
     }
 
     @Override
@@ -35,7 +50,8 @@ public class MacdIndicator  extends NumberIndicator {
             ema2[i] = (p-ema2[i-1])*k2+ema2[i-1];
             double macd = ema2[i]-ema1[i];
             emas[i] = (macd-emas[i-1])*ks+emas[i-1];
-            values[i] = macd - emas[i];
+            double vv = macd - emas[i];
+            values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
         }
 
     }

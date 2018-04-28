@@ -27,10 +27,15 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     lateinit var longEma: XCachedIndicator<XExtBar>
     lateinit var macd: XMACDIndicator<XExtBar>
     lateinit var signalEma: XCachedIndicator<XExtBar>
+    lateinit var shortEmaSell: XCachedIndicator<XExtBar>
+    lateinit var longEmaSell: XCachedIndicator<XExtBar>
+    lateinit var macdSell: XMACDIndicator<XExtBar>
     lateinit var signal2Ema: XCachedIndicator<XExtBar>
 
     lateinit var sma: XIndicator<XExtBar>
     lateinit var sd: XCachedIndicator<XExtBar>
+    lateinit var smaSell: XIndicator<XExtBar>
+    lateinit var sdSell: XCachedIndicator<XExtBar>
 
     lateinit var dayShortEma: XCachedIndicator<XExtBar>
     lateinit var dayLongEma: XCachedIndicator<XExtBar>
@@ -56,20 +61,25 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //                persist3 = 1
         )
 
-        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
+//        of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviation3, "logic.sd3.deviation3", 15, 23, 1, false)
+//        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviationTimeFrameSell, "logic.sd3.deviationTimeFrameSell", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviationTimeFrameSell2, "logic.sd3.deviationTimeFrameSell2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::shortSell, "logic.sd3.shortSell", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::longSell, "logic.sd3.longSell", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
+//        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
 
 //        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
@@ -78,9 +88,9 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //        of(SimpleBotLogicParams::tTakeProfit, "logic.sd3.tTakeProfit", 0.1, 5.0, 0.05, true)
 
 
-        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 50, 1, true)
-        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 50, 1, true)
-        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 50, 1, true)
+//        of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 50, 1, true)
+//        of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 50, 1, true)
+//        of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 50, 1, true)
 
     }
 
@@ -120,6 +130,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, _params.short!!)
         longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, _params.long!!)
         macd = XMACDIndicator(shortEma, longEma)
+
+        shortEmaSell = XDoubleEMAIndicator(bars, XExtBar._shortEma1Sell, XExtBar._shortEma2Sell, XExtBar._shortEmaSell, closePrice, _params.shortSell!!)
+        longEmaSell = XDoubleEMAIndicator(bars, XExtBar._longEma1Sell, XExtBar._longEma2Sell, XExtBar._longEmaSell, closePrice, _params.longSell!!)
+        macdSell = XMACDIndicator(shortEmaSell, longEmaSell)
 //        signalEma = XMcGinleyIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
 //        signal2Ema = XMcGinleyIndicator(bars, XExtBar._signal2Ema, macd, _params.signal2!!)
         signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
@@ -128,6 +142,11 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         sd = GustosIndicator(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
         sma = object : XIndicator<XExtBar> {
             override fun getValue(index: Int): Double = getBar(index).sma
+        }
+
+        sdSell = GustosIndicator(bars, XExtBar._sdSell, XExtBar._closePrice, XExtBar._volume, XExtBar._smaSell, XExtBar._avrVolumeSell, _params.deviationTimeFrameSell!!, _params.deviationTimeFrameSell2!!)
+        smaSell = object : XIndicator<XExtBar> {
+            override fun getValue(index: Int): Double = getBar(index).smaSell
         }
 
         dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
@@ -143,7 +162,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { shortEmaSell.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { longEmaSell.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { sdSell.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })
         tasks.forEach { it.join() }
@@ -163,7 +185,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     }
 
     private fun localDownTrend(index: Int): Boolean {
-        return macd.getValue(index) < signal2Ema.getValue(index)
+        return macdSell.getValue(index) < signal2Ema.getValue(index)
     }
 
     private fun dayUpTrend(index: Int): Boolean {
@@ -178,32 +200,59 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
         val sd = sd.getValue(index)
         val sma = bar.sma
+        val sdSell = sdSell.getValue(index)
+        val smaSell = bar.smaSell
         val price = closePrice.getValue(index)
+        val pricePrev = closePrice.getValue(maxOf(0,index-1))
 
         return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it) }) {
             Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
             when {
-                price < sma - sd * _params.deviation!! / 10.0
+                priceLow(index,_params.deviation!!)
                         && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it) } //проверять последние 10 баров
                         && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it) }
                 -> Pair(Decision.BUY, mapOf(Pair("up", "true"))) //проверять последние 2 бара
 
-                price > sma + sd * _params.deviation2!! / 10.0 && localDownTrend(index) -> Pair(Decision.SELL, emptyMap())
+                /*(price > smaSell + sdSell * _params.deviation3!! / 10.0 && pricePrev>=price) || */(price > smaSell + sdSell * _params.deviation2!! / 10.0 && localDownTrend(index)) -> Pair(Decision.SELL, mapOf(Pair("up&godown", "true")))
                 else -> Pair(Decision.NONE, emptyMap())
             }
         }
+    }
 
+    fun shouldSell(index : Int) : Boolean{
+        return priceHigh(index,_params.deviation2!!) && localDownTrend(index)
+    }
+
+    fun priceHigh(index : Int, deviation : Int) : Boolean {
+        var bar = bars[index]
+        val sdSell = sdSell.getValue(index)
+        val smaSell = bar.smaSell
+        val price = closePrice.getValue(index)
+        return price > smaSell + sdSell * deviation / 10.0
+    }
+
+    fun priceLow(index : Int, deviation : Int) : Boolean {
+        var bar = bars[index]
+        val sd = sd.getValue(index)
+        val sma = bar.sma
+        val price = closePrice.getValue(index)
+        return price < sma + sd * deviation / 10.0
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
         return mapOf(Pair("sma", sma),
                 Pair("sd", sd),
+                Pair("smaSell", smaSell),
+                Pair("sdSell", sdSell),
                 Pair("shortEma", shortEma),
                 Pair("longEma", longEma),
+                Pair("shortEmaSell", shortEmaSell),
+                Pair("longEmaSell", longEmaSell),
                 Pair("price", closePrice),
                 Pair("macd", XMinusIndicator(macd, signalEma)),
+                Pair("macdSell", XMinusIndicator(macdSell, signal2Ema)),
                 Pair("dayShortEma", dayShortEma),
                 Pair("dayLongEma", dayLongEma),
                 Pair("tsl", tslIndicator),

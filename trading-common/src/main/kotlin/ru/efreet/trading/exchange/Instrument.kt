@@ -15,6 +15,7 @@ data class Instrument(var asset: String?, var base: String?) : Serializable {
     companion object {
         @JvmStatic
         val BTC_USDT = Instrument("BTC", "USDT")
+        val BCC_USDT = Instrument("BCC", "USDT")
 
         fun parse(name: String): Instrument {
             val n = name.split("_")

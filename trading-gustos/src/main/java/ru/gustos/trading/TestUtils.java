@@ -35,6 +35,25 @@ public class TestUtils {
         return sheet;
     }
 
+    public static Sheet makeSheetBcc() throws Exception {
+        Exchange exch = new Binance();
+        Instrument instr = Instrument.Companion.getBCC_USDT();
+        BarInterval interval = BarInterval.ONE_MIN;
+
+        BarsCache cache = new BarsCache("cache.sqlite3");
+        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
+        List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+
+// индикаторы
+        IndicatorsLib lib = new IndicatorsLib("indicators.json");
+
+        Sheet sheet = new Sheet(exch,instr,interval, lib);
+//        bars = BarsPacker.packBarsVolume(bars,100);
+//        bars = BarsPacker.packBarsSign(bars);
+        sheet.fromBars(bars);
+        return sheet;
+    }
+
     public static Sheet makeSheetEmptyLib(int pack) throws Exception {
         Exchange exch = new Binance();
         Instrument instr = Instrument.Companion.getBTC_USDT();

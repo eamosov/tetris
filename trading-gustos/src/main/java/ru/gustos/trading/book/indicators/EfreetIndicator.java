@@ -10,6 +10,7 @@ import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.Color;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class EfreetIndicator extends BaseIndicator {
@@ -43,6 +44,12 @@ public class EfreetIndicator extends BaseIndicator {
     @Override
     public Color getColorMin() {
         return Color.red;
+    }
+
+    @Override
+    public Map<String,String> getMark(int ind) {
+        final BotAdvice ose = botLogic.getBotAdvice(ind, null, null, true);
+        return ose.getDecisionArgs();
     }
 
     @Override
