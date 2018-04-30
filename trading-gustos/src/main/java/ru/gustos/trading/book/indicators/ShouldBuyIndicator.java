@@ -3,6 +3,8 @@ package ru.gustos.trading.book.indicators;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
+import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
+import ru.gustos.trading.book.Moment;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
@@ -29,13 +31,17 @@ public class ShouldBuyIndicator extends BaseIndicator {
     @Override
     public void calcValues(Sheet sheet, double[] values) {
         EfreetIndicator indicator = (EfreetIndicator)sheet.getLib().get(EfreetIndicator.Id);
-        Sd3Logic botLogic = (Sd3Logic)indicator.botLogic;
+        Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
         int lookNext = 240;
         for (int i = 0;i<sheet.moments.size()-lookNext;i++) {
+            double bestprofit = 1;
             for (int j = i+1;j<i+lookNext;j++){
+                Moment moment = sheet.moments.get(i);
+                double profit = sheet.moments.get(j).bar.getClosePrice()/ moment.bar.getClosePrice();
+                bestprofit = Math.max(bestprofit,profit);
                 if (botLogic.shouldSell(j)) {
-                    double profit = sheet.moments.get(j).bar.getClosePrice()/sheet.moments.get(i).bar.getClosePrice();
                     values[i] = profit>1.002?IIndicator.YES:0;
+                    moment.weight = profit>=1?(profit-1):(1/profit-1)*2*(bestprofit/profit);
                     break;
                 }
             }

@@ -7,6 +7,7 @@ public class Moment {
     public XBar bar;
     public Decision decision;
     public Decision decisionRisky;
+    public double weight = 1;
 
 
     public Moment(XBar bar) {

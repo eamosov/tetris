@@ -1,6 +1,7 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
+import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
@@ -29,7 +30,7 @@ public class PriceLowIndicator extends BaseIndicator {
     @Override
     public void calcValues(Sheet sheet, double[] values) {
         EfreetIndicator indicator = (EfreetIndicator)sheet.getLib().get(EfreetIndicator.Id);
-        Sd3Logic botLogic = (Sd3Logic)indicator.botLogic;
+        Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
         int l = 0;
         for (int i = 0;i<sheet.moments.size();i++) {
             boolean res = botLogic.priceLow(i,deviation);

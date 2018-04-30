@@ -1,11 +1,12 @@
 [
-{"id" : 1, "name": "Efreet","logic":"sd3","state":"sd3_2018_01_16.properties"},
+{"id" : 1, "name": "Efreet","logic":"sd5","state":"sd3_2017_12_16_03_31.properties"},
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "PriceChangeToVolume"},
 {"id" : 13, "name": "VolumeToPriceChangeBurst","t1":20,"t2":2000},
 {"id" : 14, "name": "VolumeToPriceChangeBurst","t1":60,"t2":2000},
 {"id" : 15, "name": "VolumeBurst","t1":20,"t2":2000},
 {"id" : 16, "name": "VolumeBurst","t1":60,"t2":2000},
+
 
 {"id" : 23, "name": "Sd3Number", "ind" : 1, "param": "macd"},
 {"id" : 30, "name": "Sd3Number", "ind" : 1, "param": "dayMacd"},
@@ -87,15 +88,26 @@
 {"id" : 176, "name": "Dema", "t1" : 900, "t2" : 340, "t3" : 270,"b1" : true, "show" : false},
 {"id" : 177, "name": "Dema", "t1" : 70, "t2" : 30, "t3" : 23,"b1" : true, "show" : false},
 
+{"id" : 480, "name": "RSI", "t1" : 10},
+{"id" : 481, "name": "RSI", "t1" : 120},
+{"id" : 482, "name": "RSI", "t1" : 1200},
+
 {"id" : 250, "name": "ShouldBuy"},
-{"id" : 251, "name": "Classifier","classifier" : "bayes.model"},
-{"id" : 252, "name": "Classifier","classifier" : "logistic.model"},
+{"id" : 254, "name": "Classifier","classifier" : "f1.model"},
+{"id" : 255, "name": "Classifier","classifier" : "nn.model"},
+{"id" : 256, "name": "Classifier","classifier" : "tree.model"},
+{"id" : 257, "name": "Classifier","classifier" : "forest_weighted.model"},
 
-{"id" : 260, "name": "Play","ind": 251, "show" : false},
-{"id" : 261, "name": "Success", "ind" : 260},
-{"id" : 263, "name": "Play","ind": 252, "show" : false},
-{"id" : 264, "name": "Success", "ind" : 263},
+{"id" : 267, "name": "Play","ind": 254, "show" : false},
+{"id" : 268, "name": "Success", "ind" : 267},
+{"id" : 269, "name": "Play","ind": 255, "show" : false},
+{"id" : 270, "name": "Success", "ind" : 269},
+{"id" : 271, "name": "Play","ind": 256, "show" : false},
+{"id" : 272, "name": "Success", "ind" : 271},
+{"id" : 273, "name": "Play","ind": 257, "show" : false},
+{"id" : 274, "name": "Success", "ind" : 273},
 
-{"id" : 270, "name": "Success", "ind" : 1} 
+{"id" : 300, "name": "Success", "ind" : 1} ,
+{"id" : 360, "name": "Sd3Number", "ind" : 1, "param": "sd+"}
 
 ]

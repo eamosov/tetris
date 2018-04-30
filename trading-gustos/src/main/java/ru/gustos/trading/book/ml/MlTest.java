@@ -1,7 +1,9 @@
 package ru.gustos.trading.book.ml;
 
+import weka.classifiers.CostMatrix;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.meta.CostSensitiveClassifier;
 import weka.classifiers.trees.RandomForest;
 import weka.classifiers.functions.Logistic;
 
@@ -37,7 +39,9 @@ public class MlTest {
                 rf.setNumIterations(500*j);
                 rf.buildClassifier(trainData);
 
+                CostMatrix m = new CostMatrix(2);
 
+                CostSensitiveClassifier cc = new CostSensitiveClassifier();
                 Evaluation evaluation = new Evaluation(trainData);
                 evaluation.evaluateModel(rf, examData);
 

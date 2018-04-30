@@ -1,6 +1,7 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
+import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
@@ -27,18 +28,23 @@ public class PlayIndicator extends BaseIndicator{
     public void calcValues(Sheet sheet, double[] values) {
 
         double[] d = sheet.getData().get(ind);
-        Sd3Logic sd3 = (Sd3Logic)((EfreetIndicator)sheet.getLib().get(1)).botLogic;
+        Sd5Logic sd3 = (Sd5Logic)((EfreetIndicator)sheet.getLib().get(1)).botLogic;
 
         try {
 
             boolean buy = false;
+            boolean stopBuy = false;
             for (int i = 0;i<d.length;i++) {
                 if (buy){
-                    if (sd3.shouldSell(i))
+                    if (sd3.shouldSell(i)) {
                         buy = false;
+                        stopBuy = true;
+                    }
                 } else {
-                    if (d[i]>0)
+                    if (d[i]>0 && !stopBuy)
                         buy = true;
+                    if (d[i]<=0)
+                        stopBuy = false;
                 }
                 values[i] = buy ? IIndicator.YES : 0;
             }

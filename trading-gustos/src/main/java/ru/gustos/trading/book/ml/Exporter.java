@@ -108,12 +108,19 @@ public class Exporter {
         HashSet<Integer> ignore = ignore();
 
         int from,to;
+//        if (train) {
+//            from = sheet.getBarIndex(ZonedDateTime.of(2017, 12, 1, 0, 0, 0, 0, ZoneId.systemDefault()));
+//            to = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
+//        } else {
+//            from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
+//            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 27, 0, 0, 0, 0, ZoneId.systemDefault()));
+//        }
         if (train) {
-            from = sheet.getBarIndex(ZonedDateTime.of(2017, 12, 1, 0, 0, 0, 0, ZoneId.systemDefault()));
-            to = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
+            from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 15, 0, 0, 0, 0, ZoneId.systemDefault()));
+            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 23, 0, 0, 0, 0, ZoneId.systemDefault()));
         } else {
-            from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()));
-            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 27, 0, 0, 0, 0, ZoneId.systemDefault()));
+            from = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 23, 0, 0, 0, 0, ZoneId.systemDefault()));
+            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 28, 0, 0, 0, 0, ZoneId.systemDefault()));
         }
         lastFrom = from;
         lastTo = to;
@@ -140,6 +147,7 @@ public class Exporter {
                     sb.append(',');
                 }
             addValue(sb,sheet,i, sheet.getLib().get(targetId));
+            sb.append(",{").append(sheet.moments.get(i).weight).append("}");
             sb.append("\n");
         }
         return sb.toString();

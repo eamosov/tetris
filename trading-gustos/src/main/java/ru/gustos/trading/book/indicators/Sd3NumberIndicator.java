@@ -7,6 +7,7 @@ import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
+import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.efreet.trading.ta.indicators.*;
 import ru.gustos.trading.book.Sheet;
 
@@ -56,7 +57,7 @@ public class Sd3NumberIndicator extends BaseIndicator {
     }
 
     public XIndicator<XExtBar> values(Sheet sheet){
-        Sd3Logic sd3 = (Sd3Logic)((EfreetIndicator)sheet.getLib().get(ind)).botLogic;
+        Sd5Logic sd3 = (Sd5Logic)((EfreetIndicator)sheet.getLib().get(ind)).botLogic;
         switch (param){
             case "shortEma":
                 return sd3.shortEma;
@@ -73,7 +74,7 @@ public class Sd3NumberIndicator extends BaseIndicator {
             case "smaSell":
                 return sd3.sma;
             case "sd+":
-                return new XPlusKIndicator<>(sd3.smaSell,sd3.sdSell,sd3.getParams().getDeviation2()*0.1);
+                return new XPlusKIndicator<>(sd3.sma,sd3.sd,sd3.getParams().getDeviation2()*0.1);
             case "sd-":
                 return new XPlusKIndicator<>(sd3.sma,sd3.sd,-sd3.getParams().getDeviation()*0.1);
             case "dayShortEma":

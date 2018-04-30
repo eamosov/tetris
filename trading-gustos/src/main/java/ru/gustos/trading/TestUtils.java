@@ -22,7 +22,8 @@ public class TestUtils {
         BarInterval interval = BarInterval.ONE_MIN;
 
         BarsCache cache = new BarsCache("cache.sqlite3");
-        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2018,4,15,0,0,0,0, ZoneId.systemDefault());
+//        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
         List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы

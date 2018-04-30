@@ -25,7 +25,7 @@ class Main {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
-            val cdm = CdmBotTrainer(cmd.cpu)
+            val cdm = CdmBotTrainer(cmd.cpu, cmd.steps)
 
             val exchange = Exchange.getExchange(cmd.exchange)
             val cache = BarsCache(cmd.cachePath)
