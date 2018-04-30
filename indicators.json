@@ -1,5 +1,5 @@
 [
-{"id" : 1, "name": "Efreet","logic":"sd5","state":"sd3_2017_12_16_03_31.properties"},
+{"id" : 1, "name": "Efreet","logic":"sd5","state":"sd3_2017_12_16_04_28.properties"},
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "PriceChangeToVolume"},
 {"id" : 13, "name": "VolumeToPriceChangeBurst","t1":20,"t2":2000},

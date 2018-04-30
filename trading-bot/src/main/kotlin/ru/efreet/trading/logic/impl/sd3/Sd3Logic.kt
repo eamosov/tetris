@@ -199,7 +199,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     fun upperBound(index : Int) : Double {
         val sd = sd.getValue(index)
         val sma = getBar(index).sma
-        return sma + sd * 2//_params.deviation2!! / 10.0
+        return sma + _params.deviation2!! / 10.0
 
     }
 
