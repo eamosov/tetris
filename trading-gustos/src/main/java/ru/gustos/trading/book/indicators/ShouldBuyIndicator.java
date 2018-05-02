@@ -29,11 +29,11 @@ public class ShouldBuyIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         EfreetIndicator indicator = (EfreetIndicator)sheet.getLib().get(EfreetIndicator.Id);
         Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
         int lookNext = 240;
-        for (int i = 0;i<sheet.moments.size()-lookNext;i++) {
+        for (int i = from;i<to-lookNext;i++) {
             double bestprofit = 1;
             for (int j = i+1;j<i+lookNext;j++){
                 Moment moment = sheet.moments.get(i);

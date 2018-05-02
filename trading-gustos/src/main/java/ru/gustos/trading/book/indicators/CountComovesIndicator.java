@@ -21,10 +21,10 @@ public class CountComovesIndicator extends NumberIndicator {
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
-        for (int i = t1+20;i<values.length;i++) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+        for (int i = Math.max(from,t1+10);i<to;i++) {
             int cc = 0;
-            for (int j = 0;j<7;j++){
+            for (int j = 0;j<10;j++){
                 XBar bar = sheet.moments.get(i-t1-j).bar;
                 if (positive && bar.isBullish()) cc++;
                 if (!positive && bar.isBearish()) cc++;

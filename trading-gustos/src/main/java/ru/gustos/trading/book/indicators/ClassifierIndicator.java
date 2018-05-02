@@ -35,17 +35,17 @@ public class ClassifierIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
-        Instances data = Exporter.makeDataSet(sheet, 250, 0, sheet.moments.size());
+        Instances data = Exporter.makeDataSet(sheet, 250, from, to);
         try {
 
             Classifier c = (Classifier)weka.core.SerializationHelper.read("d:/tetrislibs/models/" + classifier);
             Evaluation evaluation = new Evaluation(data);
             double[] result = evaluation.evaluateModel(c, data);
 
-            for (int i = 0;i<result.length;i++)
-                values[Exporter.lastFrom+i] = result[i]>0.5?IIndicator.YES:0;
+            for (int i = from;i<to;i++)
+                values[from] = result[i-from]>0.5?IIndicator.YES:0;
 
         } catch (Exception e) {
             e.printStackTrace();

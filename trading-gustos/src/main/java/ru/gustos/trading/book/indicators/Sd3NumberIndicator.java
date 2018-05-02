@@ -101,18 +101,23 @@ public class Sd3NumberIndicator extends BaseIndicator {
         return null;
     }
 
+    int lastTo = -1;
+    int l = 0;
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         XIndicator<XExtBar> v = values(sheet);
         if (!length) {
-            for (int i = 0; i < values.length; i++) {
+            for (int i = from; i < to; i++) {
                 double vv = v.getValue(i);
                 values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
             }
         }else {
-            int l = 0;
-            for (int i = 0; i < values.length; i++) {
+            if (lastTo!=from) {
+                l = 0;
+                from = 0;
+            }
+            for (int i = from; i < to; i++) {
                 double val = v.getValue(i);
                 if (val>0)
                     l++;
@@ -120,9 +125,8 @@ public class Sd3NumberIndicator extends BaseIndicator {
                     l = 0;
                 values[i] = l;
             }
-
         }
-
+        lastTo = to;
 
     }
 }

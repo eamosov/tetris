@@ -25,13 +25,13 @@ public class RelativePriceIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
 //        if (bars<20) {
-            for (int i = 0; i < values.length; i++){
+            for (int i = from; i < to; i++){
                 XBar bar = sheet.moments.get(i).bar;
-                double min = bar.getOpenPrice();
-                double max = bar.getOpenPrice();
+                double min = bar.getClosePrice();
+                double max = bar.getClosePrice();
                 for (int j = Math.max(0,i-bars);j<i;j++) {
                     XBar b = sheet.moments.get(j).bar;
                     if (min>b.getMinPrice()) min = b.getMinPrice();
@@ -40,7 +40,7 @@ public class RelativePriceIndicator extends BaseIndicator {
                 if (max-min<0.001)
                     values[i] = 0.5;
                 else
-                    values[i] = (bar.getOpenPrice()-min)/(max-min);
+                    values[i] = (bar.getClosePrice()-min)/(max-min);
             }
 //        }
     }

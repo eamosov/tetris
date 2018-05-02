@@ -36,14 +36,14 @@ public class TestIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         double[] d1 = sheet.getData().get(ind[0]);
         double[] d2 = sheet.getData().get(ind[1]);
 
 
         boolean in = false;
-        for (int i = 0; i < values.length; i++) {
+        for (int i = from; i < to; i++) {
             if (!in){
                 in = d1[i]==IIndicator.YES && (!b1 || d2[i]<0);
             } else {

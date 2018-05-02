@@ -33,9 +33,9 @@ public class SumIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         Arrays.fill(values,0);
-        for (int i = 0;i<values.length;i++)
+        for (int i = from;i<to;i++)
             for (int j = 0;j<ids.length;j++)
                 values[i] +=  sheet.getData().get(ids[j],i)*weights[j];
     }

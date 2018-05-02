@@ -26,10 +26,10 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
         if (positive) {
-            for (int i = bars; i < values.length; i++) {
+            for (int i = Math.max(bars,from); i < to; i++) {
                 double cur = sheet.moments.get(i).bar.getClosePrice();
                 double min = cur;
                 for (int j = 0;j<=bars;j++){
@@ -40,7 +40,7 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
 
             }
         } else {
-            for (int i = bars; i < values.length; i++) {
+            for (int i = Math.max(bars,from); i < to; i++) {
                 double cur = sheet.moments.get(i).bar.getClosePrice();
                 double max = cur;
                 for (int j = 0;j<=bars;j++){

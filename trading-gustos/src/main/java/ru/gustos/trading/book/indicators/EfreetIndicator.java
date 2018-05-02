@@ -53,19 +53,21 @@ public class EfreetIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
-        botLogic = LogicFactory.Companion.getLogic(this.logic,
-                                                               Instrument.Companion.getBTC_USDT(),
-                                                               BarInterval.ONE_MIN,
-                                                               sheet.moments.stream()
-                                                                            .map(m -> new XExtBar(m.bar))
-                                                                            .collect(Collectors.toList()));
+        if (botLogic==null) {
+            botLogic = LogicFactory.Companion.getLogic(this.logic,
+                    Instrument.Companion.getBTC_USDT(),
+                    BarInterval.ONE_MIN,
+                    sheet.moments.stream()
+                            .map(m -> new XExtBar(m.bar))
+                            .collect(Collectors.toList()));
 
-        botLogic.loadState(state);
-        botLogic.prepare();
+            botLogic.loadState(state);
+            botLogic.prepare();
+        }
 
-        for (int i = 0; i < values.length; i++) {
+        for (int i = from; i < to; i++) {
 
             final BotAdvice ose = botLogic.getBotAdvice(i, null, null, true);
 

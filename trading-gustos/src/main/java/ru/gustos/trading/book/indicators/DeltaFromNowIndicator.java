@@ -19,11 +19,11 @@ public class DeltaFromNowIndicator extends NumberIndicator {
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
-        for (int i = t1;i<values.length;i++) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+        for (int i = Math.max(from,t1);i<to;i++) {
             XBar bar = sheet.moments.get(i-t1).bar;
             XBar barn = sheet.moments.get(i).bar;
-            values[i] =  (barn.getClosePrice()-bar.getMinPrice())/bar.middlePrice()*100;
+            values[i] =  (barn.getClosePrice()-bar.getClosePrice())/bar.middlePrice()*100;
         }
     }
 

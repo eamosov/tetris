@@ -1,5 +1,6 @@
 package ru.gustos.trading.book;
 
+import org.jetbrains.annotations.NotNull;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.utils.BarsPacker;
@@ -105,6 +106,11 @@ public class Sheet {
             indicatorsData.calc(ii);
     }
 
+    public void calcIndicatorsForLastBar(){
+        for (IIndicator ii : indicatorsLib.listIndicators())
+            indicatorsData.calc(ii,moments.size()-1,moments.size());
+    }
+
     public void calcIndicatorsNoPredict(){
         for (IIndicator ii : indicatorsLib.listIndicators())
             if (ii.getId()<200)
@@ -200,6 +206,12 @@ public class Sheet {
         }
         return data;
 
+    }
+
+    @NotNull
+    public void add(@NotNull XBar bar) {
+        moments.add(new Moment(new XBaseBar(bar)));
+        calcIndicatorsForLastBar();
     }
 }
 

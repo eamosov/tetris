@@ -22,8 +22,8 @@ public class MinMaxDeltaIndicator extends NumberIndicator {
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
-        for (int i = t1;i<values.length;i++) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+        for (int i = Math.max(t1,from);i<to;i++) {
             XBar bar = sheet.moments.get(i-t1).bar;
             values[i] =  (bar.getMaxPrice()-bar.getMinPrice())/bar.middlePrice()*100;
         }

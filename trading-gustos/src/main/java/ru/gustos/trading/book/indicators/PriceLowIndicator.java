@@ -27,20 +27,26 @@ public class PriceLowIndicator extends BaseIndicator {
         return howlong?IndicatorType.NUMBER:IndicatorType.YESNO;
     }
 
+    int l = 0;
+    int lastTo = -1;
+
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         EfreetIndicator indicator = (EfreetIndicator)sheet.getLib().get(EfreetIndicator.Id);
         Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
-        int l = 0;
-        for (int i = 0;i<sheet.moments.size();i++) {
+        if (from!=lastTo){
+            from  = 0;
+            l = 0;
+        }
+        for (int i = from;i<to;i++) {
             boolean res = botLogic.priceLow(i,deviation);
             if (res)
                 l++;
             else
                 l = 0;
             values[i] = howlong?l:(res?IIndicator.YES:IIndicator.NO);
-
         }
+        lastTo = to;
     }
 
     @Override

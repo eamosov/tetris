@@ -52,9 +52,10 @@ public class OrderBot {
 
         double fee = 0.0005;
 
-        double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
+        double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
         double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
-        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 150, vols, 600);
+        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 120, vols, 600);
+//        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 150, vols, 600);
 //        Pair<double[], double[]> pp = VecUtils.emaAndDisp(v, 150);
         double[] ema = pp.getFirst();
         double[] disp = pp.getSecond();
@@ -68,33 +69,40 @@ public class OrderBot {
                         .map(m -> new XExtBar(m.bar))
                         .collect(Collectors.toList()));
 
-        botLogic.loadState("sd3_2018_01_16_04_28.properties");
+        botLogic.loadState("sd3_2017_12_16_04_28.properties");
         botLogic.prepare();
 
         int count = 0;
         int profitable = 0;
         int buyIndex = 0;
-        for (int i = from;i<to;i++){
+        for (int i = from;i<to;i++) {
+            XBar prev = sheet.moments.get(i - 1).bar;
             XBar bar = sheet.moments.get(i).bar;
             double close = bar.getClosePrice();
-            if (money>0){
+            if (money > 0) {
                 boolean check = bar.getMinPrice() <= buyOrder && bar.getMaxPrice() >= buyOrder;
-                if (!check && close <ema[i]-disp[i]*2)
-                    buyOrder = close;
-                if (check){
+//                if (!check && close < ema[i] - disp[i] * 2)
+//                    buyOrder = close;
+                if (check) {
 //                    buyOrder = bar.getClosePrice();
-                    btc = money/buyOrder*(1-fee);
+                    btc = money / buyOrder * (1 - fee);
                     money = 0;
-                    buyPrice = buyOrder*(1+fee);
+                    buyPrice = buyOrder * (1 + fee);
                     count++;
                     buyIndex = i;
                     buyOrder = 0;
                 } else
-                    buyOrder = ema[i]-disp[i]*2;
-            } else if (btc>0){
+                    buyOrder = ema[i] - disp[i] * 2;
+            } else if (btc > 0) {
                 boolean check = bar.getMinPrice() <= sellOrder && bar.getMaxPrice() >= sellOrder;
-//                if (!check && close >ema[i]+disp[i]*2)
+//                if (close >ema[i]+disp[i]*2) {
 //                    sellOrder = close;
+//                    check = true;
+//                }
+                if (!check){
+                    check = botLogic.shouldSell(i);
+                    sellOrder = bar.getClosePrice();
+                }
 
                 if (check){
 //                    sellOrder = bar.getClosePrice();
@@ -108,7 +116,7 @@ public class OrderBot {
                         g[j] = good? IIndicator.YES: IIndicator.NO;
                     sellOrder = 0;
                 } else {
-                    sellOrder = ema[i]+disp[i]*2;
+                    sellOrder = ema[i]+disp[i]*20;
                     double upperPrice = botLogic.upperBound(i);
 //                    if (bar.getClosePrice()>upperPrice)
 //                        sellOrder = (bar.getClosePrice() + upperPrice)/2;

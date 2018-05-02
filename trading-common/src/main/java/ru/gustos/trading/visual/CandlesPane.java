@@ -107,7 +107,7 @@ public class CandlesPane extends JPanel {
             else if (vis.averageType.equalsIgnoreCase("gustos ema"))
                 rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
             else if (vis.averageType.equalsIgnoreCase("gustos ema2"))
-                rr = VecUtils.gustosEmaAndDisp2(v, window, vols, window*4);
+                rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
             else
                 rr = VecUtils.emaAndMed(v, window);
 //            Pair<double[], double[]> rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);

@@ -73,8 +73,6 @@ public class RunBotDialog extends JDialog {
             bot = new OracleBot();
         else if (botName.startsWith("EfreetIndicator"))
             bot = new EfreetBot();
-        else if (botName.startsWith("Y "))
-            bot = new YBot();
         else if (botName.startsWith("Random"))
             bot = new RandomBot();
         else if (botName.startsWith("Check period 15m"))

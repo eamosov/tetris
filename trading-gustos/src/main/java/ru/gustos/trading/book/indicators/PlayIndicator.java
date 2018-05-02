@@ -25,7 +25,7 @@ public class PlayIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         double[] d = sheet.getData().get(ind);
         Sd5Logic sd3 = (Sd5Logic)((EfreetIndicator)sheet.getLib().get(1)).botLogic;
@@ -34,7 +34,7 @@ public class PlayIndicator extends BaseIndicator{
 
             boolean buy = false;
             boolean stopBuy = false;
-            for (int i = 0;i<d.length;i++) {
+            for (int i = 0;i<to;i++) {
                 if (buy){
                     if (sd3.shouldSell(i)) {
                         buy = false;

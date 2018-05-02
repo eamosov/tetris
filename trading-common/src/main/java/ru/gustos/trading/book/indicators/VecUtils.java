@@ -233,19 +233,17 @@ public class VecUtils {
     public static Pair<double[],double[]> gustosEmaAndDisp2(double[] v, int t, double[] volumes, int volumeT) {
         double[] ema = new double[v.length];
         double[] disp = new double[v.length];
+        double avgVolume = VecUtils.avg(volumes);
         ema[0] = v[0];
         disp[0] = 0;
         double prevVolume = volumes[0];
         for (int i = 1;i<v.length;i++) {
-            double vol = (volumes[i]-prevVolume)*2.0/(volumeT+1) + prevVolume;
-            prevVolume = vol;
-            double vk = volumes[i]/vol;
-            if (vk<1) vk = 1;
+            double vk = volumes[i]/avgVolume;
 
             ema[i] = (v[i] - ema[i - 1]) * 2.0/(t/vk+1) + ema[i - 1];
             double d = v[i]-ema[i];
             d*=d;
-            disp[i] = (d-disp[i-1])*2.0/(t+1) + disp[i-1];
+            disp[i] = (d-disp[i-1])*2.0/(t/vk+1) + disp[i-1];
         }
         for (int i = 1;i<v.length;i++)
             disp[i] = Math.sqrt(disp[i]);
@@ -282,7 +280,6 @@ public class VecUtils {
         double[] mc = new double[v.length];
         double[] disp = new double[v.length];
         double[] volumesAvg = ema(volumes,volT);
-        double k = 2.0/(t+1);
         mc[0] = v[0];
         disp[0] = 0;
         for (int i = 1;i<v.length;i++) {
@@ -291,9 +288,10 @@ public class VecUtils {
             a*=a;
             a*=a;
             double next = mc[i - 1] + (v[i] - mc[i - 1]) / (0.6 * t * a);
-            if (volumek<=1)
-                mc[i] = mc[i-1]*(1-volumek)+next*volumek;
-            else {
+            if (volumek<=1) {
+                volumek = Math.pow(volumek, 5);
+                mc[i] = mc[i - 1] * (1 - volumek) + next * volumek;
+            } else {
                 double vk = volumek;
                 double pn = 0;
                 while (vk>1) {
@@ -306,7 +304,7 @@ public class VecUtils {
             }
             double d = Math.abs(v[i]-mc[i]);
             d=d*d;
-            disp[i] = (d-disp[i-1])*k + disp[i-1];
+            disp[i] = (d-disp[i-1])* 2.0/(t/volumek+1) + disp[i-1];
 
         }
         for (int i = 1;i<v.length;i++)

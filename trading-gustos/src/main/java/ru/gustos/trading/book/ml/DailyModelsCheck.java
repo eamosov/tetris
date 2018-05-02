@@ -2,7 +2,6 @@ package ru.gustos.trading.book.ml;
 
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
-import ru.gustos.trading.book.indicators.TargetBuyIndicator;
 import weka.classifiers.Classifier;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -31,7 +30,7 @@ public class DailyModelsCheck {
     private static void calcAll() throws Exception {
         int first = sheet.getBarIndex(ZonedDateTime.of(2018,2,1,0,0,0,0, ZoneId.systemDefault()));
         int prevday = -1;
-        Instances instances = Exporter.makeDataSet(sheet, TargetBuyIndicator.Id, first, sheet.moments.size());
+        Instances instances = Exporter.makeDataSet(sheet, 1, first, sheet.moments.size());
         int[][] cm1 = new int[2][2];
         int[][] cm2 = new int[2][2];
         int[][] cm3 = new int[2][2];
@@ -56,7 +55,7 @@ public class DailyModelsCheck {
                 cm2_ = new int[2][2];
                 cm3_ = new int[2][2];
             }
-            int rv = sheet.getData().get(TargetBuyIndicator.Id, i)>0.5?1:0;
+            int rv = sheet.getData().get(1, i)>0.5?1:0;
             Instance inst = instances.instance(i - first);
             classify(inst, rv,logistic,cm1,cm1_);
             classify(inst,rv, bayes,cm2,cm2_);

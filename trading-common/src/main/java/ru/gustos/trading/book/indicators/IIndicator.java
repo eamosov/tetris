@@ -26,6 +26,6 @@ public interface IIndicator {
     Color getColorMax();
     Color getColorMin();
 
-    void calcValues(Sheet sheet, double[] values);
+    void calcValues(Sheet sheet, double[] values, int from, int to);
 }
 

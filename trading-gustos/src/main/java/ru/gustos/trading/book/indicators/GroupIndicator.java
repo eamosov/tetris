@@ -34,7 +34,7 @@ public class GroupIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         double[][] datas = new double[ind.length][];
 
@@ -42,7 +42,7 @@ public class GroupIndicator extends BaseIndicator{
             datas[i] = sheet.getData().get(ind[i]);
 
         int cur = -1;
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < to; i++) {
             int ii = -1;
             for (int j = 0;j<ind.length;j++) {
                 if (datas[j][i] == IIndicator.YES) {

@@ -19,8 +19,8 @@ public class UpperShadowIndicator extends NumberIndicator {
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
-        for (int i = t1;i<values.length;i++) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+        for (int i = Math.max(from,t1);i<to;i++) {
             XBar bar = sheet.moments.get(i-t1).bar;
             values[i] =  (bar.getMaxPrice()-Math.max(bar.getOpenPrice(),bar.getClosePrice()))/bar.middlePrice()*100;
         }

@@ -21,11 +21,11 @@ public class RSIIndicator extends NumberIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         double[] v1 = new double[values.length];
         double[] v2 = new double[v1.length];
         XBaseBar prev = (XBaseBar)sheet.moments.get(0).bar;
-        for (int i = 1;i<values.length;i++){
+        for (int i = Math.max(1,from);i<to;i++){
             XBaseBar b = (XBaseBar)sheet.moments.get(i).bar;
             double d = b.getClosePrice() - prev.getClosePrice();
             if (d>0)

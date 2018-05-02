@@ -53,7 +53,7 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         indicator = sheet.getLib().get(ind);
 
         double[] data = sheet.getData().get(ind);
@@ -62,7 +62,7 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
         double buyPrice = 0;
         int buyPos = 0;
         Map<String,String> buyKeys = null;
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < to; i++) {
 
             double v = data[i];
 

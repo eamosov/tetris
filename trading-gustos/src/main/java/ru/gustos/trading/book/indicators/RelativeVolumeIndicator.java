@@ -23,10 +23,10 @@ public class RelativeVolumeIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
         double sum = 0;
-        for (int i = 0; i < values.length; i++){
+        for (int i = from; i < to; i++){
             double vol = sheet.moments.get(i).bar.getVolume();
             double avg;
             sum+=vol;

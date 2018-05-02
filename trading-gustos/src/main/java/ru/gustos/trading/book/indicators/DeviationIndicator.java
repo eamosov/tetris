@@ -21,9 +21,9 @@ public class DeviationIndicator extends NumberIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         Arrays.fill(values,0);
-        for (int i = t1;i<values.length;i++){
+        for (int i = Math.max(from,t1);i<to;i++){
             double sum = 0;
             for (int j = 0;j<t1;j++)
                 sum += sheet.moments.get(i-t1+j).bar.getClosePrice();

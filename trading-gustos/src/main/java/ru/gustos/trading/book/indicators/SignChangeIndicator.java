@@ -38,17 +38,15 @@ public class SignChangeIndicator extends BaseIndicator {
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = period*5;
         double[] vv = sheet.getData().get(ind);
-        for (int i = bars;i<sheet.moments.size();i++){
+        for (int i = Math.max(from,bars);i<to;i++){
             double v = vv[i];
             if (toPlus)
                 values[i] = (v > 0 && vv[i-bars]<0)?IIndicator.YES:IIndicator.NO;
             else
                 values[i] = (v < 0 && vv[i-bars]>0)?IIndicator.YES:IIndicator.NO;
         }
-
-
     }
 }

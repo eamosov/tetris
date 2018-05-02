@@ -46,13 +46,13 @@ public class HistoryMoodIndicator extends BaseIndicator {
 //    }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
 
 
         double[] sellValues = SheetUtils.sellValues(sheet,optimist);
         Arrays.fill(values,0, bars,0);
-        for (int i = bars;i<sheet.moments.size();i++){
+        for (int i = Math.max(from,bars);i<to;i++){
             double result = run(sheet,i-bars,i-5,sellValues);
             if (optimist)
                 values[i] = result/1000-1;

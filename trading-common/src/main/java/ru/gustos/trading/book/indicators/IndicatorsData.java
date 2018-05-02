@@ -14,9 +14,13 @@ public class IndicatorsData {
         this.sheet = sheet;
     }
 
-    public void calc(IIndicator ind){
+    public void calc(IIndicator ind) {
+        calc(ind,0,sheet.moments.size());
+    }
+
+    public void calc(IIndicator ind, int from, int to){
         double[] values =  new double[sheet.moments.size()];
-        ind.calcValues(sheet,values);
+        ind.calcValues(sheet,values,from,to);
         data.put(ind.getId(),values);
     }
 

@@ -33,11 +33,11 @@ public class FileIndicator extends BaseIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         try {
             double[] v = VecUtils.fromFile("d:/tetrislibs/agents/"+state);
-            System.arraycopy(v,0,values,0,Math.min(v.length,values.length));
+            System.arraycopy(v,from,values,from,to-from);
         } catch (Exception e) {
             e.printStackTrace();
         }

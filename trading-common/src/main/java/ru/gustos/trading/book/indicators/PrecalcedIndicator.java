@@ -52,7 +52,7 @@ public class PrecalcedIndicator implements IIndicator{
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
-        System.arraycopy(data,0,values,0,Math.min(data.length,values.length));
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+        System.arraycopy(data,from,values,from,to-from);
     }
 }

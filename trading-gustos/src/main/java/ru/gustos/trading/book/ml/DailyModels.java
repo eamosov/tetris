@@ -2,18 +2,13 @@ package ru.gustos.trading.book.ml;
 
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
-import ru.gustos.trading.book.indicators.TargetBuyIndicator;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.Logistic;
 import weka.classifiers.trees.RandomForest;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 
 
 public class DailyModels {
@@ -43,7 +38,7 @@ public class DailyModels {
 
     private static void calcForDay(int ind, ZonedDateTime time) throws Exception {
         int bars = 60*24*7*2*2;
-        Instances data = Exporter.makeDataSet(sheet, TargetBuyIndicator.Id, ind - bars, ind);
+        Instances data = Exporter.makeDataSet(sheet, 1, ind - bars, ind);
         System.out.println(String.format("make for %d %d %d", time.getYear(),time.getMonthValue(),time.getDayOfMonth()));
         Logistic l = new Logistic();
         l.buildClassifier(data);

@@ -22,10 +22,10 @@ public class PriceChangeIndicator extends NumberIndicator {
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values) {
+    public void calcValues(Sheet sheet, double[] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
-        for (int i = 0;i<values.length;i++)
-            values[i] =  (sheet.moments.get(i).bar.getOpenPrice()/sheet.moments.get(Math.max(0,i-bars)).bar.getOpenPrice()-1)*10;
+        for (int i = from;i<to;i++)
+            values[i] =  (sheet.moments.get(i).bar.getClosePrice()/sheet.moments.get(Math.max(0,i-bars)).bar.getClosePrice()-1)*10;
     }
 }
 
