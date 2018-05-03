@@ -89,7 +89,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         val targetGoodTrades = 0.7
         val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
         val targetStopLoss = 10.0
-        val targetAvrProfitPerTrade = 1.02
+        val targetAvrProfitPerTrade = 1.01
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
 
