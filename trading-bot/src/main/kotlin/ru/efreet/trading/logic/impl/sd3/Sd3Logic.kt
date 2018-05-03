@@ -98,7 +98,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 //.add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
                 .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0))
                 .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
-                .add("ppt", BotLogic.fine(stats.avrProfitPerTrade, targetAvrProfitPerTrade, 5.0))
+                .add("ppt", 10.0 * BotLogic.fine(stats.avrProfitPerTrade, targetAvrProfitPerTrade, 5.0))
                 .add("profit", stats.profit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
                 .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.5))
