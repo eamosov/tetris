@@ -71,7 +71,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
 
-//        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 //
 //        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
@@ -89,7 +89,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         val targetGoodTrades = 0.7
         val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
         val targetStopLoss = 3
-        val targetAvrProfitPerTrade = 1.005
+        val targetAvrProfitPerTrade = 1.01
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
 
@@ -98,7 +98,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 //.add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
                 .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0))
                 .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
-                .add("ppt", BotLogic.funXP(stats.avrProfitPerTrade / targetAvrProfitPerTrade - 1.0, 3.0))
+                .add("ppt", BotLogic.funXP(stats.avrProfitPerTrade / targetAvrProfitPerTrade - 1.0, 4.0))
                 .add("profit", stats.profit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
                 .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 2.0))
