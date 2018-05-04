@@ -7,7 +7,7 @@ import ru.efreet.trading.utils.pow2
  */
 class XVarianceIndicator<B>(val bars: List<B>,
                          val indicator: XIndicator<B>,
-                         val smaIndicator:XSMAIndicator<B>,
+                         val smaIndicator:XIndicator<B>,
                          val timeFrame: Int) : XIndicator<B> {
 
 

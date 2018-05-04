@@ -8,7 +8,7 @@ import ru.efreet.trading.utils.pow2
 class XStandardDeviationIndicator<B>(bars: List<B>,
                                      prop: BarGetterSetter<B>,
                                      val indicator: XIndicator<B>,
-                                     val smaIndicator: XSMAIndicator<B>,
+                                     val smaIndicator: XIndicator<B>,
                                      val timeFrame: Int) : XCachedIndicator<B>(bars, prop) {
 
     private val variance = XVarianceIndicator(bars, indicator, smaIndicator, timeFrame)

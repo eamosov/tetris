@@ -174,12 +174,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         return dayMacd.getValue(index) < daySignal2Ema.getValue(index)
     }
 
-    private fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
-
-        val sd = sd.getValue(index)
-        val sma = bar.sma
-        val price = closePrice.getValue(index)
-
+    protected fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
+        
         return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it) }) {
             Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
