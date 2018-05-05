@@ -71,7 +71,7 @@ class StatsCalculator {
 
         var profit2 = 1.0
         profits.asSequence()
-                .filter { it.second < 1.05 }
+                .filter { it.second < 1.1 }
                 .forEach { profit2 *= it.second }
 
         return TradesStats(
