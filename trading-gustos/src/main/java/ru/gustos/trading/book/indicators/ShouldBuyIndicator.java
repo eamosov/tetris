@@ -34,14 +34,35 @@ public class ShouldBuyIndicator extends BaseIndicator {
         Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
         int lookNext = 240;
         for (int i = from;i<to-lookNext;i++) {
-            double bestprofit = 1;
+            Moment moment = sheet.moments.get(i);
+            double close = moment.bar.getClosePrice();
+            double min = close;
+            int better = 0;
             for (int j = i+1;j<i+lookNext;j++){
-                Moment moment = sheet.moments.get(i);
-                double profit = sheet.moments.get(j).bar.getClosePrice()/ moment.bar.getClosePrice();
-                bestprofit = Math.max(bestprofit,profit);
+                double p = sheet.moments.get(j).bar.getClosePrice();
+                double profit = p / close;
+                if (p<close)
+                    better++;
+                min = Math.min(min,p);
                 if (botLogic.shouldSell(j)) {
-                    values[i] = profit>1.002?IIndicator.YES:0;
-                    moment.weight = profit>=1?(profit-1):(1/profit-1)*2*(bestprofit/profit);
+                    double bestprofit = p/min;
+
+                    if (profit<1.002 || better>(j-i)/2+5){
+                        values[i] = 0;
+                        double ww = (bestprofit/profit-1);
+                        if (profit<1.002) {
+                            double w = (1 / (profit / 1.002)) - 1;
+                            moment.weight = Math.max(ww*100,w*100);
+                        } else
+                            moment.weight = ww*100;
+//                        values[i] = -moment.weight;
+
+                    } else {
+                        values[i] = IIndicator.YES;
+                        moment.weight = (profit-1)*100;
+//                        values[i] = moment.weight;
+                    }
+                    moment.weight = Math.pow(moment.weight,1.5);
                     break;
                 }
             }
@@ -55,7 +76,7 @@ public class ShouldBuyIndicator extends BaseIndicator {
 
     @Override
     public Color getColorMin() {
-        return Color.darkGray;
+        return Color.RED;
     }
 }
 

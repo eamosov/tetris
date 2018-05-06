@@ -86,6 +86,9 @@ public class Exporter {
             if (!ignore.contains(ii.getId())){
                 double v = sheet.getData().get(ii.getId(), i);
                 if (ii.getType()==IndicatorType.YESNO && v<0) v = 0;
+                if (ii.getType()==IndicatorType.YESNO && v>0 && v!=1) {
+                    System.out.println("not 1 "+ii.getName()+" "+ii.getId()+" "+v);
+                }
                 instance[j] = v;
                 j++;
             }
@@ -117,10 +120,10 @@ public class Exporter {
 //        }
         if (train) {
             from = sheet.getBarIndex(ZonedDateTime.of(2018, 3, 15, 0, 0, 0, 0, ZoneId.systemDefault()));
-            to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 23, 0, 0, 0, 0, ZoneId.systemDefault()));
-        } else {
-            from = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 23, 0, 0, 0, 0, ZoneId.systemDefault()));
             to = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 28, 0, 0, 0, 0, ZoneId.systemDefault()));
+        } else {
+            from = sheet.getBarIndex(ZonedDateTime.of(2018, 4, 28, 0, 0, 0, 0, ZoneId.systemDefault()));
+            to = sheet.getBarIndex(ZonedDateTime.of(2018, 5, 3, 0, 0, 0, 0, ZoneId.systemDefault()));
         }
         lastFrom = from;
         lastTo = to;
@@ -173,16 +176,34 @@ public class Exporter {
 
     }
 
-    public static void main(String[] args) throws Exception {
-        Sheet sheet = new Sheet();
+    public static void shouldBuy() throws Exception{
+        Sheet sheet = new Sheet(new IndicatorsLib("indicators_bot.json"));
         sheet.fromCache();
         SheetUtils.FillDecisions(sheet);
-        sheet.calcIndicators();
+        sheet.calcIndicatorsNoPredict();
+        sheet.getData().calc(sheet.getLib().get(250));
         String s = doExport(sheet, 250,true);
         string2file("d:/tetrislibs/"+lastName+".arff",s);
         s = doExport(sheet, 250,false);
         string2file("d:/tetrislibs/"+lastName+".arff",s);
 
+    }
 
+    public static void shouldSell() throws Exception{
+        Sheet sheet = new Sheet(new IndicatorsLib("indicators_bot.json"));
+        sheet.fromCache();
+        SheetUtils.FillDecisions(sheet);
+        sheet.calcIndicatorsNoPredict();
+        sheet.getData().calc(sheet.getLib().get(251));
+        String s = doExport(sheet, 251,true,true);
+        string2file("d:/tetrislibs/"+lastName+".arff",s);
+        s = doExport(sheet, 251,false,true);
+        string2file("d:/tetrislibs/"+lastName+".arff",s);
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        shouldSell();
+//        shouldBuy();
     }
 }

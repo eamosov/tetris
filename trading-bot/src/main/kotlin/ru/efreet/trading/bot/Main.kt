@@ -55,7 +55,7 @@ class Main {
                 cache.saveBars(exchange.getName(), instrument, newCachedBars.filter { it.timePeriod == interval.duration })
 
 
-                for (days in arrayOf(56, 28, 14, 7)) {
+                for (days in ( if (cmd.shortTest) arrayOf(14) else arrayOf(56, 28, 14, 7))) {
                     val historyStart = ZonedDateTime.now().minusDays(days.toLong()).minus(interval.duration.multipliedBy(logic.historyBars))
                     val bars = cache.getBars(exchange.getName(), instrument, interval, historyStart, ZonedDateTime.now())
                     bars.checkBars()
@@ -72,7 +72,7 @@ class Main {
                 bots.put(instrument, TradeBot(exchange, cmd.tradesPath, cache, bot.limit, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
                     //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
-                }))
+                },bot.training))
 
                 /*val params = botSettings.getParams(instrument) ?: CdmBotTrainer().getBestParams(exchange, instrument, interval,
                         cmd.logicName,
@@ -113,7 +113,7 @@ class Main {
 
                         println("Start training")
 
-                        for ((instrument, bot) in bots) {
+                        for ((instrument, bot) in bots) if (bot.training){
 
                             val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(bot.logicName, bot.instrument, bot.barInterval)
                             val curParams = bot.logic.getParams().copy()

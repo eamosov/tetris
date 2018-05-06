@@ -51,7 +51,6 @@ public class HistoryMoodIndicator extends BaseIndicator {
 
 
         double[] sellValues = SheetUtils.sellValues(sheet,optimist);
-        Arrays.fill(values,0, bars,0);
         for (int i = Math.max(from,bars);i<to;i++){
             double result = run(sheet,i-bars,i-5,sellValues);
             if (optimist)

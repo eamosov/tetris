@@ -30,6 +30,7 @@ public class CandlesPane extends JPanel {
 
     public CandlesPane(Visualizator vis) {
         this.vis = vis;
+        setOpaque(false);
         infoLabel = new JLabel();
         add(infoLabel);
         setBackground(Color.white);
@@ -42,13 +43,17 @@ public class CandlesPane extends JPanel {
     }
     XBaseBar minMax;
     public void paint(Graphics g){
-        super.paint(g);
         Sheet sheet = vis.getSheet();
         if (sheet ==null) return;
+        boolean hasAverage = vis.averageWindow > 0 && !vis.averageType.equalsIgnoreCase("None");
         int from = vis.getIndex();
         int scale = vis.zoomScale();
         int bars = getSize().width* scale /vis.candleWidth();
         minMax = sheet.getSumBar(from, bars);
+        if (hasAverage) {
+            prepareAverage();
+            minMax = VecUtils.expandMinMax(minMax,avg,disp,2.1, from, bars);
+        }
         int to = Math.min(from + bars, sheet.moments.size());
         if (vis.graphIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
@@ -74,13 +79,14 @@ public class CandlesPane extends JPanel {
         if (vis.param>0)
             paintVolumeLine(g);
         paintGrid(g,minMax, from,true);
-        if (vis.averageWindow>0 && !vis.averageType.equalsIgnoreCase("None"))
+        if (hasAverage)
             paintAverage(g);
         for (IIndicator ii : vis.getSheet().getLib().listIndicators()){
             if (ii.priceLine() && ii.showOnPane()){
                 paintPriceLine(g,ii);
             }
         }
+        super.paint(g);
     }
 
     private void paintPriceLine(Graphics g, IIndicator ii) {
@@ -91,15 +97,12 @@ public class CandlesPane extends JPanel {
     private String prevAvgType = "";
     private double[] avg;
     private double[] disp;
-    private void paintAverage(Graphics g) {
+
+    private void prepareAverage(){
         Sheet sheet = vis.getSheet();
-        int from = vis.getIndex();
-        int scale = vis.zoomScale();
-        int bars = getSize().width* scale /vis.candleWidth();
-        int to = Math.min(from + bars, sheet.moments.size());
         int window = vis.averageWindow;
         if (window!=prevWindow || !prevAvgType.equals(vis.averageType)){
-            double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.middlePrice()).toArray();
+            double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
             double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
             Pair<double[], double[]> rr;
             if (vis.averageType.equalsIgnoreCase("gustos"))
@@ -119,31 +122,13 @@ public class CandlesPane extends JPanel {
             prevWindow = window;
             prevAvgType = vis.averageType;
         }
+
+    }
+    private void paintAverage(Graphics g) {
+        int scale = vis.zoomScale();
         paintPriceLine(g,this.avg, BLUE, 2f);
         paintPriceLine(g,VecUtils.add(this.avg,disp,2), darkColor, 2f);
         paintPriceLine(g,VecUtils.add(this.avg,disp,-2), darkColor, 2f);
-//        int w = vis.candleWidth();
-//        double a = VecUtils.avg(this.avg, from, scale);
-//        double d = VecUtils.avg(disp, from, scale);
-//        int ya = price2screen(a);
-//        int yminus = price2screen(a-2*d);
-//        int yplus = price2screen(a+2*d);
-//        ((Graphics2D)g).setStroke(new BasicStroke(3f));
-//        for (int i = 1;i<bars;i++) {
-//            a = VecUtils.avg(this.avg, from + i * scale, scale);
-//            int y = price2screen(a);
-//            g.setColor(BLUE);
-//            g.drawLine((i-1)* w, ya,i* w, y);
-//            ya = y;
-//            g.setColor(darkColor);
-//            d = VecUtils.avg(disp, from + i * scale, scale);
-//            y = price2screen(a-2*d);
-//            g.drawLine((i-1)* w, yminus,i* w, y);
-//            yminus = y;
-//            y = price2screen(a+2*d);
-//            g.drawLine((i-1)* w, yplus,i* w, y);
-//            yplus = y;
-//        }
 
     }
 

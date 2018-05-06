@@ -1,7 +1,9 @@
 package ru.gustos.trading.book;
 
+import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.indicators.IIndicator;
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -20,22 +22,26 @@ public class PlayIndicator{
         double moneyWhenBuy = 0;
         DecisionStats current = new DecisionStats();
         String buyWhy = null;
+        StringBuilder sb = new StringBuilder();
 
         for (int i = from;i<to;i++){
+            XBar bar = sheet.moments.get(i).bar;
             if (money>0 && v[i]!=0){
+                sb.append("buy "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+money+"\n");
                 moneyWhenBuy = money;
-                bestPrice = buyCost = sheet.moments.get(i).bar.getClosePrice()/(1-fee);
+                bestPrice = buyCost = bar.getClosePrice()*(1+fee);
                 btc += money/buyCost;
                 money = 0;
                 buyWhy = ii.getMark(i).toString();
             } else if (btc>0){
-                double sellCost = sheet.moments.get(i).bar.getClosePrice() * (1+fee);
+                double sellCost = bar.getClosePrice() * (1-fee);
                 double min = Double.MAX_VALUE;
                 for (int j = -2;j<=2;j++)
                     if (i+j>=0 && i+j<sheet.moments.size())
-                        min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * (1+fee));
+                        min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * (1-fee));
                 bestPrice = Math.max(bestPrice,min);
-                if (v[i]==0 || i==to-1) {
+                if (i==to-1 || v[i]!=0 && v[i+1]==0) {
+                    sb.append("sell "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+btc+"\n");
                     String key = buyWhy + ii.getMark(i);
                     money += btc * sellCost;
                     btc = 0;
@@ -70,7 +76,19 @@ public class PlayIndicator{
 
         result.general.complete();
         result.specific.forEach((s,d)->d.complete());
+        string2file("play.txt",sb.toString());
         return result;
+    }
+
+    public static void string2file(String path, String s)  {
+        try {
+            try (Writer out = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(path), "UTF-8"))){
+                out.write(s);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class PlayResults {

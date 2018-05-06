@@ -102,13 +102,14 @@ public class Sheet {
     }
 
     public void calcIndicators(){
-        for (IIndicator ii : indicatorsLib.listIndicators())
-            indicatorsData.calc(ii);
+        if (moments.size()>0)
+            for (IIndicator ii : indicatorsLib.listIndicators())
+                indicatorsData.calc(ii);
     }
 
-    public void calcIndicatorsForLastBar(){
+    public void calcIndicatorsForLastBars(int cnt){
         for (IIndicator ii : indicatorsLib.listIndicators())
-            indicatorsData.calc(ii,moments.size()-1,moments.size());
+            indicatorsData.calc(ii,moments.size()-cnt,moments.size());
     }
 
     public void calcIndicatorsNoPredict(){
@@ -209,9 +210,10 @@ public class Sheet {
     }
 
     @NotNull
-    public void add(@NotNull XBar bar) {
+    public void add(@NotNull XBar bar, boolean recalc) {
         moments.add(new Moment(new XBaseBar(bar)));
-        calcIndicatorsForLastBar();
+        if (recalc)
+            calcIndicatorsForLastBars(1);
     }
 }
 

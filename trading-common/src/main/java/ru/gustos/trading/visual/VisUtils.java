@@ -53,8 +53,8 @@ public class VisUtils {
     public static void drawLine(Component c, Graphics g, double[] v, double margin){
         Pair<Double, Double> mm = VecUtils.minMax(v);
         for (int i = 1;i<v.length;i++){
-            int y1 = (int)((1-margin-(v[i-1]-mm.getFirst())/(mm.getSecond()-mm.getFirst())*(1-margin*2))*c.getHeight());
-            int y2 = (int)((1-margin-(v[i]-mm.getFirst())/(mm.getSecond()-mm.getFirst())*(1-margin*2))*c.getHeight());
+            int y1 = (int)((1-margin-v[i-1]/mm.getSecond()*(1-margin*2))*c.getHeight());
+            int y2 = (int)((1-margin-v[i]/mm.getSecond()*(1-margin*2))*c.getHeight());
             g.drawLine(i,y1,i+1,y2);
         }
     }

@@ -5,6 +5,7 @@ import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
+import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
@@ -64,7 +65,7 @@ class Train {
                         synchronized(Train.Companion) {
                             val savePath = cmd.settings + ".out"
                             println("Saving intermediate logic's properties to ${savePath}")
-                            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                            val logic: BotLogic<AbstractBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
                             logic.setMinMax(params, 50.0, false)
                             logic.setParams(params)
                             logic.saveState(savePath, stats.toString())

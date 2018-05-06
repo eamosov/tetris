@@ -22,8 +22,8 @@ public class TestUtils {
         BarInterval interval = BarInterval.ONE_MIN;
 
         BarsCache cache = new BarsCache("cache.sqlite3");
-        ZonedDateTime from = ZonedDateTime.of(2018,4,15,0,0,0,0, ZoneId.systemDefault());
-//        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
+//        ZonedDateTime from = ZonedDateTime.of(2018,4,15,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
         List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы
@@ -55,7 +55,7 @@ public class TestUtils {
         return sheet;
     }
 
-    public static Sheet makeSheetEmptyLib(int pack) throws Exception {
+    public static Sheet makeSheet(String libfile) throws Exception {
         Exchange exch = new Binance();
         Instrument instr = Instrument.Companion.getBTC_USDT();
         BarInterval interval = BarInterval.ONE_MIN;
@@ -66,12 +66,13 @@ public class TestUtils {
         List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы
-        IndicatorsLib lib = new IndicatorsLib();
+        IndicatorsLib lib = libfile==null?new IndicatorsLib():new IndicatorsLib(libfile);
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
-        if (pack>0)
-            bars = BarsPacker.packBarsVolume(bars,pack);
+//        if (pack>0)
+//            bars = BarsPacker.packBarsVolume(bars,pack);
 //        bars = BarsPacker.packBarsSign(bars);
+//        bars = BarsPacker.packBars(bars,15);
         sheet.fromBars(bars);
         return sheet;
     }

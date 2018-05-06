@@ -1,6 +1,7 @@
 package ru.gustos.trading.book.indicators;
 
 import kotlin.Pair;
+import ru.efreet.trading.bars.XBaseBar;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -288,18 +289,21 @@ public class VecUtils {
             a*=a;
             a*=a;
             double next = mc[i - 1] + (v[i] - mc[i - 1]) / (0.6 * t * a);
-            if (volumek<=1) {
+            if (volumek<=0) {
+                mc[i] = mc[i-1];
+            }if (volumek<=1) {
                 volumek = Math.pow(volumek, 5);
                 mc[i] = mc[i - 1] * (1 - volumek) + next * volumek;
             } else {
-                double vk = volumek;
+                double vk = Math.pow(volumek,2.3);
                 double pn = 0;
                 while (vk>1) {
                     pn = next;
                     next = next + (v[i] - next) / (0.6 * t * a);
                     vk-=1;
                 }
-                mc[i] = pn*(1-volumek)+next*volumek;
+
+                mc[i] = pn+vk*(next-pn);
 
             }
             double d = Math.abs(v[i]-mc[i]);
@@ -368,6 +372,15 @@ public class VecUtils {
         double[] res = new double[v1.length];
         for (int i = 0;i<v1.length;i++)
             res[i] = v1[i]+v2[i]*k;
+        return res;
+    }
+
+    public static XBaseBar expandMinMax(XBaseBar minMax, double[] avg, double[] disp, double k, int from, int cnt) {
+        XBaseBar res = new XBaseBar(minMax);
+        for (int i = from;i<from+cnt;i++){
+            res.setMinPrice(Math.min(res.getMinPrice(),avg[i]-disp[i]*k));
+            res.setMaxPrice(Math.max(res.getMaxPrice(),avg[i]+disp[i]*k));
+        }
         return res;
     }
 }

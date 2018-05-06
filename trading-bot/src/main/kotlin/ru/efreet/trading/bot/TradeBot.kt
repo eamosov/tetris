@@ -23,7 +23,8 @@ class TradeBot(val exchange: Exchange,
                val settings:String,
                val barInterval: BarInterval,
                val trainStart:ZonedDateTime,
-               var orderListener: ((TradeBot, TradeRecord) -> Unit)? = null) {
+               var orderListener: ((TradeBot, TradeRecord) -> Unit)? = null,
+               val training: Boolean) {
 
     private val zone = ZoneId.of("GMT")
 
@@ -37,6 +38,7 @@ class TradeBot(val exchange: Exchange,
         testOnly -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
         else -> RealTrader(tradeRecordDao, exchange, baseLimit, exchange.getName(), instrument)
     }
+
 
     init {
         barsCache.createTable(exchange.getName(), instrument, BarInterval.ONE_SECOND)
@@ -85,7 +87,7 @@ class TradeBot(val exchange: Exchange,
                 barInterval,
                 ZonedDateTime.now().minus(barInterval.duration.multipliedBy(logic.historyBars)), ZonedDateTime.now())
 
-        lastBars.forEach { logic.insertBar(it) }
+        logic.insertBars(lastBars);
 
         logic.prepare()
 

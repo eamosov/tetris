@@ -38,14 +38,15 @@ public class ClassifierIndicator extends BaseIndicator{
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         Instances data = Exporter.makeDataSet(sheet, 250, from, to);
+//        System.out.println(data.size());
         try {
 
-            Classifier c = (Classifier)weka.core.SerializationHelper.read("d:/tetrislibs/models/" + classifier);
+            Classifier c = (Classifier)weka.core.SerializationHelper.read("ml-models/" + classifier);
             Evaluation evaluation = new Evaluation(data);
             double[] result = evaluation.evaluateModel(c, data);
 
             for (int i = from;i<to;i++)
-                values[from] = result[i-from]>0.5?IIndicator.YES:0;
+                values[i] = result[i-from]>0.5?IIndicator.YES:0;
 
         } catch (Exception e) {
             e.printStackTrace();

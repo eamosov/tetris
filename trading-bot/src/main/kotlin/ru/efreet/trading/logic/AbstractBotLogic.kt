@@ -1,6 +1,7 @@
 package ru.efreet.trading.logic
 
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bars.indexOf
 import ru.efreet.trading.bot.TradesStats
@@ -110,6 +111,10 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
                 bars.removeAt(0)
             }
         }
+    }
+
+    override fun insertBars(bars: List<XBaseBar>) {
+        bars.forEach { insertBar(it)}
     }
 
     override fun getParams(): P {

@@ -88,3 +88,5 @@ public class GustosIndicator2<B> extends XCachedIndicator<B> {
     }
 
 }
+
+

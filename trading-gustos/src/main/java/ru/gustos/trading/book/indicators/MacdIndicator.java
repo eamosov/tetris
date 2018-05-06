@@ -52,7 +52,7 @@ public class MacdIndicator  extends BaseIndicator {
             ema1p = sheet.moments.get(0).bar.getClosePrice();
             ema2p = ema1p;
             emasp = 0;
-            values[0] = ema1p;
+            values[0] = yesno?IIndicator.YES:ema1p;
         }
         for (int i = from;i<to;i++){
             double p = sheet.moments.get(i).bar.getClosePrice();

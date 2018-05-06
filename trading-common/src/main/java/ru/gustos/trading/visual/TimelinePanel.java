@@ -114,7 +114,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
 
     private int price2y(double price) {
         XBaseBar total = vis.getSheet().totalBar();
-        return (int)((1-(price-total.getMinPrice())/total.deltaMaxMin())*getHeight());
+        return (int)((1-price/total.getMaxPrice())*getHeight());
     }
 
 

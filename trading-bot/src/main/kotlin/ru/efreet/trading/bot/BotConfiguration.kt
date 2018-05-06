@@ -9,6 +9,7 @@ data class BotConfig(var logic: String,
                      var instrument: String,
                      var interval: String,
                      var limit:Double,
-                     val trainStart:String)
+                     val trainStart:String,
+                     var training: Boolean = true)
 
 data class BotConfiguration(var bots: List<BotConfig>)

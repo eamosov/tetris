@@ -90,21 +90,22 @@
 {"id" : 177, "name": "Dema", "t1" : 70, "t2" : 30, "t3" : 23,"b1" : true, "show" : false},
 
 
-{"id" : 250, "name": "ShouldBuy"},
-{"id" : 254, "name": "Classifier","classifier" : "f1.model"},
-{"id" : 255, "name": "Classifier","classifier" : "nn.model"},
-{"id" : 256, "name": "Classifier","classifier" : "tree.model"},
-{"id" : 257, "name": "Classifier","classifier" : "forest_weighted.model"},
-
-{"id" : 273, "name": "Play","ind": 257, "show" : false},
-{"id" : 274, "name": "Success", "ind" : 273},
+{"id" : 250, "name": "ShouldBuy2"},
+{"id" : 251, "name": "ShouldSell"},
 
 {"id" : 434, "name": "Sd3Number", "ind" : 1, "param": "sma"},
 {"id" : 435, "name": "Sd3Number", "ind" : 1, "param": "sd-"},
 {"id" : 436, "name": "Sd3Number", "ind" : 1, "param": "sd+"},
 
-{"id" : 300, "name": "Success", "ind" : 1} ,
-{"id" : 360, "name": "Sd3Number", "ind" : 1, "param": "sd+"}
+{"id" : 301, "name": "Gustos","logic":"gustos2","state":"gustoslogic2.properties"},
+{"id" : 302, "name": "Success", "ind" : 301} ,
+{"id" : 303, "name": "Gustos","logic":"gustos2","state":"gustoslogic2_fine.properties"},
+{"id" : 304, "name": "Success", "ind" : 303} ,
+{"id" : 305, "name": "Group", "indicators" : "301,303"} ,
+{"id" : 306, "name": "Success", "ind" : 305} ,
+{"id" : 307, "name": "Gustos","logic":"gustos2","state":"gustoslogic_bcc.properties"},
+{"id" : 308, "name": "Success", "ind" : 307} ,
+{"id" : 300, "name": "Success", "ind" : 1} 
 
 
 ]

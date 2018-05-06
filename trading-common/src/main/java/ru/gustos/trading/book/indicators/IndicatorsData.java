@@ -20,6 +20,9 @@ public class IndicatorsData {
 
     public void calc(IIndicator ind, int from, int to){
         double[] values =  new double[sheet.moments.size()];
+        double[] old = data.getOrDefault(ind.getId(),null);
+        if (old!=null)
+            System.arraycopy(old,0,values,0,old.length);
         ind.calcValues(sheet,values,from,to);
         data.put(ind.getId(),values);
     }

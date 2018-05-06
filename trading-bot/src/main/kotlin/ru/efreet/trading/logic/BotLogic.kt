@@ -1,6 +1,7 @@
 package ru.efreet.trading.logic
 
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.Instrument
@@ -26,6 +27,7 @@ interface BotLogic<P> {
     fun indexOf(time: ZonedDateTime): Int
 
     fun insertBar(bar: XBar)
+    fun insertBars(bars: List<XBaseBar>)
 
     fun firstBar(): XBar
 

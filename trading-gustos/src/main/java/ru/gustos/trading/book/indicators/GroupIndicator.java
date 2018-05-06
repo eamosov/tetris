@@ -53,7 +53,7 @@ public class GroupIndicator extends BaseIndicator{
             if (cur==-1 && ii>=0){
                 cur = ii;
                 values[i] = IIndicator.YES;
-            } else if (cur>=0 && ii<=cur){
+            } else if (cur>=0 && ii>=0){
                 cur = Math.min(cur,ii);
                 values[i] = IIndicator.YES;
             } else {

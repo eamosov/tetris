@@ -57,7 +57,7 @@ public class DemaIndicator extends BaseIndicator {
             dema1p = ema1p;
             dema2p = ema1p;
             demasp = 0;
-            values[0] = dema1p;
+            values[0] = yesno?IIndicator.YES:dema1p;
         }
         for (int i = from;i<to;i++){
 

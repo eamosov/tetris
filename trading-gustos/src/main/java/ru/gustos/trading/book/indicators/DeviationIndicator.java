@@ -22,7 +22,6 @@ public class DeviationIndicator extends NumberIndicator {
 
     @Override
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        Arrays.fill(values,0);
         for (int i = Math.max(from,t1);i<to;i++){
             double sum = 0;
             for (int j = 0;j<t1;j++)

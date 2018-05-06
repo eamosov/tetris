@@ -125,7 +125,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
         signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, _params.signal2!!)
 
-        sd = GustosIndicator(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
+        sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
         sma = object : XIndicator<XExtBar> {
             override fun getValue(index: Int): Double = getBar(index).sma
         }
@@ -212,7 +212,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     fun shouldSell(index : Int) : Boolean {
         val price = closePrice.getValue(index)
-        return price > upperBound(index) && localDownTrend(index)
+        return price > upperBound(index) //&& localDownTrend(index)
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {

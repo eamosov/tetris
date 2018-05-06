@@ -1,25 +1,28 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.Decision;
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.bot.BotAdvice;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.LogicFactory;
+import ru.gustos.trading.GustosBotLogic;
+import ru.gustos.trading.GustosBotLogic2;
 import ru.gustos.trading.book.Sheet;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class EfreetIndicator extends BaseIndicator {
+public class GustosIndicator extends BaseIndicator {
     public static int Id;
     String logic;
     String state;
     BotLogic botLogic;
 
-    public EfreetIndicator(IndicatorInitData data) {
+    public GustosIndicator(IndicatorInitData data) {
         super(data);
         Id = data.id;
         logic = data.logic;
@@ -28,7 +31,7 @@ public class EfreetIndicator extends BaseIndicator {
 
     @Override
     public String getName() {
-        return "efreet"+logic;
+        return "gustos"+logic;
     }
 
     @Override
@@ -56,7 +59,7 @@ public class EfreetIndicator extends BaseIndicator {
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         if (botLogic==null) {
-            botLogic = LogicFactory.Companion.getLogic(this.logic,
+            botLogic = new GustosBotLogic2(this.logic,
                     Instrument.Companion.getBTC_USDT(),
                     BarInterval.ONE_MIN,
                     sheet.moments.stream()
@@ -69,14 +72,9 @@ public class EfreetIndicator extends BaseIndicator {
         for (int i = from; i < to; i++) {
 
             final BotAdvice ose = botLogic.getBotAdvice(i, null, null, true);
-
             values[i] = ose.getDecision() == Decision.BUY ? IIndicator.YES : IIndicator.NO;
 
         }
 
     }
 }
-
-
-
-

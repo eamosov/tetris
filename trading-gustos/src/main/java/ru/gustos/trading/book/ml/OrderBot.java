@@ -11,6 +11,7 @@ import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
+import ru.gustos.trading.book.indicators.GustosAverageRecurrent;
 import ru.gustos.trading.book.indicators.IIndicator;
 import ru.gustos.trading.book.indicators.IndicatorType;
 import ru.gustos.trading.book.indicators.VecUtils;
@@ -21,9 +22,21 @@ import java.util.stream.Collectors;
 
 public class OrderBot {
     static Sheet sheet;
+    static double money = 1000;
+    static double btc = 0;
+    static double buyPrice = 0;
+
+    static double buyOrder = 0;
+    static double sellOrder = 0;
+
+    static double fee = 0.0005;
+    static int count = 0;
+    static int profitable = 0;
+    static int buyIndex = 0;
+    static double[] g;
 
     public static void main(String[] args) throws Exception {
-        Sheet sheet = TestUtils.makeSheetEmptyLib(0);
+        sheet = TestUtils.makeSheet("indicators_simple.json");
 //        StringBuilder sb = new StringBuilder("<TICKER>\t<PER>\t<DATE>\t<TIME>\t<CLOSE>\n");
 //        for (int i = 0 ;i<sheet.moments.size();i++) {
 //            XBar b = sheet.moments.get(i).bar;
@@ -39,98 +52,89 @@ public class OrderBot {
 //        int from = 12000;
         int from = 1;
         int to = sheet.moments.size();
-        double money = 1000;
-        double btc = 0;
-        int indicator = 73;
-        int sellIndicator = 73;
-        double buyPrice = 0;
-        double maxprice = 0;
-        double maxdema = 0;
-
-        double buyOrder = 0;
-        double sellOrder = 0;
-
-        double fee = 0.0005;
 
         double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
         double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
-        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 120, vols, 600);
+        int w = 100;
+        GustosAverageRecurrent gar = new GustosAverageRecurrent(w,w*4);;
+//        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, w, vols, w*4);
 //        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 150, vols, 600);
 //        Pair<double[], double[]> pp = VecUtils.emaAndDisp(v, 150);
-        double[] ema = pp.getFirst();
-        double[] disp = pp.getSecond();
+//        double[] ema = pp.getFirst();
+//        double[] disp = pp.getSecond();
 
-        double[] g = new double[v.length];
+        g = new double[v.length];
 
-        Sd5Logic botLogic = (Sd5Logic) (BotLogic)LogicFactory.Companion.getLogic("sd5",
-                Instrument.Companion.getBTC_USDT(),
-                BarInterval.ONE_MIN,
-                sheet.moments.stream()
-                        .map(m -> new XExtBar(m.bar))
-                        .collect(Collectors.toList()));
-
-        botLogic.loadState("sd3_2017_12_16_04_28.properties");
-        botLogic.prepare();
-
-        int count = 0;
-        int profitable = 0;
-        int buyIndex = 0;
+//        Sd5Logic botLogic = (Sd5Logic) (BotLogic)LogicFactory.Companion.getLogic("sd5",
+//                Instrument.Companion.getBTC_USDT(),
+//                BarInterval.ONE_MIN,
+//                sheet.moments.stream()
+//                        .map(m -> new XExtBar(m.bar))
+//                        .collect(Collectors.toList()));
+//
+//        botLogic.loadState("sd3_2017_12_16_04_28.properties");
+//        botLogic.prepare();
+        Pair<Double, Double> prev = gar.feed(v[0], vols[0]);
         for (int i = from;i<to;i++) {
-            XBar prev = sheet.moments.get(i - 1).bar;
+            Pair<Double, Double> avg = gar.feed(v[i], vols[i]);
             XBar bar = sheet.moments.get(i).bar;
-            double close = bar.getClosePrice();
             if (money > 0) {
-                boolean check = bar.getMinPrice() <= buyOrder && bar.getMaxPrice() >= buyOrder;
-//                if (!check && close < ema[i] - disp[i] * 2)
-//                    buyOrder = close;
+                double p = prev.getFirst()-prev.getSecond()*2;
+                boolean check = bar.getMinPrice() <= p && bar.getMaxPrice() >= p && !falling(i) && bar.getClosePrice()<avg.getFirst()-avg.getSecond();
+
                 if (check) {
-//                    buyOrder = bar.getClosePrice();
-                    btc = money / buyOrder * (1 - fee);
-                    money = 0;
-                    buyPrice = buyOrder * (1 + fee);
-                    count++;
-                    buyIndex = i;
-                    buyOrder = 0;
-                } else
-                    buyOrder = ema[i] - disp[i] * 2;
+                    buy(i);
+                }
             } else if (btc > 0) {
-                boolean check = bar.getMinPrice() <= sellOrder && bar.getMaxPrice() >= sellOrder;
-//                if (close >ema[i]+disp[i]*2) {
-//                    sellOrder = close;
-//                    check = true;
-//                }
-                if (!check){
-                    check = botLogic.shouldSell(i);
-                    sellOrder = bar.getClosePrice();
-                }
+                double p = prev.getFirst()+prev.getSecond()*2;
+                boolean check = bar.getMinPrice() <= p && bar.getMaxPrice() >= p && !rising(i) && bar.getClosePrice()>avg.getFirst()+avg.getSecond();
 
-                if (check){
-//                    sellOrder = bar.getClosePrice();
-                    money = btc*sellOrder*(1-fee);
-                    btc = 0;
-                    System.out.println(String.format("money: %d, time: %d", (int)money,i-buyIndex));
-                    boolean good = sellOrder * (1 - fee) / buyPrice > 1;
-                    if (good)
-                        profitable++;
-                    for (int j = buyIndex;j<i;j++)
-                        g[j] = good? IIndicator.YES: IIndicator.NO;
-                    sellOrder = 0;
-                } else {
-                    sellOrder = ema[i]+disp[i]*20;
-                    double upperPrice = botLogic.upperBound(i);
-//                    if (bar.getClosePrice()>upperPrice)
-//                        sellOrder = (bar.getClosePrice() + upperPrice)/2;
-//                    else
-//                        sellOrder = upperPrice;
-
-                }
+                if (check)
+                    sell(i);
             }
+            prev = avg;
         }
-        System.out.println(String.format("profitable: %.3g, count: %d", profitable*1.0/count,count));
+        System.out.println(String.format("profitable: %.3g, count: %d, pertrade: %.5g", profitable*1.0/count,count,Math.pow(money/1000,1.0/count)));
         sheet.getLib().add("result", IndicatorType.YESNO,g);
         sheet.calcIndicators();
 
         new Visualizator(sheet);
+
+    }
+
+    private static boolean rising(int i) {
+        XBar pbar = sheet.moments.get(i-1).bar;
+        XBar bar = sheet.moments.get(i).bar;
+        return pbar.getClosePrice()<bar.getMinPrice();
+    }
+
+    private static boolean falling(int i) {
+        XBar pbar = sheet.moments.get(i-1).bar;
+        XBar bar = sheet.moments.get(i).bar;
+        return pbar.getClosePrice()>=bar.getMaxPrice();
+    }
+
+    private static void sell(int index) {
+        sellOrder = sheet.moments.get(index).bar.getClosePrice();
+        money = btc*sellOrder*(1-fee);
+        btc = 0;
+        System.out.println(String.format("money: %d, time: %d, profit: %.3g%%", (int)money,index-buyIndex,(sellOrder*(1-fee)/buyPrice-1)*100));
+        boolean good = sellOrder * (1 - fee) / buyPrice > 1;
+        if (good)
+            profitable++;
+        for (int j = buyIndex;j<=index;j++)
+            g[j] = good? IIndicator.YES: IIndicator.NO;
+        sellOrder = 0;
+    }
+
+    private static void buy(int index) {
+        buyOrder = sheet.moments.get(index).bar.getClosePrice();
+        btc = money / buyOrder * (1 - fee);
+        money = 0;
+        buyPrice = buyOrder * (1 + fee);
+        count++;
+        buyIndex = index;
+        buyOrder = 0;
 
     }
 }
