@@ -68,16 +68,11 @@ class StatsCalculator {
         val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - avrProfitPerTrade).pow2() }.sum() / profits.size) else 0.0
 
         val avrProfitPerDay = Math.pow(profit, 24.0 / Duration.between(history.start, history.end).toHours().toDouble())
-
-        var profit2 = 1.0
-        profits.asSequence()
-                .filter { it.second < 1.1 }
-                .forEach { profit2 *= it.second }
-
+        
         return TradesStats(
                 profits.size,
                 if (profits.size > 0) tradesWithProfit.toDouble() / profits.size else 0.0,
-                profit2,
+                profit,
                 avrProfitPerTrade,
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
