@@ -8,15 +8,17 @@ import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.LogicFactory;
+import ru.efreet.trading.logic.impl.SimpleBotLogicParams;
 import ru.gustos.trading.GustosBotLogic;
 import ru.gustos.trading.GustosBotLogic2;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
-public class GustosIndicator extends BaseIndicator {
+public class GustosIndicator extends BaseIndicator implements IIndicatorWithProperties{
     public static int Id;
     String logic;
     String state;
@@ -59,7 +61,7 @@ public class GustosIndicator extends BaseIndicator {
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
 
         if (botLogic==null) {
-            botLogic = new GustosBotLogic2(this.logic,
+            botLogic = LogicFactory.Companion.getLogic(this.logic,
                     Instrument.Companion.getBTC_USDT(),
                     BarInterval.ONE_MIN,
                     sheet.moments.stream()
@@ -76,5 +78,15 @@ public class GustosIndicator extends BaseIndicator {
 
         }
 
+    }
+
+    @Override
+    public Properties getIndicatorProperties() {
+        return botLogic.getParamsAsProperties();
+    }
+
+    @Override
+    public void setIndicatorProperties(Properties p) {
+        botLogic.setParamsAsProperties(p);
     }
 }

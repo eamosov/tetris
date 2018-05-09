@@ -56,6 +56,11 @@ abstract class AbstractBotLogic<P : AbstractBotLogicParams>(val name: String,
         return properties.log(getParams())
     }
 
+    fun resetGenes() {
+        properties.consts.addAll(properties.genes)
+        properties.genes.clear()
+    }
+
 //    override fun copyParams(orig: P): P {
 //        return properties.copy(orig)
 //    }

@@ -65,6 +65,8 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
         for (int i = 0; i < to; i++) {
 
             double v = data[i];
+            if (i==to-1)
+                v = IIndicator.NO;
 
             XBar bar = sheet.moments.get(i).bar;
             if (v == IIndicator.YES ){

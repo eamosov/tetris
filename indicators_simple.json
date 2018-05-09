@@ -1,0 +1,8 @@
+[
+{"id" : 11, "name": "Volume"},
+{"id" : 12, "name": "PriceChangeToVolume"},
+{"id" : 13, "name": "MultiAverage", "positive" : true},
+{"id" : 14, "name": "MultiAverage", "positive" : false}
+
+
+]

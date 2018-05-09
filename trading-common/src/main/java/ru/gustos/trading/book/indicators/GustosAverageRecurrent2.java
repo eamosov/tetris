@@ -1,11 +1,8 @@
 package ru.gustos.trading.book.indicators;
 
 import kotlin.Pair;
-import ru.efreet.trading.bars.XBaseBar;
 
-import static ru.gustos.trading.book.indicators.VecUtils.ema;
-
-public class GustosAverageRecurrent {
+public class GustosAverageRecurrent2 {
 
     private final int window;
     private final EmaRecurrent volumeEma;
@@ -15,27 +12,42 @@ public class GustosAverageRecurrent {
     private double pow1;
     private double pow2;
 
+    double[] prices;
+    double[] values;
+    int pos;
+    int lastBigVolume;
+    int avgWindow;
 
-    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow, double pow1, double pow2){
+    double eps = 0.001;
+
+
+    public GustosAverageRecurrent2(int window, int volumeWindow, int shortVolumeWindow, int avgWindow, double pow1, double pow2){
         this.window = window;
         volumeEma = new EmaRecurrent(volumeWindow);
         volumeEmaShort = new EmaRecurrent(shortVolumeWindow);
+        this.avgWindow = avgWindow;
         this.pow1 = pow1;
         this.pow2 = pow2;
+        prices = new double[2000000];
+        values = new double[2000000];
     }
 
     public Pair<Double,Double> feed(double price, double volume){
+        prices[pos] = price;
+
         if (!volumeEma.started()){
             volumeEma.feed(volume);
             volumeEmaShort.feed(volume);
             value = price;
             disp = 0;
+            values[pos++] = value;
             return new Pair<>(value,disp);
         }
         double oldValue = value;
         double avgVolume = volumeEma.feed(volume);
         double shortVolume = volumeEmaShort.feed(volume);
         double volumek = shortVolume/Math.max(1,avgVolume);
+        if (volumek>2) lastBigVolume = pos;
         double a = price/oldValue;
         a*=a*=a;
         double next = oldValue+(price-oldValue)/(0.6*window*a);
@@ -59,25 +71,19 @@ public class GustosAverageRecurrent {
             volumek = Math.pow(volumek,pow2);
 
         }
+        int back = pos-lastBigVolume;
+        if (back>avgWindow) back = avgWindow;
+        if (back>3){
+            double avg = VecUtils.avg(prices,pos-back,back);
+            value = value+(avg-value)*2/(avgWindow+1);
+        }
         double d = price-value;
         d*=d;
         disp = (d- disp)* 2.0/(window/ volumek +1) + disp;
 
-//        if (volumek<=1){
-//            double vk = Math.pow(volumek, 5);
-//            disp = oldDisp * (1 - vk) + next * vk;
-//        } else {
-//            double vk = Math.pow(volumek,pow2);
-//            double pn = 0;
-//            while (vk>1) {
-//                pn = next;
-//                next = (d-next)*2.0/(window+1)+next;
-//                vk-=1;
-//            }
-//            disp = pn+vk*(next-pn);
-//        }
 
-
+        values[pos] = value;
+        pos++;
         return new Pair<>(value,Math.sqrt(disp));
     }
 
@@ -85,7 +91,7 @@ public class GustosAverageRecurrent {
     public static Pair<double[], double[]> calc(double[] prices, int window, double[] volumes, int volumesWindow) {
         double[] a = new double[prices.length];
         double[] d = new double[prices.length];
-        GustosAverageRecurrent gar = new GustosAverageRecurrent(window, volumesWindow, 5,2.3, 1.4);
+        GustosAverageRecurrent2 gar = new GustosAverageRecurrent2(window, volumesWindow, 5,window, 2.3, 1.4);
         for (int i = 0;i<prices.length;i++) {
             Pair<Double, Double> r = gar.feed(prices[i], volumes[i]);
             a[i] = r.getFirst();
@@ -94,4 +100,3 @@ public class GustosAverageRecurrent {
         return new Pair<>(a,d);
     }
 }
-

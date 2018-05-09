@@ -1,12 +1,11 @@
 package ru.gustos.trading.visual;
 
 import kotlin.Pair;
-import ru.gustos.trading.book.indicators.BaseIndicator;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IStringPropertyHolder;
-import ru.gustos.trading.book.indicators.IndicatorsLib;
+import ru.gustos.trading.book.indicators.*;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,20 +24,26 @@ public class IndicatorOptionsPane extends JPanel {
                 add(new JLabel(ii.getName()));
                 add(new JLabel("        "));
                 list.add(new Pair<>(ii,check));
-            } else if (ii instanceof IStringPropertyHolder){
-                final IStringPropertyHolder h = (IStringPropertyHolder)ii;
-                add(new JLabel(h.getPropertyName()));
-                final IIndicator indicator = ii;
-                final JTextField txt = new JTextField(h.getPropertyValue());
-                txt.setColumns(15);
-                add(txt);
-                txt.addActionListener(e->{
-                    h.setPropertyValue(txt.getText());
-                    vis.getSheet().getData().calc(indicator);
-                    vis.fireViewUpdated();
-                });
-                add(new JLabel("        "));
+            } else if (ii instanceof IIndicatorWithProperties){
+                JButton but = new JButton(ii.getName());
+                final IIndicator ind = ii;
+                but.addActionListener(e -> new IndicatorPropertiesWindow(vis,ind));
+                add(but);
             }
+//            else if (ii instanceof IStringPropertyHolder){
+//                final IStringPropertyHolder h = (IStringPropertyHolder)ii;
+//                add(new JLabel(h.getPropertyName()));
+//                final IIndicator indicator = ii;
+//                final JTextField txt = new JTextField(h.getPropertyValue());
+//                txt.setColumns(15);
+//                add(txt);
+//                txt.addActionListener(e->{
+//                    h.setPropertyValue(txt.getText());
+//                    vis.getSheet().getData().calc(indicator);
+//                    vis.fireViewUpdated();
+//                });
+//                add(new JLabel("        "));
+//            }
 
     }
 

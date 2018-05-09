@@ -76,6 +76,7 @@ public class PlayIndicator{
 
         result.general.complete();
         result.specific.forEach((s,d)->d.complete());
+        result.assetPriceChange = sheet.moments.get(to).bar.getClosePrice()/sheet.moments.get(from).bar.getClosePrice();
         string2file("play.txt",sb.toString());
         return result;
     }
@@ -95,9 +96,11 @@ public class PlayIndicator{
         DecisionStats general = new DecisionStats();
         HashMap<String,DecisionStats> specific = new HashMap<>();
         public double[] money;
+        public double assetPriceChange;
 
         public String toString(){
             StringBuilder sb = new StringBuilder();
+            sb.append("Profit to grow: ").append(general.profit/assetPriceChange).append("\n");
             sb.append("General:\n");
             String spaces = "    ";
             sb.append(general.toString(spaces)).append("\n");

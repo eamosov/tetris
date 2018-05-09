@@ -5,6 +5,9 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
+import static ru.gustos.trading.book.indicators.VolumeIndicator.COLOR;
+import static ru.gustos.trading.book.indicators.VolumeIndicator.COLORMIN;
+
 public class VolumeIndicator extends BaseIndicator{
 
     public static final Color COLOR = new Color(0,0,192);

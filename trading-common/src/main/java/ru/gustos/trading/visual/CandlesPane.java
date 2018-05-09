@@ -5,9 +5,7 @@ import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IndicatorType;
-import ru.gustos.trading.book.indicators.VecUtils;
+import ru.gustos.trading.book.indicators.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,6 +52,13 @@ public class CandlesPane extends JPanel {
             prepareAverage();
             minMax = VecUtils.expandMinMax(minMax,avg,disp,2.1, from, bars);
         }
+
+        for (IIndicator ii : vis.getSheet().getLib().listIndicators())
+            if (ii.priceLine() && ii.showOnPane())
+                minMax = VecUtils.expandMinMax(minMax,vis.getSheet().getData().get(ii.getId()),null,2.1, from, bars);
+
+
+
         int to = Math.min(from + bars, sheet.moments.size());
         if (vis.graphIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
@@ -82,15 +87,18 @@ public class CandlesPane extends JPanel {
         if (hasAverage)
             paintAverage(g);
         for (IIndicator ii : vis.getSheet().getLib().listIndicators()){
-            if (ii.priceLine() && ii.showOnPane()){
+            if (ii.priceLine() && ii.showOnPane())
                 paintPriceLine(g,ii);
-            }
+
         }
         super.paint(g);
     }
 
     private void paintPriceLine(Graphics g, IIndicator ii) {
-        paintPriceLine(g,vis.getSheet().getData().get(ii.getId()), darkColor, 2f);
+        float stroke = 2f;
+        if (ii instanceof IStrokeProvider)
+            stroke = ((IStrokeProvider)ii).getStroke();
+        paintPriceLine(g,vis.getSheet().getData().get(ii.getId()), ii.getColorMax(), stroke);
     }
 
     private int prevWindow = -1;
@@ -106,7 +114,11 @@ public class CandlesPane extends JPanel {
             double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
             Pair<double[], double[]> rr;
             if (vis.averageType.equalsIgnoreCase("gustos"))
-                rr = VecUtils.gustosMcginleyAndDisp(v, window, vols, window*4);
+                rr = GustosAverageRecurrent.calc(v, window, vols, window*4);
+            else if (vis.averageType.equalsIgnoreCase("gustos2"))
+                rr = GustosAverageRecurrent2.calc(v, window, vols, window*4);
+            else if (vis.averageType.equalsIgnoreCase("Real avg"))
+                rr = VecUtils.futureMaAndDisp(v,window);
             else if (vis.averageType.equalsIgnoreCase("gustos ema"))
                 rr = VecUtils.gustosEmaAndDisp(v, window, vols, window*4);
             else if (vis.averageType.equalsIgnoreCase("gustos ema2"))
@@ -127,8 +139,8 @@ public class CandlesPane extends JPanel {
     private void paintAverage(Graphics g) {
         int scale = vis.zoomScale();
         paintPriceLine(g,this.avg, BLUE, 2f);
-        paintPriceLine(g,VecUtils.add(this.avg,disp,2), darkColor, 2f);
-        paintPriceLine(g,VecUtils.add(this.avg,disp,-2), darkColor, 2f);
+        paintPriceLine(g,VecUtils.add(this.avg,disp,1), darkColor, 2f);
+        paintPriceLine(g,VecUtils.add(this.avg,disp,-1), darkColor, 2f);
 
     }
 
@@ -268,7 +280,7 @@ public class CandlesPane extends JPanel {
         int x = (index-vis.getIndex())/scale* w;
         Color col = VisUtils.NumberColor(vis.getSheet(),index, scale,indicator, mm.getFirst(), mm.getSecond());
         if (indicator.getType()==IndicatorType.YESNO){
-            g.setColor(new Color(col.getRed(),col.getGreen(),col.getBlue(),60));
+            g.setColor(VisUtils.alpha(col,40));
             g.fillRect(x, 0, w, getHeight());
             Map<String, String> markMap = indicator.getMark(index);
             String mark = markMap==null?"":markMap.toString();

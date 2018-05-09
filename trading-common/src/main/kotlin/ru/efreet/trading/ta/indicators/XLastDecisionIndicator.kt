@@ -19,3 +19,17 @@ class XLastDecisionIndicator<B>(bars: List<B>, prop: BarGetterSetter2<B, Pair<De
 
     }
 }
+
+class XLastDecisionInvIndicator<B>(bars: List<B>, prop: BarGetterSetter2<B, Pair<Decision, Map<String, String>>>, val trend: (index: Int, bar: B) -> Pair<Decision, Map<String, String>>) : XCachedIndicator2<B, Pair<Decision, Map<String, String>>>(bars, prop) {
+
+    override fun calculate(index: Int, bar: B): Pair<Decision, Map<String, String>> {
+
+        val s = trend(index, bar)
+        return when {
+            s.first != Decision.NONE -> s
+            index == 0 -> Pair(Decision.BUY, emptyMap())
+            else -> getValue(index - 1)
+        }
+
+    }
+}

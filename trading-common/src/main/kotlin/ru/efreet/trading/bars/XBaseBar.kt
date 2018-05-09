@@ -101,6 +101,14 @@ data class XBaseBar(override var timePeriod: Duration,
         volumeQuote += bar.volumeQuote
     }
 
+    fun invert(){
+        openPrice = 100000000.0/openPrice
+        closePrice = 100000000.0/closePrice
+        val mm = 100000000.0/minPrice
+        minPrice = 100000000.0/maxPrice
+        maxPrice = mm
+    }
+
     override fun toString(): String {
         return String.format("{begin time: %s, end time: %s, close price: %f, open price: %f, min price: %f, max price: %f, volume: %f, volumeBase: %f, volumeQuote: %f, trades: %d}",
                 beginTime, endTime, closePrice, openPrice, minPrice, maxPrice, volume, volumeBase, volumeQuote, trades)

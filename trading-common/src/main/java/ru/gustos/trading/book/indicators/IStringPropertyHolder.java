@@ -5,3 +5,4 @@ public interface IStringPropertyHolder {
     String getPropertyValue();
     void setPropertyValue(String v);
 }
+

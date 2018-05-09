@@ -56,7 +56,7 @@ public class OrderBot {
         double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
         double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
         int w = 100;
-        GustosAverageRecurrent gar = new GustosAverageRecurrent(w,w*4);;
+        GustosAverageRecurrent gar = new GustosAverageRecurrent(w,w*4,5, 2.3,1.4);
 //        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, w, vols, w*4);
 //        Pair<double[], double[]> pp = VecUtils.gustosMcginleyAndDisp(v, 150, vols, 600);
 //        Pair<double[], double[]> pp = VecUtils.emaAndDisp(v, 150);

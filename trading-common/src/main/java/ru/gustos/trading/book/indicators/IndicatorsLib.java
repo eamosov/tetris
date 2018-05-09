@@ -49,6 +49,13 @@ public class IndicatorsLib {
         map[ii.getId()] = ii;
     }
 
+    public void add(IIndicator ii){
+        indicators.add(ii);
+        if (ii.showOnPane())
+            indicatorsShow.add(ii);
+        map[ii.getId()] = ii;
+    }
+
     private IIndicator createIndicator(IndicatorInitData data) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String c = "ru.gustos.trading.book.indicators."+data.name +"Indicator";
         Class cl = Class.forName(c);

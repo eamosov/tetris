@@ -2,19 +2,21 @@
 {"id" : 1, "name": "Efreet","logic":"sd5","state":"sd3_2017_12_16_04_28.properties"},
 {"id" : 11, "name": "Volume"},
 {"id" : 12, "name": "PriceChangeToVolume"},
-{"id" : 13, "name": "VolumeBurst","t1":20,"t2":2000, "b1" : true},
-{"id" : 14, "name": "VolumeBurst","t1":60,"t2":2000, "b1" : true},
-{"id" : 15, "name": "VolumeBurst","t1":20,"t2":2000},
-{"id" : 16, "name": "VolumeBurst","t1":60,"t2":2000},
+{"id" : 13, "name": "VolumeBurst","t1":20,"t2":2000, "b1" : true, "show" : false},
+{"id" : 14, "name": "VolumeBurst","t1":60,"t2":2000, "b1" : true, "show" : false},
+{"id" : 15, "name": "VolumeBurst","t1":20,"t2":2000, "show" : false},
+{"id" : 16, "name": "VolumeBurst","t1":60,"t2":2000, "show" : false},
+{"id" : 17, "name": "Macd", "t1" : 60, "t2" : 25, "t3" : 17, "show" : false},
+{"id" : 18, "name": "Dema", "t1" : 60, "t2" : 25, "t3" : 17, "show" : false},
 
 
-{"id" : 23, "name": "Sd3Number", "ind" : 1, "param": "macd"},
-{"id" : 30, "name": "Sd3Number", "ind" : 1, "param": "dayMacd"},
+{"id" : 23, "name": "Sd3Number", "ind" : 1, "param": "macd", "show" : false},
+{"id" : 30, "name": "Sd3Number", "ind" : 1, "param": "dayMacd", "show" : false},
 
-{"id" : 37, "name": "Sd3Number", "ind" : 1, "param": "dayDownTrend"},
-{"id" : 38, "name": "Sd3Number", "ind" : 1, "param": "dayUpTrend"},
-{"id" : 39, "name": "Sd3Number", "ind" : 1, "param": "localUpTrend"},
-{"id" : 40, "name": "Sd3Number", "ind" : 1, "param": "localDownTrend"},
+{"id" : 37, "name": "Sd3Number", "ind" : 1, "param": "dayDownTrend", "show" : false},
+{"id" : 38, "name": "Sd3Number", "ind" : 1, "param": "dayUpTrend", "show" : false},
+{"id" : 39, "name": "Sd3Number", "ind" : 1, "param": "localUpTrend", "show" : false},
+{"id" : 40, "name": "Sd3Number", "ind" : 1, "param": "localDownTrend", "show" : false},
 {"id" : 41, "name": "Sd3Number", "ind" : 1, "param": "dayDownTrend", "b1" : true, "show" : false},
 {"id" : 42, "name": "Sd3Number", "ind" : 1, "param": "dayUpTrend", "b1" : true, "show" : false},
 {"id" : 43, "name": "Sd3Number", "ind" : 1, "param": "localUpTrend", "b1" : true, "show" : false},
@@ -97,15 +99,18 @@
 {"id" : 435, "name": "Sd3Number", "ind" : 1, "param": "sd-"},
 {"id" : 436, "name": "Sd3Number", "ind" : 1, "param": "sd+"},
 
-{"id" : 301, "name": "Gustos","logic":"gustos2","state":"gustoslogic2.properties"},
+{"id" : 301, "name": "Gustos","logic":"gustos3","state":"gustoslogic3.properties.out"},
 {"id" : 302, "name": "Success", "ind" : 301} ,
-{"id" : 303, "name": "Gustos","logic":"gustos2","state":"gustoslogic2_fine.properties"},
+{"id" : 303, "name": "Gustos","logic":"gustos2","state":"gustoslogic2.properties.out"},
 {"id" : 304, "name": "Success", "ind" : 303} ,
-{"id" : 305, "name": "Group", "indicators" : "301,303"} ,
-{"id" : 306, "name": "Success", "ind" : 305} ,
-{"id" : 307, "name": "Gustos","logic":"gustos2","state":"gustoslogic_bcc.properties"},
-{"id" : 308, "name": "Success", "ind" : 307} ,
-{"id" : 300, "name": "Success", "ind" : 1} 
+{"id" : 300, "name": "Success", "ind" : 1},
+
+{"id" : 400, "name": "Gustos3Number", "ind" : 301, "param": "sma", "show" : false},
+{"id" : 401, "name": "Gustos3Number", "ind" : 301, "param": "sd+", "show" : false},
+{"id" : 402, "name": "Gustos3Number", "ind" : 301, "param": "sd-", "show" : false},
+{"id" : 403, "name": "Gustos3Number", "ind" : 301, "param": "smaSell", "show" : false},
+{"id" : 404, "name": "Gustos3Number", "ind" : 301, "param": "sdSell+", "show" : false},
+{"id" : 405, "name": "Gustos3Number", "ind" : 301, "param": "sdSell-", "show" : false}
 
 
 ]

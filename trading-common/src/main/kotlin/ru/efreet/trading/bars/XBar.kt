@@ -117,6 +117,30 @@ interface XBar {
         return closePrice-openPrice;
     }
 
+    fun minOpenClose() : Double {
+        return minOf(openPrice,closePrice)
+    }
+
+    fun maxOpenClose() : Double {
+        return maxOf(openPrice,closePrice)
+    }
+
+    fun closePriceInverted() : Double{
+        return 100000000.0/closePrice
+    }
+
+    fun openPriceInverted() : Double{
+        return 100000000.0/openPrice
+    }
+
+    fun minPriceInverted() : Double{
+        return 100000000.0/maxPrice
+    }
+
+    fun maxPriceInverted() : Double{
+        return 100000000.0/minPrice
+    }
+
     /**
      * Adds a trade at the end of bar period.
      * @param tradeVolume the traded volume

@@ -67,7 +67,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
         if (vis.playResult!=null && vis.backIndicator>=0) {
 
             double[] v = VecUtils.resize(vis.playResult.money,getWidth());
-            v = VecUtils.ma(v,10);
+//            v = VecUtils.ma(v,10);
             VisUtils.drawLine(this,g,v,0.1);
         }
     }

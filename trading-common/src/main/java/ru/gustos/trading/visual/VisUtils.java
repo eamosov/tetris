@@ -58,4 +58,8 @@ public class VisUtils {
             g.drawLine(i,y1,i+1,y2);
         }
     }
+
+    public static Color alpha(Color color, int alpha) {
+        return new Color(color.getRed(),color.getGreen(),color.getBlue(),alpha);
+    }
 }

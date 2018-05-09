@@ -55,4 +55,14 @@ public class BarsPacker {
 
     }
 
+    public static List<XBaseBar> invertBars(List<XBaseBar> bars) {
+        ArrayList<XBaseBar> result = new ArrayList<XBaseBar>();
+        for (XBar b : bars) {
+            XBaseBar bb = new XBaseBar(b);
+            bb.invert();
+            result.add(bb);
+        }
+
+        return result;
+    }
 }

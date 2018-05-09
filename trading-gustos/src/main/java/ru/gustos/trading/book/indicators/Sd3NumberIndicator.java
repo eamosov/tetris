@@ -130,3 +130,4 @@ public class Sd3NumberIndicator extends BaseIndicator {
 
     }
 }
+

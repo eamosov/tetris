@@ -377,10 +377,43 @@ public class VecUtils {
 
     public static XBaseBar expandMinMax(XBaseBar minMax, double[] avg, double[] disp, double k, int from, int cnt) {
         XBaseBar res = new XBaseBar(minMax);
-        for (int i = from;i<from+cnt;i++){
-            res.setMinPrice(Math.min(res.getMinPrice(),avg[i]-disp[i]*k));
-            res.setMaxPrice(Math.max(res.getMaxPrice(),avg[i]+disp[i]*k));
-        }
+        if (disp!=null) {
+            for (int i = from; i < from + cnt; i++) {
+                res.setMinPrice(Math.min(res.getMinPrice(), avg[i] - disp[i] * k));
+                res.setMaxPrice(Math.max(res.getMaxPrice(), avg[i] + disp[i] * k));
+            }
+        } else
+            for (int i = from; i < from + cnt; i++) {
+                res.setMinPrice(Math.min(res.getMinPrice(), avg[i]));
+                res.setMaxPrice(Math.max(res.getMaxPrice(), avg[i]));
+            }
+
+
         return res;
+    }
+
+    public static Pair<double[], double[]> futureMaAndDisp(double[] v, int window) {
+        double[] res = new double[v.length];
+        double[] disp = new double[v.length];
+        for (int i = 0;i<v.length;i++){
+            double sum = 0;
+            int from = Math.max(0, i - window / 2);
+            int to = Math.min(i + window / 2, v.length - 1);
+            for (int j = from; j<= to; j++)
+                sum+=v[j];
+
+            res[i] = sum/(to-from+1);
+        }
+        for (int i = 0;i<v.length;i++){
+            double sum = 0;
+            int from = Math.max(0, i - window / 2);
+            int to = Math.min(i + window / 2, v.length - 1);
+            for (int j= from;j<=to;j++) {
+                double d = v[j]-res[j];
+                sum += d * d;
+            }
+            disp[i] = Math.sqrt(sum/(to-from+1));
+        }
+        return new Pair<>(res,disp);
     }
 }

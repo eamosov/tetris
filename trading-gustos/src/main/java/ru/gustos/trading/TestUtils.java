@@ -30,6 +30,7 @@ public class TestUtils {
         IndicatorsLib lib = new IndicatorsLib("indicators.json");
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
+//        bars = BarsPacker.invertBars(bars);
 //        bars = BarsPacker.packBarsVolume(bars,100);
 //        bars = BarsPacker.packBarsSign(bars);
         sheet.fromBars(bars);
@@ -56,13 +57,16 @@ public class TestUtils {
     }
 
     public static Sheet makeSheet(String libfile) throws Exception {
+        return makeSheet(libfile, Instrument.Companion.getBTC_USDT());
+    }
+
+    public static Sheet makeSheet(String libfile,Instrument instr) throws Exception {
         Exchange exch = new Binance();
-        Instrument instr = Instrument.Companion.getBTC_USDT();
         BarInterval interval = BarInterval.ONE_MIN;
 
         BarsCache cache = new BarsCache("cache.sqlite3");
 //        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime from = ZonedDateTime.of(2018,2,1,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2018,1,1,0,0,0,0, ZoneId.systemDefault());
         List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы
