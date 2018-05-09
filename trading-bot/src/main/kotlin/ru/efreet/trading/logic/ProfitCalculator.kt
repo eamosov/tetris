@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
  */
 class ProfitCalculator {
 
-    fun <P : AbstractBotLogicParams> tradeHistory(logicName: String,
+    fun <P : Any> tradeHistory(logicName: String,
                                                   params: P,
                                                   instrument: Instrument,
                                                   interval: BarInterval,

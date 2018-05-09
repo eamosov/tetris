@@ -24,50 +24,36 @@ fun rnd(start: Int, end: Int): Int = if (start == end) start else start + rnd.ne
 
 fun rnd(start: Double, end: Double): Double = if (start == end) start else start + rnd.nextDouble() * (end - start)
 
-fun <T : Any> KClass<T>.getPropertyByName(name: String): KMutableProperty1<T, *> {
-    return this.memberProperties.first { it.name == name } as KMutableProperty1<T, *>
+fun <T : Any> KClass<T>.getPropertyByName(name: String): KMutableProperty1<T, *> =
+        this.memberProperties.first { it.name == name } as KMutableProperty1<T, *>
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Any> String.parseNumberOrBool(cls: KClass<T>): T = when {
+    cls.isSubclassOf(Int::class) -> this.toInt() as T
+    cls.isSubclassOf(Double::class) -> this.toDouble() as T
+    cls.isSubclassOf(Boolean::class) -> this.toBoolean() as T
+    else -> throw RuntimeException("coudn't convert String to ${cls.java.canonicalName}")
 }
 
-fun <T : Any> String.parseNumberOrBool(cls: KClass<T>): T {
-    return when {
-        cls.isSubclassOf(Int::class) -> this.toInt() as T
-        cls.isSubclassOf(Double::class) -> this.toDouble() as T
-        cls.isSubclassOf(Boolean::class) -> this.toBoolean() as T
-        else -> throw RuntimeException("coudn't convert String to ${cls.java.canonicalName}")
-    }
-}
+inline fun <reified T : Any> String.parseNumberOrBool(): T = parseNumberOrBool(T::class)
 
-inline fun <reified T : Any> String.parseNumberOrBool(): T {
-    return parseNumberOrBool(T::class)
-}
+fun BigDecimal.round(): BigDecimal = BigDecimal.valueOf(Math.floor(this.toDouble() * 100000.0) / 100000.0)
 
-fun BigDecimal.round(): BigDecimal {
-    return BigDecimal.valueOf(Math.floor(this.toDouble() * 100000.0) / 100000.0)
-}
+fun Double.pow2(): Double = this * this
 
-inline fun Double.pow2(): Double {
-    return this * this
-}
+fun Double.round2(): Double = (this * 100).toLong() / 100.0
 
-inline fun Double.round2(): Double {
-    return (this * 100).toLong() / 100.0
-}
+fun Double.round5(): Double = (this * 100000).toLong() / 100000.0
 
-inline fun Double.round5(): Double {
-    return (this * 100000).toLong() / 100000.0
-}
-
-inline fun <reified T> loadFromJson(path: String): T {
-    return GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).create().fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
-}
+inline fun <reified T> loadFromJson(path: String): T =
+        GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).create().fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
 
 fun Any.storeAsJson(path: String) {
     Files.write(toJson(), File(path), Charsets.UTF_8)
 }
 
-fun Any.toJson(): String {
-    return GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).setPrettyPrinting().create().toJson(this)
-}
+fun Any.toJson(): String =
+        GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).setPrettyPrinting().create().toJson(this)
 
 fun List<Pair<ZonedDateTime, Double>>.sma(timeFrame: Int): List<Pair<ZonedDateTime, Double>> {
     val out = mutableListOf<Pair<ZonedDateTime, Double>>()

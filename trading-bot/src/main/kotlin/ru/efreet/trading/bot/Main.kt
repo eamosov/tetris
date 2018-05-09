@@ -8,7 +8,6 @@ import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.utils.*
 import java.time.Duration
@@ -46,7 +45,7 @@ class Main {
                 val interval = BarInterval.valueOf(bot.interval)
 
 
-                val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(bot.logic, instrument, interval)
+                val logic: BotLogic<Any> = LogicFactory.getLogic(bot.logic, instrument, interval)
                 logic.loadState(bot.settings)
 
                 val lastCachedBar = cache.getLast(exchange.getName(), instrument, interval)
@@ -69,7 +68,7 @@ class Main {
                     println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}, last=${tradeHistory.trades.last().time}")
                 }
 
-                bots.put(instrument, TradeBot(exchange, cmd.tradesPath, cache, bot.limit, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
+                bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
                     //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
                 },bot.training))
@@ -115,8 +114,8 @@ class Main {
 
                         for ((instrument, bot) in bots) if (bot.training){
 
-                            val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(bot.logicName, bot.instrument, bot.barInterval)
-                            val curParams = bot.logic.getParams().copy()
+                            val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(bot.logicName, bot.instrument, bot.barInterval)
+                            val curParams = bot.logic.copyParams(bot.logic.getParams())
 
                             val div = 50.0
                             val hardBound = false
@@ -163,7 +162,7 @@ class Main {
 
 
                 } catch (e: InterruptedException) {
-                    bots.forEach { t, u -> u.stopTrade() }
+                    bots.forEach { _, u -> u.stopTrade() }
                     break
                 }
             }

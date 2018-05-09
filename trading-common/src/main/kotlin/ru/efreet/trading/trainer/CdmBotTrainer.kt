@@ -58,7 +58,7 @@ class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessor
         return Pair(population.last().args, population.last().result!!)
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     fun <P, R, M:Comparable<M>> doCdm(genes: List<PropertyEditor<P, Any?>>,
                      population: MutableList<TrainItem<P, R?>>,
                      function: (P) -> R,
@@ -121,6 +121,7 @@ class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessor
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <P, R, M:Comparable<M>> doCdmStep(genes: List<PropertyEditor<P, Any?>>,
                          origin: TrainItem<P, R?>,
                          step: Int,
@@ -176,7 +177,7 @@ class CdmBotTrainer(val processors:Int = Runtime.getRuntime().availableProcessor
         //Найдем лучший
         val best = allResults.maxWith(Comparator.comparing<TrainItem<P,R>, M> { metrica(it.args, it.result) })
 
-        if (metrica(best!!.args, best!!.result) > origMetrica)
+        if (metrica(best!!.args, best.result) > origMetrica)
             return best as TrainItem<P, R?>
 
         return null

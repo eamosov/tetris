@@ -16,13 +16,13 @@ data class PropRef<T>(val cls: KClass<*>, var propRef: PropRef<T>? = null, var c
     }
 }
 
-class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
+class PropertyEditorFactory<T : Any>(val propsCls: KClass<T>, val newInitParams: () -> T) {
 
     companion object {
 
         @JvmStatic
-        fun <T : Any> of(cls: Class<T>): PropertyEditorFactory<T> {
-            return PropertyEditorFactory<T>(cls.kotlin)
+        fun <T : Any> of(propsCls: Class<T>, newInitParams: () -> T): PropertyEditorFactory<T> {
+            return PropertyEditorFactory(propsCls.kotlin, newInitParams)
         }
     }
 
@@ -35,11 +35,13 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return of(R::class.java, kprop, key, min, max, step, hardBounds)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <R : Any?> of(propCls: Class<R>, propName: String, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
 
-        return of(propCls, cls.memberProperties.find { it.name == propName } as KMutableProperty1<T, R>, key, min, max, step, hardBounds)
+        return of(propCls, propsCls.memberProperties.find { it.name == propName } as KMutableProperty1<T, R>, key, min, max, step, hardBounds)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <R : Any?> of(propCls: Class<R>, kprop: KMutableProperty1<T, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<T, R> {
 
         val minRef = PropRef<T>((propCls as Class<Any>).kotlin, value = min.toString())
@@ -57,6 +59,7 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return pe
     }
 
+    @Suppress("UNCHECKED_CAST")
     inline fun <reified R : Any?> of(kprop: KMutableProperty1<T, R>, key: String, value: R): PropertyEditor<T, R> {
         val ref = PropRef<T>(R::class, value = value.toString())
         allProps[key] = ref
@@ -66,12 +69,18 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return pe
     }
 
+    /**
+     * Установить параметры min/max/hardBounds свойств из объекта obj
+     */
     fun setMinMax(obj: T, p: Double, hardBounds: Boolean) {
         for (gene in genes) {
             gene.setMinMax(obj, p, hardBounds)
         }
     }
 
+    /**
+     * Установить параметры min/max/hardBounds свойств из объекта properties
+     */
     fun setMinMax(properties: Properties) {
 
         for ((name, ref) in allProps) {
@@ -90,7 +99,10 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         }
     }
 
-    fun getMinMax(): Properties {
+    /**
+     *  Создать объект Properties с описанием свойств (min/max/step/hardBounds)
+     */
+    fun newMinMaxProperties(): Properties {
         val properties = SortedProperties()
         for ((name, ref) in allProps) {
             properties.setProperty(name, ref.value)
@@ -98,8 +110,12 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return properties
     }
 
-    fun toLogicParams(properties: Properties): T {
-        val prop = cls.java.newInstance()
+    /**
+     * Создать класс типа T и заполнить его свойства из properties
+     */
+    fun newParams(properties: Properties): T {
+        val prop = newInitParams()
+
         for (gene in genes) {
             properties.getProperty(gene.key)?.let {
                 gene.kprop.set(prop, it.parseNumberOrBool(gene.cls))
@@ -115,8 +131,8 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return prop
     }
 
-    fun random(orig: T, copy: (T) -> T): T {
-        val prop = copy(orig)
+    fun newRandomParams(): T {
+        val prop = newInitParams()
 
         for (gene in genes) {
             gene.setRandom(prop)
@@ -125,25 +141,19 @@ class PropertyEditorFactory<T : Any>(val cls: KClass<T>) {
         return prop
     }
 
-
-    fun fromLogicParams(value: T): Properties {
+    /**
+     * Создать Properties со свойствами из params
+     */
+    fun newProperties(params: T): Properties {
         val p = SortedProperties()
         for (gene in genes) {
-            p.setProperty(gene.key, gene.kprop.get(value).toString())
+            p.setProperty(gene.key, gene.kprop.get(params).toString())
         }
         return p
     }
 
-    fun isInitialized(value: T): Boolean {
-        return genes.none { it.kprop.get(value) == null }
-    }
-
-//    fun copy(orig: T): T {
-//        val prop = cls.java.newInstance()
-//        for (gene in genes) {
-//            gene.kprop.set(prop, gene.kprop.get(orig))
-//        }
-//        return prop
+//    fun isInitialized(value: T): Boolean {
+//        return genes.none { it.kprop.get(value) == null }
 //    }
 
     fun log(params: T?): String {

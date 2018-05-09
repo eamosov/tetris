@@ -1,8 +1,8 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams;
 import ru.gustos.trading.GustosBotLogic2;
+import ru.gustos.trading.GustosBotLogicParams;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 import ru.gustos.trading.visual.VisUtils;
@@ -80,7 +80,7 @@ public class Gustos3NumberIndicator extends BaseIndicator implements IStrokeProv
     public double value(Sheet sheet, int index){
         GustosBotLogic2 bot = (GustosBotLogic2)((GustosIndicator)sheet.getLib().get(ind)).botLogic;
         XExtBar bar = bot.getBar(index);
-        SimpleBotLogicParams params = bot.getParams();
+        GustosBotLogicParams params = bot.getParams();
         switch (param){
             case "sma":
                 return bar.getSma();

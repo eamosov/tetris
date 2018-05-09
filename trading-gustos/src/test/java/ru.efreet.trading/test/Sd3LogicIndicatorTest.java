@@ -28,7 +28,7 @@ public class Sd3LogicIndicatorTest {
 
         final BotLogic logic = new Sd3Logic("sd3", Instrument.Companion.getBTC_USDT(),
                                             BarInterval.ONE_MIN, XExtBar.Companion.of(bars));
-        logic.prepare();
+        logic.prepareBars();
 
         double money = 1000;
         double btc = 0;

@@ -3,7 +3,6 @@ package ru.efreet.trading.bot
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.utils.Periodical
 import java.time.Duration
 import java.time.ZoneId
@@ -13,13 +12,12 @@ import java.time.ZonedDateTime
  * Created by fluder on 06/02/2018.
  */
 class TradeBot(val exchange: Exchange,
-               tradesDbPath: String,
                var barsCache: BarsCache,
                var baseLimit: Double,
                val testOnly: Boolean,
                val instrument: Instrument,
                val logicName: String,
-               val logic: BotLogic<SimpleBotLogicParams>,
+               val logic: BotLogic<Any>,
                val settings:String,
                val barInterval: BarInterval,
                val trainStart:ZonedDateTime,
@@ -89,7 +87,7 @@ class TradeBot(val exchange: Exchange,
 
         logic.insertBars(lastBars);
 
-        logic.prepare()
+        logic.prepareBars()
 
         println("Ok fetchTradesHistory (${logic.barsCount()} bars from ${logic.firstBar().endTime} to ${logic.lastBar().endTime})")
     }

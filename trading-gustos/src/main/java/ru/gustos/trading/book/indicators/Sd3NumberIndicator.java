@@ -1,18 +1,11 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.bot.BotAdvice;
-import ru.efreet.trading.exchange.BarInterval;
-import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.logic.impl.LogicFactory;
-import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.efreet.trading.ta.indicators.*;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
-import java.util.stream.Collectors;
 
 public class Sd3NumberIndicator extends BaseIndicator {
     int ind;

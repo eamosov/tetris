@@ -20,40 +20,33 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
                                        val hardBounds: Boolean) {
 
 
-    fun getMin(obj: T?): R {
-        return (propRefMin.get(obj) ?: min) as R
-    }
+    @Suppress("UNCHECKED_CAST")
+    fun getMin(obj: T?): R = (propRefMin.get(obj) ?: min) as R
 
-    fun getMax(obj: T?): R {
-        return (propRefMax.get(obj) ?: max) as R
-    }
+    @Suppress("UNCHECKED_CAST")
+    fun getMax(obj: T?): R = (propRefMax.get(obj) ?: max) as R
 
-    fun getStep(obj: T?): R {
-        return (propRefStep.get(obj) ?: step) as R
-    }
+    @Suppress("UNCHECKED_CAST")
+    fun getStep(obj: T?): R = (propRefStep.get(obj) ?: step) as R
 
-    fun getHardBounds(obj: T?): Boolean {
-        return (hardBoundsRef.get(obj) ?: hardBounds) as Boolean
-    }
+    fun getHardBounds(obj: T?): Boolean = (hardBoundsRef.get(obj) ?: hardBounds) as Boolean
 
-    fun getValue(obj: T): R {
-        return kprop.get(obj)
-    }
+    fun getValue(obj: T): R = kprop.get(obj)
 
     fun setValue(obj: T, value: R): R {
         kprop.set(obj, value)
         return value
     }
 
-    fun setRandom(obj: T): R {
-        return when {
-            cls.isSubclassOf(Int::class) -> setValue(obj, rnd(getMin(obj) as Int, getMax(obj) as Int) as R)
-            cls.isSubclassOf(Double::class) -> setValue(obj, rnd(getMin(obj) as Double, getMax(obj) as Double) as R)
-            cls.isSubclassOf(Boolean::class) -> setValue(obj, (rnd(0, 1) != 0) as R)
-            else -> throw RuntimeException("Couldn't get random of class ${cls}")
-        }
+    @Suppress("UNCHECKED_CAST")
+    fun setRandom(obj: T): R = when {
+        cls.isSubclassOf(Int::class) -> setValue(obj, rnd(getMin(obj) as Int, getMax(obj) as Int) as R)
+        cls.isSubclassOf(Double::class) -> setValue(obj, rnd(getMin(obj) as Double, getMax(obj) as Double) as R)
+        cls.isSubclassOf(Boolean::class) -> setValue(obj, (rnd(0, 1) != 0) as R)
+        else -> throw RuntimeException("Couldn't get random of class ${cls}")
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun step(obj: T, steps: Int): R {
         var value = getValue(obj)
         if (value == null) {
@@ -92,7 +85,7 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
             }
             n = _n as R
         } else if (cls.isSubclassOf(Boolean::class)) {
-            var _n = !(value as Boolean)
+            val _n = !(value as Boolean)
             n = _n as R
         } else {
             throw RuntimeException("Couldn't do step for class ${cls}")
@@ -102,6 +95,7 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
         return n
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun step2(obj: T, stepSizeP: Double) {
         var value = getValue(obj)
         if (value == null) {
@@ -151,7 +145,7 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
             }
             n = _n as R
         } else if (cls.isSubclassOf(Boolean::class)) {
-            var _n = !(value as Boolean)
+            val _n = !(value as Boolean)
             n = _n as R
         } else {
             throw RuntimeException("Couldn't do step for class ${cls}")

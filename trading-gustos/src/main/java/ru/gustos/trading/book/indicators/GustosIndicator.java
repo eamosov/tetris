@@ -87,6 +87,6 @@ public class GustosIndicator extends BaseIndicator implements IIndicatorWithProp
 
     @Override
     public void setIndicatorProperties(Properties p) {
-        botLogic.setParamsAsProperties(p);
+        botLogic.setParams(p);
     }
 }

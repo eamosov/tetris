@@ -87,14 +87,14 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         val history = cache.getBars(exchange.getName(), state.instrument, state.interval, historyStart, state.time)
         println("Loaded history ${history.size} bars from $historyStart to ${state.time}")
         history.forEach { logic.insertBar(it) }
-        logic.prepare()
+        logic.prepareBars()
 
 
         val end = cache.getLast(exchange.getName(), state.instrument, state.interval).endTime
 
         val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true, exchange.getName(), state.instrument)
 
-        var stats: TradesStats? = null
+        var stats: TradesStats?
 
         var bar: XBar? = null
 

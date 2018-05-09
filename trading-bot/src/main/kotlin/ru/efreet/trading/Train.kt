@@ -5,11 +5,9 @@ import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
-import ru.efreet.trading.logic.AbstractBotLogicParams
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.trainer.CdmBotTrainer
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.SeedType
@@ -38,14 +36,14 @@ class Train {
 //            var bars = cache.getBars("binance", Instrument.BTC_USDT, BarInterval.ONE_SECOND, ZonedDateTime.now().minusDays(10), ZonedDateTime.now())
 
 
-            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee()*2, cmd.barInterval, BarsCache(cmd.cachePath))
+            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee() * 2, cmd.barInterval, BarsCache(cmd.cachePath))
 
-            val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-            logic.loadState(cmd.settings!!)
+            val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+            val stateLoaded = logic.loadState(cmd.settings!!)
 
             val population = logic.seed(SeedType.RANDOM, cmd.population ?: 10)
-            if (logic.isInitialized())
-                population.add(logic.getParams().copy())
+            if (stateLoaded)
+                population.add(logic.copyParams(logic.getParams()))
 
             val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars)).truncatedTo(cmd.barInterval), cmd.end!!.truncatedTo(cmd.barInterval))
             println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${cmd.start!!} end=${cmd.end!!}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${logic.logState()}")
@@ -65,10 +63,10 @@ class Train {
                         synchronized(Train.Companion) {
                             val savePath = cmd.settings + ".out"
                             println("Saving intermediate logic's properties to ${savePath}")
-                            val logic: BotLogic<AbstractBotLogicParams> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-                            logic.setMinMax(params, 50.0, false)
-                            logic.setParams(params)
-                            logic.saveState(savePath, stats.toString())
+                            val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                            tmpLogic.setMinMax(params, 50.0, false)
+                            tmpLogic.setParams(params)
+                            tmpLogic.saveState(savePath, stats.toString())
                         }
                     })
 

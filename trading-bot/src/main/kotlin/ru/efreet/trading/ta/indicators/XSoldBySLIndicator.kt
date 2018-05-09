@@ -6,17 +6,17 @@ import ru.efreet.trading.bars.XExtBar
 /**
  * Created by fluder on 17/03/2018.
  */
-class XSoldBySLIndicator<B : XExtBar>(bars: List<B>,
-                                      prop: BarGetterSetter2<B, Boolean>,
-                                      val xLastTrendIndicator: XLastDecisionIndicator<B>,
-                                      val xTslIndicator: XTslIndicator<B>,
-                                      val xTrendStartIndicator: XDecisionStartIndicator<B>,
+class XSoldBySLIndicator(bars: List<XExtBar>,
+                                      prop: BarGetterSetter2<XExtBar, Boolean>,
+                                      val xLastTrendIndicator: XLastDecisionIndicator<XExtBar>,
+                                      val xTslIndicator: XTslIndicator,
+                                      val xTrendStartIndicator: XDecisionStartIndicator,
                                       val sl: Double,
                                       val tsl: Double,
                                       val tp: Double,
-                                      val ttp: Double) : XCachedIndicator2<B, Boolean>(bars, prop) {
+                                      val ttp: Double) : XCachedIndicator2<XExtBar, Boolean>(bars, prop) {
 
-    override fun calculate(index: Int, bar: B): Boolean {
+    override fun calculate(index: Int, bar: XExtBar): Boolean {
 
         val trend = xLastTrendIndicator.getValue(index)
         if (trend.first == Decision.SELL)

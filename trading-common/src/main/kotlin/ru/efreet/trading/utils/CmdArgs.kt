@@ -26,9 +26,6 @@ data class CmdArgs(var start: ZonedDateTime? = null,
     val instrument: Instrument
         get() = instruments.first()
 
-    val tradesPath: String
-        get() = cachePath
-
     companion object {
 
         fun parseTime(time: String): ZonedDateTime {

@@ -39,39 +39,42 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     lateinit var daySignal2Ema: XCachedIndicator<XExtBar>
 
     lateinit var lastDecisionIndicator: XLastDecisionIndicator<XExtBar>
-    lateinit var decisionStartIndicator: XDecisionStartIndicator<XExtBar>
-    lateinit var tslIndicator: XTslIndicator<XExtBar>
-    lateinit var soldBySLIndicator: XSoldBySLIndicator<XExtBar>
+    lateinit var decisionStartIndicator: XDecisionStartIndicator
+    lateinit var tslIndicator: XTslIndicator
+    lateinit var soldBySLIndicator: XSoldBySLIndicator
 
-    init {
-        _params = SimpleBotLogicParams(
+    override fun newInitParams(): SimpleBotLogicParams {
+        return SimpleBotLogicParams(
                 long = 50,
                 signal = 203,
                 signal2 = 203,
                 dayLong = 1494,
                 daySignal = 112,
-                daySignal2 = 537
-//                persist1 = 4,
-//                persist2 = 8,
-//                persist3 = 1
+                daySignal2 = 537,
+
+                tStopLoss = 50.0,
+                takeProfit = 100.0
         )
+    }
+
+    init {
 
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", 20, 60, 1, false)
+        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", 80, 240, 1, false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::long, "logic.sd3.long", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::signal, "logic.sd3.signal", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", 1, 2000, 1, false)
 
-        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", Duration.ofMinutes(200), Duration.ofMinutes(500), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", Duration.ofMinutes(1000), Duration.ofMinutes(2000), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", Duration.ofMinutes(65), Duration.ofMinutes(150), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", Duration.ofMinutes(300), Duration.ofMinutes(800), Duration.ofSeconds(1), false)
+        of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", 1, 2000, 1, false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 5.0, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 10.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 //
 //        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
@@ -111,34 +114,34 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 .add("pearson", (stats.pearson - 0.98) * 100.0)
     }
 
-    override fun copyParams(orig: SimpleBotLogicParams): SimpleBotLogicParams = orig.copy()
+    override fun copyParams(src: SimpleBotLogicParams): SimpleBotLogicParams = src.copy()
 
-    override fun prepare() {
+    override fun prepareBarsImpl() {
 
 //        shortEma = XMcGinleyIndicator(bars, XExtBar._shortEma, closePrice, _params.short!!)
 //        longEma = XMcGinleyIndicator(bars, XExtBar._longEma, closePrice, _params.long!!)
-        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, _params.short!!)
-        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, _params.long!!)
+        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().short!!)
+        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, getParams().long!!)
         macd = XMACDIndicator(shortEma, longEma)
 //        signalEma = XMcGinleyIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
 //        signal2Ema = XMcGinleyIndicator(bars, XExtBar._signal2Ema, macd, _params.signal2!!)
-        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, _params.signal!!)
-        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, _params.signal2!!)
+        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, getParams().signal!!)
+        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, getParams().signal2!!)
 
-        sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
+        sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, getParams().deviationTimeFrame!!, getParams().deviationTimeFrame2!!)
         sma = object : XIndicator<XExtBar> {
             override fun getValue(index: Int): Double = getBar(index).sma
         }
 
-        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, _params.dayShort!!)
-        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, _params.dayLong!!)
+        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, getParams().dayShort!!)
+        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, getParams().dayLong!!)
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
-        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, _params.daySignal!!)
-        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, _params.daySignal2!!)
+        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, getParams().daySignal!!)
+        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, getParams().daySignal2!!)
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, bar -> getTrendDecision(index, bar) })
         decisionStartIndicator = XDecisionStartIndicator(bars, XExtBar._decisionStart, lastDecisionIndicator)
         tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastDecisionIndicator, closePrice)
-        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastDecisionIndicator, tslIndicator, decisionStartIndicator, _params.stopLoss, _params.tStopLoss, _params.takeProfit, _params.tTakeProfit)
+        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastDecisionIndicator, tslIndicator, decisionStartIndicator, getParams().stopLoss, getParams().tStopLoss, getParams().takeProfit, getParams().tTakeProfit)
 
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
@@ -175,15 +178,15 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     }
 
     open protected fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
-        
-        return if ((maxOf(0, index - _params.persist1!!)..index).all { dayDownTrend(it) }) {
+
+        return if ((maxOf(0, index - getParams().persist1!!)..index).all { dayDownTrend(it) }) {
             Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
             when {
-                priceLow(index,_params.deviation!!)
-                        && (maxOf(0, index - _params.persist2!!)..index).all { localUpTrend(it) } //проверять последние 10 баров
-                        && (maxOf(0, index - _params.persist3!!)..index).all { dayUpTrend(it) }
+                priceLow(index, getParams().deviation!!)
+                        && (maxOf(0, index - getParams().persist2!!)..index).all { localUpTrend(it) } //проверять последние 10 баров
+                        && (maxOf(0, index - getParams().persist3!!)..index).all { dayUpTrend(it) }
                 -> Pair(Decision.BUY, mapOf(Pair("up", "true"))) //проверять последние 2 бара
 
                 shouldSell(index) -> Pair(Decision.SELL, emptyMap())
@@ -192,21 +195,21 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         }
     }
 
-    fun upperBound(index : Int) : Double {
+    fun upperBound(index: Int): Double {
         val sd = sd.getValue(index)
         val sma = getBar(index).sma
-        return sma + sd*_params.deviation2!! / 10.0
+        return sma + sd * getParams().deviation2!! / 10.0
 
     }
 
-    fun priceLow(index : Int, deviation : Int) : Boolean {
+    fun priceLow(index: Int, deviation: Int): Boolean {
         val sd = sd.getValue(index)
         val sma = getBar(index).sma
         val price = closePrice.getValue(index)
         return price < sma - sd * deviation / 10.0
     }
 
-    fun shouldSell(index : Int) : Boolean {
+    fun shouldSell(index: Int): Boolean {
         val price = closePrice.getValue(index)
         return price > upperBound(index) //&& localDownTrend(index)
     }
@@ -233,14 +236,14 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
-    override fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
             val bar = getBar(index)
             val (decision, decisionArgs) = lastDecisionIndicator.getValue(index)
 
-            val indicators = if (fillIndicators) getIndicators(index, bar) else null
+            val indicators = if (fillIndicators) getIndicators(index) else null
 
 
             if (soldBySLIndicator.getValue(index)) {

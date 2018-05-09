@@ -19,6 +19,9 @@ public class CdmTest {
         public double x;
         public double y;
 
+        public Params() {
+        }
+
         public Params(double x, double y) {
             this.x = x;
             this.y = y;
@@ -40,9 +43,9 @@ public class CdmTest {
 
     public static void main(String[] args) {
 
-        PropertyEditorFactory properties = PropertyEditorFactory.of(Params.class);
+        PropertyEditorFactory<Params> properties = PropertyEditorFactory.of(Params.class, Params::new);
 
-        properties.of(Double.class, "x", "x", -100, 100, 0.1, false);
+        properties.of(Double.class, "x", "x", -100.0, 100.0, 0.1, false);
         properties.of(Double.class, "y", "y", -100.0, 100.0, 0.1, false);
 
         //Начальное множество параметров - исходных точек оптимизации

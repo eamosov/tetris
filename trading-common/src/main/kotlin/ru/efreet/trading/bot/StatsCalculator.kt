@@ -39,7 +39,7 @@ class StatsCalculator {
                             tradesWithProfit++
 
                         profits.add(Pair(trade.time!!, tradeProfit))
-                        funds.add(Pair(trade.time!!, trade.fundsAfter))
+                        funds.add(Pair(trade.time, trade.fundsAfter))
                     }
                 }
             }

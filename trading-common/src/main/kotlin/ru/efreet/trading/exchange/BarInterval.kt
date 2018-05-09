@@ -59,6 +59,7 @@ enum class BarInterval(private val _duration: Duration) : TemporalUnit {
         return temporal.isSupported(this)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <R : Temporal> addTo(temporal: R, amount: Long): R {
         return temporal.plus(amount, this) as R
     }

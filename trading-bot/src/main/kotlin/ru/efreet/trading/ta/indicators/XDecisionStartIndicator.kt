@@ -5,9 +5,9 @@ import ru.efreet.trading.bars.XExtBar
 /**
  * Created by fluder on 17/03/2018.
  */
-class XDecisionStartIndicator<B : XExtBar>(bars: List<B>, prop: BarGetterSetter2<B, XExtBar>, val xLastDecisionIndicator: XLastDecisionIndicator<B>) : XCachedIndicator2<B, XExtBar>(bars, prop) {
+class XDecisionStartIndicator(bars: List<XExtBar>, prop: BarGetterSetter2<XExtBar, XExtBar>, val xLastDecisionIndicator: XLastDecisionIndicator<XExtBar>) : XCachedIndicator2<XExtBar, XExtBar>(bars, prop) {
 
-    override fun calculate(index: Int, bar: B): XExtBar {
+    override fun calculate(index: Int, bar: XExtBar): XExtBar {
 
         val l = xLastDecisionIndicator.getValue(index)
         if (index == 0)

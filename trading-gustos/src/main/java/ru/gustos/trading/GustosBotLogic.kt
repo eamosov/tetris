@@ -19,7 +19,6 @@ import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ForkJoinTask
 
 
-
 open class GustosBotLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
 
     var sheet: Sheet
@@ -33,13 +32,14 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
     lateinit var macd: XMACDIndicator<XExtBar>
     lateinit var signal2Ema: XCachedIndicator<XExtBar>
 
-    var prepared : Boolean = false
+    var prepared: Boolean = false
+
+    override fun newInitParams(): SimpleBotLogicParams = SimpleBotLogicParams()
 
     init {
 
-        _params = SimpleBotLogicParams()
         sheet = Sheet(IndicatorsLib("indicators_bot.json"))
-        println("bars "+bars.size)
+        println("bars " + bars.size)
         sheet.fromBars(bars)
         of(SimpleBotLogicParams::short, "logic.gustos.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
         of(SimpleBotLogicParams::long, "logic.gustos.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
@@ -61,15 +61,15 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
     override fun copyParams(src: SimpleBotLogicParams): SimpleBotLogicParams = src.copy()
 
 
-    override fun prepare() {
-        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, _params.short!!)
-        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, _params.long!!)
+    override fun prepareBarsImpl() {
+        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().short!!)
+        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, getParams().long!!)
         macd = XMACDIndicator(shortEma, longEma)
 //        signalEma = XMcGinleyIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
 //        signal2Ema = XMcGinleyIndicator(bars, XExtBar._signal2Ema, macd, _params.signal2!!)
-        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, _params.signal2!!)
+        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, getParams().signal2!!)
 
-        sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, _params.deviationTimeFrame!!, _params.deviationTimeFrame2!!)
+        sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, getParams().deviationTimeFrame!!, getParams().deviationTimeFrame2!!)
         sma = object : XIndicator<XExtBar> {
             override fun getValue(index: Int): Double = getBar(index).sma
         }
@@ -83,17 +83,17 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
         tasks.add(ForkJoinPool.commonPool().submit { signal2Ema.prepare() })
         tasks.forEach { it.join() }
 
-        lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, bar -> getTrendDecision(index, bar) })
+        lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
 
     }
 
-    private fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
+    private fun getTrendDecision(index: Int): Pair<Decision, Map<String, String>> {
         if (!prepared) throw NullPointerException("not prepared!")
-        val forest =  sheet.data.get(300,index)
+        val forest = sheet.data.get(300, index)
         return when {
 //            priceLow(index, _params.deviation!!) -> Pair(Decision.BUY, mapOf(Pair("up", "true")))
-            forest>0.5 -> Pair(Decision.BUY, mapOf(Pair("forest", "true")))
+            forest > 0.5 -> Pair(Decision.BUY, mapOf(Pair("forest", "true")))
             shouldSell(index) -> Pair(Decision.SELL, emptyMap())
             else -> Pair(Decision.NONE, emptyMap())
         }
@@ -104,7 +104,7 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
     fun upperBound(index: Int): Double {
         val sd = sd.getValue(index)
         val sma = getBar(index).sma
-        return sma + sd * _params.deviation2!! / 10.0
+        return sma + sd * getParams().deviation2!! / 10.0
 
     }
 
@@ -129,34 +129,33 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
         synchronized(this) {
             val mm = System.currentTimeMillis()
             bars.add(XExtBar(bar))
-            sheet.add(bar,true)
-            println("bar added "+(System.currentTimeMillis()-mm));
+            sheet.add(bar, true)
+            println("bar added " + (System.currentTimeMillis() - mm));
         }
     }
 
     override fun insertBars(bars: List<XBaseBar>) {
         synchronized(this) {
             val mm = System.currentTimeMillis()
-            bars.forEach { this.bars.add(XExtBar(it)); sheet.add(it,false)}
+            bars.forEach { this.bars.add(XExtBar(it)); sheet.add(it, false) }
             sheet.calcIndicatorsForLastBars(bars.size)
-            println("bars added "+(System.currentTimeMillis()-mm))
+            println("bars added " + (System.currentTimeMillis() - mm))
         }
     }
-
 
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
         return mapOf()
     }
 
-    override fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
             val bar = getBar(index)
             val (decision, decisionArgs) = lastDecisionIndicator.getValue(index)
 
-            val indicators = if (fillIndicators) getIndicators(index, bar) else null
+            val indicators = if (fillIndicators) getIndicators(index) else null
 
 
             //Если SELL, то безусловно продаем

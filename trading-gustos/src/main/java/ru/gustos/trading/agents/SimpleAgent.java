@@ -152,7 +152,7 @@ public class SimpleAgent extends AgentBase{
         }
 
         public PropertyEditorFactory makePropertyEditorFactory() {
-            PropertyEditorFactory p = PropertyEditorFactory.of(SimpleAgentProperties.class);
+            PropertyEditorFactory<SimpleAgentProperties> p = PropertyEditorFactory.of(SimpleAgentProperties.class, SimpleAgentProperties::new);
 
             p.of(Double.class, "buyLo", "buyLo", 1.0, 1.05, 0.00005, true);
 //            p.of(Double.class, "buyHi", "buyHi", 1, 1.3, 0.0001, false);

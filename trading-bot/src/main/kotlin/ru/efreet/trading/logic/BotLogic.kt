@@ -41,15 +41,13 @@ interface BotLogic<P> {
 
     fun copyParams(src: P): P
 
-    fun getParams(): P
-
     fun setParams(params: P)
 
-    fun isInitialized(): Boolean
+    fun setParams(properties: Properties)
+
+    fun getParams(): P
 
     fun getParamsAsProperties(): Properties
-
-    fun setParamsAsProperties(params: Properties)
 
     fun saveState(path: String, comment: String) {
         Files.newOutputStream(Paths.get(path), StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE).use {
@@ -60,22 +58,24 @@ interface BotLogic<P> {
         }
     }
 
-    fun loadState(configPath: String) {
-        try {
+    fun loadState(configPath: String): Boolean {
+        return try {
             println("Loading config from $configPath")
 
             Files.newInputStream(Paths.get(configPath)).use {
                 val p = Properties()
                 p.load(it)
                 setMinMax(p)
-                setParamsAsProperties(p)
+                setParams(p)
             }
+            true
         } catch (e: java.nio.file.NoSuchFileException) {
             println("WARN: $configPath not found")
+            false
         }
     }
 
-    fun prepare()
+    fun prepareBars()
 
     fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
 
@@ -86,8 +86,6 @@ interface BotLogic<P> {
     fun metrica(params: P, stats: TradesStats): Metrica
 
     var historyBars: Long
-
-    fun isProfitable(stats: TradesStats): Boolean
 
     fun indicators(): Map<String, XIndicator<XExtBar>>
 
