@@ -34,7 +34,13 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
     override val genes: List<PropertyEditor<P, Any?>>
         get() = propertyEditorFactory.genes
 
-    private var _params: P = newInitParams()
+    private var _params: P
+
+    init {
+        _params = newInitParams()
+
+        onInit()
+    }
 
     override fun setParams(params: P) {
         synchronized(this) {
@@ -58,6 +64,8 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
     abstract fun prepareBarsImpl()
 
     abstract fun newInitParams(): P
+
+    abstract fun onInit()
 
     final override fun prepareBars() {
         prepareBarsImpl()
@@ -144,7 +152,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         return population
     }
 
-    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.newRandomParams() } as MutableList<P>
+    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(getParams())) } as MutableList<P>
 
     override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 

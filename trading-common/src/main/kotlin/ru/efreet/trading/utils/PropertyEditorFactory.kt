@@ -131,14 +131,13 @@ class PropertyEditorFactory<T : Any>(val propsCls: KClass<T>, val newInitParams:
         return prop
     }
 
-    fun newRandomParams(): T {
-        val prop = newInitParams()
+    fun randomParams(params:T): T {
 
         for (gene in genes) {
-            gene.setRandom(prop)
+            gene.setRandom(params)
         }
 
-        return prop
+        return params
     }
 
     /**

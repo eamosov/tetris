@@ -23,7 +23,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
     override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
 
-    init {
+    override fun onInit() {
 
         of(GustosBotLogicParams::buyWindow, "buyWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
         of(GustosBotLogicParams::buyVolumeWindow, "buyVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
