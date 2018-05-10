@@ -25,21 +25,16 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
     init {
 
-        of(GustosBotLogicParams::deviationTimeFrame, "logic.gustos2.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
-        of(GustosBotLogicParams::deviationTimeFrame2, "logic.gustos2.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
-        of(GustosBotLogicParams::deviationTimeFrameSell, "logic.gustos2.deviationTimeFrameSell", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
-        of(GustosBotLogicParams::deviationTimeFrameSell2, "logic.gustos2.deviationTimeFrameSell2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::buyWindow, "buyWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::buyVolumeWindow, "buyVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::sellWindow, "sellWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::sellVolumeWindow, "sellVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
 
-        resetGenes()
-
-        of(GustosBotLogicParams::short, "logic.gustos2.short", 0, 23, 1, false)
-        of(GustosBotLogicParams::deviation, "logic.gustos2.deviation", 0, 23, 1, false)
-        of(GustosBotLogicParams::deviation2, "logic.gustos2.deviation2", 0, 23, 1, false)
-//        of(SimpleBotLogicParams::deviationTimeFrame3, "logic.gustos2.deviationTimeFrame3", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
-//        of(SimpleBotLogicParams::deviationTimeFrameSell3, "logic.gustos2.deviationTimeFrameSell3", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
-//        of(SimpleBotLogicParams::persist1, "logic.gustos2.persist1", 0, 50, 1, false)
-//        of(SimpleBotLogicParams::persist2, "logic.gustos2.persist2", 0, 50, 1, false)
-        of(GustosBotLogicParams::deviation3, "logic.gustos2.deviation3", 0, 23, 1, false)
+        of(GustosBotLogicParams::volumeShort, "volumeShort", 0, 23, 1, false)
+        of(GustosBotLogicParams::buyDiv, "buyDiv", 0, 23, 1, false)
+        of(GustosBotLogicParams::sellDiv, "sellDiv", 0, 23, 1, false)
+        of(GustosBotLogicParams::buyBoundDiv, "buyBoundDiv", 0, 23, 1, false)
+        of(GustosBotLogicParams::sellBoundDiv, "sellBoundDiv", 0, 23, 1, false)
 
 //        of(SimpleBotLogicParams::stopLoss, "logic.gustos2.stopLoss", 1.0, 15.0, 0.05, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.gustos2.tStopLoss", 1.0, 15.0, 0.05, true)
@@ -54,10 +49,10 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
 
     override fun prepareBarsImpl() {
-//        println("timeframe1 ${_params.deviationTimeFrame} timeframe2 ${_params.deviationTimeFrame2} bars ${bars.size}")
-        garBuy = GustosAverageRecurrent(getParams().deviationTimeFrame!!, getParams().deviationTimeFrame2!!, getParams().short!!, getParams().persist1!! / 10.0, getParams().persist2!! / 10.0)
+//        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
+        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!)
         bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice, it.volume); it.sma = sma;it.sd = sd; }
-        garSell = GustosAverageRecurrent(getParams().deviationTimeFrameSell!!, getParams().deviationTimeFrameSell2!!, getParams().short!!, getParams().persist1!! / 10.0, getParams().persist2!! / 10.0)
+        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!)
         bars.forEach { val (sma, sd) = garSell.feed(it.closePrice, it.volume); it.smaSell = sma;it.sdSell = sd; }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
@@ -80,14 +75,14 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
     private fun shouldBuy(i: Int): Boolean {
         val pbar = getBar(i - 1)
         val bar = getBar(i)
-        val p = pbar.sma - pbar.sd * getParams().deviation!! / 10
-        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * getParams().deviation3!! / 10 && !falling(i)
+        val p = pbar.sma - pbar.sd * getParams().buyDiv!! / 10
+        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * getParams().buyBoundDiv!! / 10 && !falling(i)
     }
 
     private fun shouldSell(i: Int): Boolean {
         val bar = getBar(i)
-        val p = bar.smaSell + bar.sdSell * getParams().deviation2!! / 10
-        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().deviation3!! / 10 && !rising(i)
+        val p = bar.smaSell + bar.sdSell * getParams().sellDiv!! / 10
+        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().sellBoundDiv!! / 10 && !rising(i)
 
     }
 

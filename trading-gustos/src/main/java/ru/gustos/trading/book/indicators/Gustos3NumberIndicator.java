@@ -87,15 +87,15 @@ public class Gustos3NumberIndicator extends BaseIndicator implements IStrokeProv
             case "smaSell":
                 return bar.getSmaSell();
             case "sd+":
-                return bar.getSma() + bar.getSd()* params.getDeviation2()*0.1;
+                return bar.getSma() + bar.getSd()* params.getSellDiv()*0.1;
             case "sd-":
-                return bar.getSma() - bar.getSd()* params.getDeviation()*0.1;
+                return bar.getSma() - bar.getSd()* params.getBuyDiv()*0.1;
             case "sd-3":
-                return bar.getSma() - bar.getSd()* params.getDeviation3()*0.1;
+                return bar.getSma() - bar.getSd()* params.getBuyBoundDiv()*0.1;
             case "sdSell+":
-                return bar.getSmaSell() + bar.getSdSell()* params.getDeviation2()*0.1;
+                return bar.getSmaSell() + bar.getSdSell()* params.getSellDiv()*0.1;
             case "sdSell+3":
-                return bar.getSmaSell() + bar.getSdSell()* params.getDeviation3()*0.1;
+                return bar.getSmaSell() + bar.getSdSell()* params.getSellBoundDiv()*0.1;
         }
         return 0;
     }

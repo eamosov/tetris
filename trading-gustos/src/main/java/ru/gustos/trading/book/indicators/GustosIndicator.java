@@ -1,16 +1,12 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.efreet.trading.Decision;
-import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.bot.BotAdvice;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.LogicFactory;
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams;
-import ru.gustos.trading.GustosBotLogic;
-import ru.gustos.trading.GustosBotLogic2;
 import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;

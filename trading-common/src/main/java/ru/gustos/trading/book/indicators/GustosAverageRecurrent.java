@@ -12,16 +12,14 @@ public class GustosAverageRecurrent {
     private final EmaRecurrent volumeEmaShort;
     private double value;
     private double disp;
-    private double pow1;
-    private double pow2;
+    private double pow1 = 2.4;
+    private double pow2 = 1.4;
 
 
-    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow, double pow1, double pow2){
+    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow){
         this.window = window;
         volumeEma = new EmaRecurrent(volumeWindow);
         volumeEmaShort = new EmaRecurrent(shortVolumeWindow);
-        this.pow1 = pow1;
-        this.pow2 = pow2;
     }
 
     public Pair<Double,Double> feed(double price, double volume){
@@ -85,7 +83,7 @@ public class GustosAverageRecurrent {
     public static Pair<double[], double[]> calc(double[] prices, int window, double[] volumes, int volumesWindow) {
         double[] a = new double[prices.length];
         double[] d = new double[prices.length];
-        GustosAverageRecurrent gar = new GustosAverageRecurrent(window, volumesWindow, 5,2.3, 1.4);
+        GustosAverageRecurrent gar = new GustosAverageRecurrent(window, volumesWindow, 5);
         for (int i = 0;i<prices.length;i++) {
             Pair<Double, Double> r = gar.feed(prices[i], volumes[i]);
             a[i] = r.getFirst();
