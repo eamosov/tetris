@@ -144,7 +144,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         return population
     }
 
-    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.newRandomParams() } as MutableList<P>
+    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(getParams())) } as MutableList<P>
 
     override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 
