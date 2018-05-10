@@ -13,6 +13,10 @@ open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     override fun newInitParams(): SimpleBotLogicParams = SimpleBotLogicParams()
 
+    override fun onInit() {
+        describeCommomParams()
+    }
+
     override fun prepareBarsImpl() {
 
         shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().short!!)

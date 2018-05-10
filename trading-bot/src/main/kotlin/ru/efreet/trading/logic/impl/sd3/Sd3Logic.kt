@@ -57,12 +57,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         )
     }
 
-    init {
-
+    fun describeCommomParams() {
         of(SimpleBotLogicParams::deviation, "logic.sd3.deviation", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", 20, 60, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", 80, 240, 1, false)
 
         of(SimpleBotLogicParams::short, "logic.sd3.short", 1, 2000, 1, false)
         of(SimpleBotLogicParams::long, "logic.sd3.long", 1, 2000, 1, false)
@@ -84,7 +82,13 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         of(SimpleBotLogicParams::persist1, "logic.sd3.persist1", 0, 50, 1, true)
         of(SimpleBotLogicParams::persist2, "logic.sd3.persist2", 0, 50, 1, true)
         of(SimpleBotLogicParams::persist3, "logic.sd3.persist3", 0, 50, 1, true)
+    }
 
+    override fun onInit() {
+
+        describeCommomParams()
+
+        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.sd3.deviationTimeFrame2", 80, 240, 1, false)
     }
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {

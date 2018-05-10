@@ -34,7 +34,13 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
     override val genes: List<PropertyEditor<P, Any?>>
         get() = propertyEditorFactory.genes
 
-    private var _params: P = newInitParams()
+    private var _params: P
+
+    init {
+        _params = newInitParams()
+
+        onInit()
+    }
 
     override fun setParams(params: P) {
         synchronized(this) {
@@ -58,6 +64,8 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
     abstract fun prepareBarsImpl()
 
     abstract fun newInitParams(): P
+
+    abstract fun onInit()
 
     final override fun prepareBars() {
         prepareBarsImpl()

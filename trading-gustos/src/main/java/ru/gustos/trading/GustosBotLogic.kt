@@ -19,7 +19,7 @@ import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ForkJoinTask
 
 
-open class GustosBotLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
+open class GustosBotLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams>(name, GustosBotLogicParams::class, instrument, barInterval, bars) {
 
     var sheet: Sheet
     val closePrice = XClosePriceIndicator(bars)
@@ -34,23 +34,26 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
 
     var prepared: Boolean = false
 
-    override fun newInitParams(): SimpleBotLogicParams = SimpleBotLogicParams()
+    override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
 
     init {
 
         sheet = Sheet(IndicatorsLib("indicators_bot.json"))
         println("bars " + bars.size)
         sheet.fromBars(bars)
-        of(SimpleBotLogicParams::short, "logic.gustos.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::long, "logic.gustos.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::signal2, "logic.gustos.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::deviation, "logic.gustos.deviation", 0, 23, 1, false)
-        of(SimpleBotLogicParams::deviation2, "logic.gustos.deviation2", 0, 23, 1, false)
-        of(SimpleBotLogicParams::deviationTimeFrame, "logic.gustos.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
-        of(SimpleBotLogicParams::deviationTimeFrame2, "logic.gustos.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+    }
 
-        of(SimpleBotLogicParams::stopLoss, "logic.gustos.stopLoss", 1.0, 15.0, 0.05, true)
-        of(SimpleBotLogicParams::tStopLoss, "logic.gustos.tStopLoss", 1.0, 15.0, 0.05, true)
+    override fun onInit() {
+        of(GustosBotLogicParams::short, "logic.gustos.short", Duration.ofMinutes(1), Duration.ofMinutes(10), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::long, "logic.gustos.long", Duration.ofMinutes(40), Duration.ofMinutes(92), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::signal2, "logic.gustos.signal2", Duration.ofMinutes(156), Duration.ofMinutes(236), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::deviation, "logic.gustos.deviation", 0, 23, 1, false)
+        of(GustosBotLogicParams::deviation2, "logic.gustos.deviation2", 0, 23, 1, false)
+        of(GustosBotLogicParams::deviationTimeFrame, "logic.gustos.deviationTimeFrame", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
+        of(GustosBotLogicParams::deviationTimeFrame2, "logic.gustos.deviationTimeFrame2", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
+
+        of(GustosBotLogicParams::stopLoss, "logic.gustos.stopLoss", 1.0, 15.0, 0.05, true)
+        of(GustosBotLogicParams::tStopLoss, "logic.gustos.tStopLoss", 1.0, 15.0, 0.05, true)
     }
 
     override var historyBars: Long
@@ -58,7 +61,7 @@ open class GustosBotLogic(name: String, instrument: Instrument, barInterval: Bar
         set(value) {}
 
 
-    override fun copyParams(src: SimpleBotLogicParams): SimpleBotLogicParams = src.copy()
+    override fun copyParams(src: GustosBotLogicParams): GustosBotLogicParams = src.copy()
 
 
     override fun prepareBarsImpl() {
