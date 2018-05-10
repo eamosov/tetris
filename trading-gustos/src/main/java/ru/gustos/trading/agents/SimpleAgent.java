@@ -1,7 +1,8 @@
 package ru.gustos.trading.agents;
 
 import kotlin.Pair;
-import ru.efreet.trading.trainer.CdmBotTrainer;
+import ru.efreet.trading.trainer.GdmBotTrainer;
+import ru.efreet.trading.trainer.DoubleBotMetrica;
 import ru.efreet.trading.utils.PropertyEditorFactory;
 import ru.gustos.trading.book.SheetUtils;
 
@@ -31,7 +32,7 @@ public class SimpleAgent extends AgentBase{
         List<SimpleAgentProperties> origin = new ArrayList<>();
         origin.add(new SimpleAgentProperties(properties));
 
-        CdmBotTrainer trainer = new CdmBotTrainer();
+        GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica> trainer = new GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica>();
         trainer.logs = false;
         Pair<SimpleAgentProperties, Double> best = trainer.getBestParams(
                 pp.getGenes(),
@@ -39,8 +40,8 @@ public class SimpleAgent extends AgentBase{
                 p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
                     return estimate(p);
                 },
-                (p, r) -> { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
-                    return r;
+                (p, r) ->  { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
+                    return new DoubleBotMetrica(r);
                 },
                 p -> {  //функция копирования точек
                     return new SimpleAgentProperties(p);

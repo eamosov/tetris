@@ -4,7 +4,7 @@ import ru.efreet.trading.utils.round2
 import ru.efreet.trading.utils.round5
 
 class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
-                   var value: Double = 0.0) : Comparable<Metrica> {
+                   var value: Double = 0.0) : Comparable<Metrica>, BotMetrica {
 
     fun add(term: MetricaTerm): Metrica {
         elements.add(term)
@@ -29,5 +29,9 @@ class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
         }
         sb.append(")")
         return sb.toString()
+    }
+
+    override fun toDouble(): Double {
+        return value
     }
 }

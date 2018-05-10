@@ -13,8 +13,7 @@ import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
-import ru.efreet.trading.trainer.CdmBotTrainer
+import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.LocalDate
@@ -25,12 +24,14 @@ data class State(var name: String,
                  var startTime: ZonedDateTime = time,
                  var usd: Double = 1000.0,
                  var asset: Double = 0.0,
-                 var trainDays: Long = 45,
+                 var trainDays: Long = 60,
                  var instrument: Instrument,
                  var interval: BarInterval,
+                 var startMaxParamsDeviation: Double = 50.0,
                  var maxParamsDeviation: Double = 10.0,
                  var hardBounds: Boolean = false,
                  val tradeDuration: Duration = Duration.ofHours(24),
+                 var startPopulation: Int = 500,
                  var population: Int = 20,
                  var historyPath: String = "simulate_history.json",
                  var properties: String = "simulate.properties") {
@@ -44,7 +45,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
     lateinit var exchange: Exchange
     lateinit var cache: BarsCache
     lateinit var state: State
-    var cdm = CdmBotTrainer(cmd.cpu, cmd.steps)
+    var trainer = cmd.makeTrainer<Any, TradesStats, Metrica>()
 
     fun fee(): Double = (1.0 - (exchange.getFee() / 100.0) / 2.0)
 
@@ -70,15 +71,12 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         saveState()
 
-        val logic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+        val logic: BotLogic<Any> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
         logic.loadState(state.properties)
 
-        val _maxParamsDeviation= state.maxParamsDeviation
-        state.maxParamsDeviation = 50.0
-        val (params, _stats) = tuneParams(logic.getParams(), 100, false)
+        val (params, _stats) = tuneParams(logic.getParams(), state.startMaxParamsDeviation, state.startPopulation, false)
         println("Initial optimisation of random parameters have ended with stats: $_stats")
         logic.setParams(params)
-        state.maxParamsDeviation = _maxParamsDeviation
 
 
         println(logic.logState())
@@ -100,7 +98,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         while (state.time.plus(state.tradeDuration).isBefore(end)) {
 
-            val (params, _stats) = tuneParams(logic.getParams(), state.population)
+            val (params, _stats) = tuneParams(logic.getParams(), state.maxParamsDeviation, state.population)
             logic.setParams(params)
             logic.saveState(state.properties, _stats.toString())
 
@@ -143,12 +141,12 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         Graph().drawHistory(tradeHistory)
     }
 
-    fun tuneParams(curParams: SimpleBotLogicParams, populationSize: Int, inclCurParams: Boolean = true): Pair<SimpleBotLogicParams, TradesStats> {
+    fun tuneParams(curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): Pair<Any, TradesStats> {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
-        val tmpLogic: BotLogic<SimpleBotLogicParams> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+        val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
         tmpLogic.setParams(curParams)
-        tmpLogic.setMinMax(curParams, state.maxParamsDeviation, state.hardBounds)
+        tmpLogic.setMinMax(curParams, maxParamsDeviation, state.hardBounds)
 
         val population = tmpLogic.seed(SeedType.RANDOM, populationSize)
         if (inclCurParams)
@@ -161,7 +159,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         bars.checkBars()
 
 
-        return cdm.getBestParams(tmpLogic.genes, population,
+        return trainer.getBestParams(tmpLogic.genes, population,
                 {
                     val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.time)), false)
                     val stats = StatsCalculator().stats(history)

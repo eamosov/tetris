@@ -8,7 +8,7 @@ import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.trainer.CdmBotTrainer
+import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -24,7 +24,7 @@ class Main {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
-            val cdm = CdmBotTrainer(cmd.cpu, cmd.steps)
+            val trainer = cmd.makeTrainer<Any, TradesStats, Metrica>()
 
             val exchange = Exchange.getExchange(cmd.exchange)
             val cache = BarsCache(cmd.cachePath)
@@ -54,7 +54,7 @@ class Main {
                 cache.saveBars(exchange.getName(), instrument, newCachedBars.filter { it.timePeriod == interval.duration })
 
 
-                for (days in ( if (cmd.shortTest) arrayOf(14) else arrayOf(56, 28, 14, 7))) {
+                for (days in (if (cmd.shortTest) arrayOf(14) else arrayOf(56, 28, 14, 7))) {
                     val historyStart = ZonedDateTime.now().minusDays(days.toLong()).minus(interval.duration.multipliedBy(logic.historyBars))
                     val bars = cache.getBars(exchange.getName(), instrument, interval, historyStart, ZonedDateTime.now())
                     bars.checkBars()
@@ -71,7 +71,7 @@ class Main {
                 bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
                     //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
-                },bot.training))
+                }, bot.training))
 
                 /*val params = botSettings.getParams(instrument) ?: CdmBotTrainer().getBestParams(exchange, instrument, interval,
                         cmd.logicName,
@@ -112,7 +112,7 @@ class Main {
 
                         println("Start training")
 
-                        for ((instrument, bot) in bots) if (bot.training){
+                        for ((instrument, bot) in bots) if (bot.training) {
 
                             val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(bot.logicName, bot.instrument, bot.barInterval)
                             val curParams = bot.logic.copyParams(bot.logic.getParams())
@@ -137,7 +137,7 @@ class Main {
 
                             println("Searching best strategy for ${bot.instrument} population=${population.size}, start=${bot.trainStart} end=${trainEnd}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}")
 
-                            val (sp, stats) = cdm.getBestParams(tmpLogic.genes, population,
+                            val (sp, stats) = trainer.getBestParams(tmpLogic.genes, population,
                                     {
                                         val history = ProfitCalculator().tradeHistory(bot.logicName, it, bot.instrument, bot.barInterval, exchange.getFee(), bars, arrayListOf(Pair(bot.trainStart, trainEnd)), false)
 

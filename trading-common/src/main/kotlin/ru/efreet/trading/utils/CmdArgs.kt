@@ -3,6 +3,10 @@ package ru.efreet.trading.utils
 import org.apache.commons.cli.*
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.trainer.BotMetrica
+import ru.efreet.trading.trainer.BotTrainer
+import ru.efreet.trading.trainer.CdmBotTrainer
+import ru.efreet.trading.trainer.GdmBotTrainer
 import java.time.ZonedDateTime
 
 /**
@@ -20,8 +24,9 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
                    var cpu: Int = Runtime.getRuntime().availableProcessors() - 2,
-                   var steps:Array<Int> = arrayOf(1, 5, 20),
-                   var shortTest: Boolean = false) {
+                   var steps: Array<Int> = arrayOf(1, 5, 20),
+                   var shortTest: Boolean = false,
+                   var trainer: String = "cdm") {
 
     val instrument: Instrument
         get() = instruments.first()
@@ -57,6 +62,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                     .addOption("m", "cpu", true, "cpu numbers")
                     .addOption("d", "steps", true, "CDM steps, default 1,5,20")
                     .addOption("z", "shorttest", false, "no test on start")
+                    .addOption("r", "trainer", true, "cdm(default)|gdm")
 
 
             val parser = BasicParser()
@@ -112,8 +118,17 @@ data class CmdArgs(var start: ZonedDateTime? = null,
 
             cmd.getOptionValue('d')?.let { cmdArgs.steps = it.split(",").map { it.toInt() }.toTypedArray() }
 
+            cmd.getOptionValue('r')?.let { cmdArgs.trainer = it }
+
             return cmdArgs
         }
     }
 
+    fun <P, R, M> makeTrainer(): BotTrainer<P, R, M> where M : Comparable<M>, M : BotMetrica {
+        return when (trainer) {
+            "cdm" -> CdmBotTrainer<P, R, M>(cpu, steps)
+            "gdm" -> GdmBotTrainer<P, R, M>(cpu, steps)
+            else -> throw RuntimeException("trainer $trainer not found")
+        }
+    }
 }

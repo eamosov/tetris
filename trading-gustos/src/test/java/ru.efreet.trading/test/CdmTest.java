@@ -1,11 +1,13 @@
 package ru.efreet.trading.test;
 
 import kotlin.Pair;
-import ru.efreet.trading.trainer.CdmBotTrainer;
+import ru.efreet.trading.trainer.GdmBotTrainer;
+import ru.efreet.trading.trainer.DoubleBotMetrica;
 import ru.efreet.trading.utils.PropertyEditorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by fluder on 15/04/2018.
@@ -45,22 +47,25 @@ public class CdmTest {
 
         PropertyEditorFactory<Params> properties = PropertyEditorFactory.of(Params.class, Params::new);
 
-        properties.of(Double.class, "x", "x", -100.0, 100.0, 0.1, false);
-        properties.of(Double.class, "y", "y", -100.0, 100.0, 0.1, false);
+        properties.of(Double.class, "x", "x", -100.0, 100.0, 0.01, false);
+        properties.of(Double.class, "y", "y", -100.0, 100.0, 0.01, false);
 
         //Начальное множество параметров - исходных точек оптимизации
         List<Params> origin = new ArrayList<>();
-        origin.add(new Params(23.0, 15.0));
-        origin.add(new Params(-16.0, 12.0));
+        //origin.add(new Params(23.0, 15.0));
+        origin.add(new Params(18.0, 17.5));
 
-        Pair<Params, Double> best = new CdmBotTrainer().getBestParams(
+        final AtomicInteger comp = new AtomicInteger(0);
+
+        Pair<Params, Double> best = new GdmBotTrainer<Params, Double, DoubleBotMetrica>(1, new Integer[]{100,10,1}).getBestParams(
             properties.getGenes(),
             origin, // исходные точки
             p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
-                return 1 / (Math.abs(p.x + p.y) + 3 * Math.abs(p.y - p.x));
+                comp.incrementAndGet();
+                return 1 / (Math.abs(p.x + p.y - 10) + 3 * Math.abs(p.y - p.x));
             },
             (p, r) -> { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
-                return r * 2;
+                return new DoubleBotMetrica(r * 2);
             },
             p -> {  //функция копирования точек
                 return new Params(p);
@@ -71,6 +76,7 @@ public class CdmTest {
             });
 
         System.out.println("best: " + best);
+        System.out.println("comp: " + comp.get());
 
     }
 
