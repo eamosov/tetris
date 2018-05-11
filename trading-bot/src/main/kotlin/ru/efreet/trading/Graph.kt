@@ -214,7 +214,7 @@ class Graph {
                         listOf(Pair(cmd.start!!, ZonedDateTime.now())),
                         true)
             } else if (cmd.settings?.endsWith(".json") == true) {
-                history = loadFromJson(cmd.settings!!)
+                history = TradeHistory.loadFromJson(cmd.settings!!)
             } else {
                 throw RuntimeException("invalid ${cmd.settings}")
             }
