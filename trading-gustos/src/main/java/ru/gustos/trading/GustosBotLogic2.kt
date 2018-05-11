@@ -9,13 +9,17 @@ import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.ta.indicators.XLastDecisionIndicator
+import ru.efreet.trading.ta.indicators.XMinusIndicator
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent
 import java.time.Duration
 
 open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams>(name, GustosBotLogicParams::class, instrument, barInterval, bars) {
 
+    val closePrice = XClosePriceIndicator(bars)
+    
     var prepared: Boolean = false
     lateinit var garBuy: GustosAverageRecurrent
     lateinit var garSell: GustosAverageRecurrent
@@ -122,7 +126,9 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
-        return mapOf()
+        return mapOf(
+                Pair("price", closePrice)
+        )
     }
 
     override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
