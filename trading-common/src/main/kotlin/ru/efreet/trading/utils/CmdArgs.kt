@@ -24,7 +24,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
                    var cpu: Int = Runtime.getRuntime().availableProcessors() - 2,
-                   var steps: Array<Int> = arrayOf(1, 5, 20),
+                   var steps: Array<Int>? = null,
                    var shortTest: Boolean = false,
                    var trainer: String = "cdm") {
 
@@ -126,8 +126,8 @@ data class CmdArgs(var start: ZonedDateTime? = null,
 
     fun <P, R, M> makeTrainer(): BotTrainer<P, R, M> where M : Comparable<M>, M : BotMetrica {
         return when (trainer) {
-            "cdm" -> CdmBotTrainer<P, R, M>(cpu, steps)
-            "gdm" -> GdmBotTrainer<P, R, M>(cpu, steps)
+            "cdm" -> if (steps != null) CdmBotTrainer<P, R, M>(cpu, steps!!) else CdmBotTrainer<P, R, M>(cpu)
+            "gdm" -> if (steps != null) GdmBotTrainer<P, R, M>(cpu, steps!!) else GdmBotTrainer<P, R, M>(cpu)
             else -> throw RuntimeException("trainer $trainer not found")
         }
     }

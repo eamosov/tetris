@@ -11,7 +11,7 @@ import java.util.function.Supplier
 /**
  * Created by fluder on 09/02/2018.
  */
-class GdmBotTrainer<P, R, M>(val processors: Int = Runtime.getRuntime().availableProcessors(), val steps: Array<Int> = arrayOf(1, 5, 20)) : BotTrainer<P, R, M> where M : Comparable<M>, M : BotMetrica {
+class GdmBotTrainer<P, R, M>(val processors: Int = Runtime.getRuntime().availableProcessors(), val steps: Array<Int> = arrayOf(10, 1)) : BotTrainer<P, R, M> where M : Comparable<M>, M : BotMetrica {
 
     companion object {
 
