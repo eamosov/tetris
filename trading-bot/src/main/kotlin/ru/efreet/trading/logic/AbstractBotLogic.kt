@@ -190,7 +190,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
                 .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0))
                 .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0))
                 .add("fine_profit", BotLogic.fine(stats.profit, 1.0))
-                .add("profit", BotLogic.fine(stats.profit, 1.0))
+                .add("profit", BotLogic.funXP(stats.profit, 1.0))
     }
 
     override fun getBarIndex(time: ZonedDateTime): Int {

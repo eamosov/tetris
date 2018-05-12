@@ -3,7 +3,6 @@ package ru.efreet.trading.bot
 import ru.efreet.trading.exchange.TradeRecord
 import java.io.Serializable
 import java.lang.Math.pow
-import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
@@ -27,14 +26,20 @@ data class TradeHistory(val startUsd: Double,
                         val start: ZonedDateTime,
                         val end: ZonedDateTime) : Serializable {
 
-    fun profitPerDay() : Double {
-        return pow(endUsd/startUsd,(3600.0*24.0)/(end.toEpochSecond()-start.toEpochSecond()))
+    companion object {
+
+        @JvmStatic
+        fun loadFromJson(path: String): TradeHistory {
+            return ru.efreet.trading.utils.loadFromJson(path)
+        }
     }
 
-    fun profitPerDayToGrow() : Double {
-        return pow((endUsd/startUsd)/(endPrice/startPrice),(3600.0*24.0)/(end.toEpochSecond()-start.toEpochSecond()))
+    fun profitPerDay(): Double {
+        return pow(endUsd / startUsd, (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
     }
 
-
+    fun profitPerDayToGrow(): Double {
+        return pow((endUsd / startUsd) / (endPrice / startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
+    }
 }
 

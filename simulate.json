@@ -4,18 +4,20 @@
   "startTime": "2018-03-01T00:00Z[GMT]",
   "usd": 1000.0,
   "asset": 0.0,
-  "trainDays": 45,
+  "trainDays": 60,
   "instrument": {
     "asset": "BTC",
     "base": "USDT"
   },
   "interval": "ONE_MIN",
+  "startMaxParamsDeviation": 50.0,
   "maxParamsDeviation": 10.0,
   "hardBounds": false,
   "tradeDuration": {
     "seconds": 86400,
     "nanos": 0
   },
+  "startPopulation": 500,
   "population": 20,
   "historyPath": "simulate_history.json",
   "properties": "simulate.properties"

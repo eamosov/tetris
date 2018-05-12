@@ -19,7 +19,7 @@ public class GustosAverageRecurrent {
     public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow){
         this.window = window;
         volumeEma = new EmaRecurrent(volumeWindow);
-        volumeEmaShort = new EmaRecurrent(shortVolumeWindow);
+        volumeEmaShort = new EmaRecurrent(shortVolumeWindow < 1 ? 1 : shortVolumeWindow);
     }
 
     public Pair<Double,Double> feed(double price, double volume){

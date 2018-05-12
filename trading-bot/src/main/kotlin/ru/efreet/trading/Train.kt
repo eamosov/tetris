@@ -2,13 +2,14 @@ package ru.efreet.trading
 
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
+import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.trainer.CdmBotTrainer
+import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.SeedType
 import ru.efreet.trading.utils.toJson
@@ -26,7 +27,7 @@ class Train {
         fun main(args: Array<String>) {
 
             val cmd = CmdArgs.parse(args)
-            val cdm = CdmBotTrainer(cmd.cpu, cmd.steps)
+            val trainer = cmd.makeTrainer<Any, TradesStats, Metrica>()
 
             val realExchange = Exchange.getExchange(cmd.exchange)
 
@@ -51,7 +52,7 @@ class Train {
 
             bars.checkBars()
 
-            val (sp, stats) = cdm.getBestParams(logic.genes, population,
+            val (sp, stats) = trainer.getBestParams(logic.genes, population,
                     {
                         val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, cmd.barInterval, exchange.getFee(), bars, arrayListOf(Pair(cmd.start!!, cmd.end!!)), false)
 
