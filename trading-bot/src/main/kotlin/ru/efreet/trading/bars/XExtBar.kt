@@ -165,6 +165,14 @@ data class XExtBar(val bar: XBar) : XBar {
     var sdSell: Double = Double.MAX_VALUE
     var avrVolumeSell: Double = Double.MAX_VALUE
 
+    var sma2: Double = Double.MAX_VALUE
+    var sd2: Double = Double.MAX_VALUE
+    var avrVolume2: Double = Double.MAX_VALUE
+
+    var smaSell2: Double = Double.MAX_VALUE
+    var sdSell2: Double = Double.MAX_VALUE
+    var avrVolumeSell2: Double = Double.MAX_VALUE
+
 
     var dayShortEma: Double = Double.MAX_VALUE
     var dayLongEma: Double = Double.MAX_VALUE

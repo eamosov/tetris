@@ -127,8 +127,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().short!!)
         longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, getParams().long!!)
         macd = XMACDIndicator(shortEma, longEma)
-//        signalEma = XMcGinleyIndicator(bars, XExtBar._signalEma, macd, _params.signal!!)
-//        signal2Ema = XMcGinleyIndicator(bars, XExtBar._signal2Ema, macd, _params.signal2!!)
         signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, getParams().signal!!)
         signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, getParams().signal2!!)
 
