@@ -64,23 +64,48 @@ class StatsCalculator {
             pearson = 0.0
         }
 
-        val avrProfitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
-        val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - avrProfitPerTrade).pow2() }.sum() / profits.size) else 0.0
+        val profitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
+        val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - profitPerTrade).pow2() }.sum() / profits.size) else 0.0
 
-        val avrProfitPerDay = Math.pow(profit, 24.0 / Duration.between(history.start, history.end).toHours().toDouble())
-        
+        var relProfit = 0.0
+        if (profits.size > 1){
+            relProfit = 1.0
+
+            val endEpoch = profits.last().first.toEpochSecond()
+            val startEpoch = profits.first().first.toEpochSecond()
+
+            val y1 = 0.0
+            val y2 = 3.0
+            val x1=0.0
+            val x2=1.0
+            val exp = 5.0
+
+            val a = (y1-y2) / (Math.pow(exp, x1) - Math.pow(exp, x2))
+            val b = y1 - a * Math.pow(exp, x1)
+
+            fun y(x:Double):Double = a * Math.pow(exp, x) + b
+
+
+            profits.forEach {
+                //val k = (0.1 + 2.0 * (it.first.toEpochSecond() - startEpoch).toDouble() / (endEpoch - startEpoch).toDouble())
+                val k = y((it.first.toEpochSecond() - startEpoch).toDouble() / (endEpoch - startEpoch).toDouble())
+                relProfit *= ((it.second - 1.0) * k + 1.0)
+            }
+        }
+
         return TradesStats(
                 profits.size,
                 if (profits.size > 0) tradesWithProfit.toDouble() / profits.size else 0.0,
                 profit,
-                avrProfitPerTrade,
+                profitPerTrade,
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (pearson.isNaN()) 0.0 else pearson,
                 history.start,
                 history.end,
-                avrProfitPerDay
+                history.profitPerDay,
+                relProfit
         )
     }
 }

@@ -21,7 +21,6 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.loadFromJson
 import ru.efreet.trading.utils.toJson
 import java.awt.Color
 import java.text.SimpleDateFormat
@@ -47,16 +46,23 @@ class Graph {
         val dataset = TimeSeriesCollection()
 
         for ((iName, iValues) in history.indicators) {
+
+//            if (iName != "price")
+//                continue
+
             if (iName.contains("macd", true) || iName.contains("sd", true))
                 continue
 
             val ts = org.jfree.data.time.TimeSeries(iName)
 
             for (v in iValues) {
-                try {
-                    ts.add(Minute(Date.from(v.first.toInstant())), v.second)
-                } catch (e: SeriesException) {
-                    println("dup: $v")
+                //if (v.second.isFinite() && !v.second.isNaN()) {
+                if (v.second > -1000000 && v.second < 1000000) {
+                    try {
+                        ts.add(Minute(Date.from(v.first.toInstant())), v.second)
+                    } catch (e: SeriesException) {
+                        println("dup: $v")
+                    }
                 }
             }
 
@@ -211,7 +217,7 @@ class Graph {
 
                 history = ProfitCalculator().tradeHistory(cmd.logicName,
                         sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,
-                        listOf(Pair(cmd.start!!, ZonedDateTime.now())),
+                        listOf(Pair(cmd.start!!, cmd.end!!)),
                         true)
             } else if (cmd.settings?.endsWith(".json") == true) {
                 history = TradeHistory.loadFromJson(cmd.settings!!)

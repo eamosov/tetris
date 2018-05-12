@@ -1,13 +1,11 @@
 package ru.efreet.trading
 
-import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.FakeTrader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
-import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
@@ -19,22 +17,21 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-data class State(var name: String,
-                 var time: ZonedDateTime,
-                 var startTime: ZonedDateTime = time,
+data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-03-01T00:00Z[GMT]"),
+                 var endTime: ZonedDateTime = ZonedDateTime.parse("2018-05-12T00:00Z[GMT]"),
                  var usd: Double = 1000.0,
                  var asset: Double = 0.0,
                  var trainDays: Long = 60,
-                 var instrument: Instrument,
-                 var interval: BarInterval,
+                 var interval: BarInterval = BarInterval.ONE_MIN,
                  var startMaxParamsDeviation: Double = 50.0,
                  var maxParamsDeviation: Double = 10.0,
                  var hardBounds: Boolean = false,
-                 val tradeDuration: Duration = Duration.ofHours(24),
+                 val trainPeriod: Duration = Duration.ofHours(24),
                  var startPopulation: Int = 500,
                  var population: Int = 20,
                  var historyPath: String = "simulate_history.json",
-                 var properties: String = "simulate.properties") {
+                 var properties: String = "simulate.properties",
+                 var initOptimisation: Boolean = true) {
 
 
 }
@@ -58,93 +55,89 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         val realExchange = Exchange.getExchange(cmd.exchange)
         exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, cache)
 
-        state.name = cmd.logicName
-        cmd.start?.let {
-            state.time = it
-            state.startTime = it
-        }
-
-        state.instrument = cmd.instrument
         state.interval = cmd.barInterval
 
         cmd.population?.let { state.population = it }
 
         saveState()
 
-        val logic: BotLogic<Any> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+        val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, state.interval)
         logic.loadState(state.properties)
 
-        val (params, _stats) = tuneParams(logic.getParams(), state.startMaxParamsDeviation, state.startPopulation, false)
-        println("Initial optimisation of random parameters have ended with stats: $_stats")
-        logic.setParams(params)
-
+        if (state.initOptimisation) {
+            val (params, _stats) = tuneParams(state.startTime, logic.getParams(), state.startMaxParamsDeviation, state.startPopulation, false)
+            logic.setParams(params)
+            logic.saveState(state.properties, _stats.toString())
+            println("Initial optimisation of random parameters: ${params} $_stats")
+        }
 
         println(logic.logState())
 
-        val historyStart = state.time.minus(state.interval.duration.multipliedBy(logic.historyBars))
-        val history = cache.getBars(exchange.getName(), state.instrument, state.interval, historyStart, state.time)
-        println("Loaded history ${history.size} bars from $historyStart to ${state.time}")
+        val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(logic.historyBars))
+        val history = cache.getBars(exchange.getName(), cmd.instrument, state.interval, historyStart, state.startTime)
+        println("Loaded history ${history.size} bars from $historyStart to ${state.startTime}")
         history.forEach { logic.insertBar(it) }
         logic.prepareBars()
 
+        val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true, exchange.getName(), cmd.instrument)
 
-        val end = cache.getLast(exchange.getName(), state.instrument, state.interval).endTime
+        val bars = cache.getBars(exchange.getName(), cmd.instrument, state.interval, state.startTime, state.endTime)
+        println("Loaded ${history.size} bars from ${state.startTime} to ${state.endTime}")
 
-        val trader = FakeTrader(state.usd, state.asset, exchange.getFee(), true, exchange.getName(), state.instrument)
+        var lastTrainTime = bars.first().endTime
+        var everyDay = bars.first().endTime
 
-        var stats: TradesStats?
+        var skipBuy = false
 
-        var bar: XBar? = null
+        for (bar in bars){
 
-        while (state.time.plus(state.tradeDuration).isBefore(end)) {
+            if (Duration.between(lastTrainTime, bar.endTime).toMillis() >= state.trainPeriod.toMillis()
+                    && trader.availableAsset(cmd.instrument) == 0.0) { //если мы в баксах
 
-            val (params, _stats) = tuneParams(logic.getParams(), state.maxParamsDeviation, state.population)
-            logic.setParams(params)
-            logic.saveState(state.properties, _stats.toString())
-
-            stats = _stats
-            println("STRATEGY: ${logic.getParams()} $stats")
-
-            saveState()
-
-            val newBars = cache.getBars(exchange.getName(), state.instrument, state.interval, state.time, state.time.plus(state.tradeDuration))
-
-            if (newBars.isNotEmpty()) {
-
-                println("Loaded ${newBars.size} bars from ${newBars.first().endTime} to ${newBars.last().endTime}")
-
-                for (_bar in newBars) {
-                    bar = _bar
-
-                    logic.insertBar(bar)
-                    val advice = logic.getAdvice(stats, trader, true)
-                    val trade = trader.executeAdvice(advice)
-
-                    if (trade != null) {
-                        println("TRADE: $trade")
-                    }
-                }
-
-                println("\"EOD\",\"${LocalDate.from(bar!!.endTime)}\",${trader.usd.round2()},${trader.asset.round5()},${bar.closePrice.round2()},${(trader.usd + trader.asset * bar.closePrice).toInt()}")
-
-                trader.history(state.startTime, bar.endTime).storeAsJson(state.historyPath)
+                val (params, _stats) = tuneParams(bar.endTime, logic.getParams(), state.maxParamsDeviation, state.population)
+                logic.setParams(params)
+                logic.saveState(state.properties, _stats.toString())
+                println("STRATEGY: ${logic.getParams()} $_stats")
+                lastTrainTime = bar.endTime
+                skipBuy = true
             }
 
-            state.time = state.time.plus(state.tradeDuration)
-            saveState()
+            logic.insertBar(bar)
+            val advice = logic.getAdvice(trader, true)
+
+            if (skipBuy){
+                if (advice.decision == Decision.BUY){
+                    println("skip buy")
+                    continue
+                }else{
+                    skipBuy = false
+                }
+            }
+
+            val trade = trader.executeAdvice(advice)
+
+            if (trade != null) {
+                println("TRADE: $trade")
+            }
+
+            if (Duration.between(everyDay, bar.endTime).toHours() >= 24) {
+                println("\"EOD\",\"${LocalDate.from(bar!!.endTime)}\",${trader.usd.round2()},${trader.asset.round5()},${bar.closePrice.round2()},${(trader.usd + trader.asset * bar.closePrice).toInt()}")
+                trader.history(state.startTime, bar.endTime).storeAsJson(state.historyPath)
+                everyDay = bar.endTime
+            }
         }
 
-        val tradeHistory = trader.history(state.startTime, bar!!.endTime)
+        val tradeHistory = trader.history(bars.first().endTime, bars.last().endTime)
 
         tradeHistory.storeAsJson(state.historyPath)
 
         Graph().drawHistory(tradeHistory)
     }
 
-    fun tuneParams(curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): Pair<Any, TradesStats> {
+    fun tuneParams(endTime: ZonedDateTime, curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): Pair<Any, TradesStats> {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
-        val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(state.name, state.instrument, state.interval)
+        val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, state.interval)
         tmpLogic.setParams(curParams)
         tmpLogic.setMinMax(curParams, maxParamsDeviation, state.hardBounds)
 
@@ -152,16 +145,16 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         if (inclCurParams)
             population.add(curParams)
 
-        val trainStart = state.time.minusDays(state.trainDays)
+        val trainStart = endTime.minusDays(state.trainDays)
 
-        val bars = exchange.loadBars(state.instrument, state.interval, trainStart.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars)).truncatedTo(state.interval), state.time.truncatedTo(state.interval))
-        println("Searching best strategy for ${state.instrument} population=${population.size}, start=${trainStart} end=${state.time}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
+        val bars = exchange.loadBars(cmd.instrument, state.interval, trainStart.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars)).truncatedTo(state.interval), endTime.truncatedTo(state.interval))
+        println("Searching best strategy for ${cmd.instrument} population=${population.size}, start=${trainStart} end=${endTime}. Loaded ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}. Logic settings: ${tmpLogic.logState()}")
         bars.checkBars()
 
 
         return trainer.getBestParams(tmpLogic.genes, population,
                 {
-                    val history = ProfitCalculator().tradeHistory(state.name, it, state.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, state.time)), false)
+                    val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, endTime)), false)
                     val stats = StatsCalculator().stats(history)
                     stats
                 },
@@ -180,7 +173,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             return loadFromJson(statePath)
         } catch (e: Exception) {
             println("Create new ${statePath}")
-            return State(name = "sd3", instrument = Instrument.BTC_USDT, interval = BarInterval.ONE_MIN, time = ZonedDateTime.parse("2018-03-01T00:00Z[GMT]"))
+            return State()
         }
     }
 

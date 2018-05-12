@@ -37,7 +37,7 @@ class Train {
 //            var bars = cache.getBars("binance", Instrument.BTC_USDT, BarInterval.ONE_SECOND, ZonedDateTime.now().minusDays(10), ZonedDateTime.now())
 
 
-            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee() * 2, cmd.barInterval, BarsCache(cmd.cachePath))
+            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
 
             val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             val stateLoaded = logic.loadState(cmd.settings!!)

@@ -79,13 +79,13 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         barsIsPrepared = false
     }
 
-    protected abstract fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
+    protected abstract fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
 
-    final override fun getBotAdvice(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    final override fun getBotAdvice(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
         if (!barsIsPrepared)
             prepareBars()
 
-        return getBotAdviceImpl(index, stats, trader, fillIndicators);
+        return getBotAdviceImpl(index, trader, fillIndicators);
     }
 
     override var historyBars = 3000L
@@ -190,7 +190,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
                 .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0))
                 .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0))
                 .add("fine_profit", BotLogic.fine(stats.profit, 1.0))
-                .add("profit", BotLogic.funXP(stats.profit, 1.0))
+                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0))
     }
 
     override fun getBarIndex(time: ZonedDateTime): Int {

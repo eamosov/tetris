@@ -1,24 +1,20 @@
 {
-  "name": "sd3",
-  "time": "2018-03-01T00:00Z[GMT]",
   "startTime": "2018-03-01T00:00Z[GMT]",
+  "endTime": "2018-03-20T00:00Z[GMT]",
   "usd": 1000.0,
   "asset": 0.0,
   "trainDays": 60,
-  "instrument": {
-    "asset": "BTC",
-    "base": "USDT"
-  },
   "interval": "ONE_MIN",
   "startMaxParamsDeviation": 50.0,
   "maxParamsDeviation": 10.0,
   "hardBounds": false,
-  "tradeDuration": {
+  "trainPeriod": {
     "seconds": 86400,
     "nanos": 0
   },
   "startPopulation": 500,
-  "population": 20,
+  "population": 0,
   "historyPath": "simulate_history.json",
-  "properties": "simulate.properties"
+  "properties": "simulate.properties",
+  "initOptimisation": false
 }

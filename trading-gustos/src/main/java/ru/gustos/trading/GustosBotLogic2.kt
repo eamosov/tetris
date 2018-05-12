@@ -131,7 +131,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
         )
     }
 
-    override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
