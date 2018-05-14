@@ -31,7 +31,8 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-03-01T
                  var population: Int = 20,
                  var historyPath: String = "simulate_history.json",
                  var properties: String = "simulate.properties",
-                 var initOptimisation: Boolean = true) {
+                 var initOptimisation: Boolean = true,
+                 var graph: Boolean = true) {
 
 
 }
@@ -131,7 +132,9 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         tradeHistory.storeAsJson(state.historyPath)
 
-        Graph().drawHistory(tradeHistory)
+        if (state.graph) {
+            Graph().drawHistory(tradeHistory)
+        }
     }
 
     fun tuneParams(endTime: ZonedDateTime, curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): Pair<Any, TradesStats> {
