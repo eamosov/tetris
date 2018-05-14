@@ -1,6 +1,7 @@
 package ru.gustos.trading.visual;
 
 import ru.efreet.trading.bars.XBaseBar;
+import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
@@ -19,8 +20,10 @@ import java.util.Random;
 
 public class VisExperiments {
     public static void main(String[] args) throws Exception {
-        Visualizator vis = new Visualizator(TestUtils.makeSheet());
-        vis.updateSelectedIndicator(12);
+//        Visualizator vis = new Visualizator(TestUtils.makeSheet());
+//        vis.updateSelectedIndicator(12);
+        TradeHistory h = TradeHistory.Companion.loadFromJson("simulate_history.json");
+        TestUtils.makeVisualizator("indicators_simple.json",Instrument.getBTC_USDT(),h);
 
     }
 }

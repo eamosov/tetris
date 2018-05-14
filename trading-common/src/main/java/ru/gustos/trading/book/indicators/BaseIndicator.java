@@ -10,6 +10,11 @@ public abstract class BaseIndicator implements IIndicator{
         show = data.show;
     }
 
+    public BaseIndicator(int id){
+        this.id = id;
+        show = true;
+    }
+
     public int getId() {        return id;    }
 
     @Override

@@ -20,6 +20,11 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
         ind = data.ind;
     }
 
+    public SuccessIndicator(int id, int ind){
+        super(id);
+        this.ind = ind;
+    }
+
     @Override
     public String getName() {
         return "success_"+ind;

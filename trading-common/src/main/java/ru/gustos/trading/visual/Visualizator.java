@@ -1,5 +1,7 @@
 package ru.gustos.trading.visual;
 
+import kotlin.Pair;
+import ru.efreet.trading.bot.TradeHistory;
 import ru.gustos.trading.book.PlayIndicator;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
@@ -202,6 +204,7 @@ public class Visualizator {
             else
                 graphIndicator = id;
         }
+        frame.form.updateScrollToIndicators();
         fireViewUpdated();
     }
 
@@ -216,6 +219,11 @@ public class Visualizator {
             JOptionPane.showMessageDialog(null, playResult.toString());
             fireViewUpdated();
         }
+    }
+
+    public void setPlayHistory(TradeHistory history){
+        playResult = new PlayIndicator.PlayResults(sheet, history);
+        fireViewUpdated();
     }
 
     public void setAverage(String type, int window) {

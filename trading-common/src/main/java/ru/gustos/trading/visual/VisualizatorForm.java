@@ -235,7 +235,7 @@ public class VisualizatorForm {
         }
     }
 
-    private void updateScrollToIndicators() {
+    void updateScrollToIndicators() {
         leftToIndicator.setEnabled(vis.backIndicator>=0);
         rightToIndicator.setEnabled(vis.backIndicator>=0);
     }

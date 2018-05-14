@@ -1,9 +1,12 @@
 package ru.gustos.trading.book;
 
+import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
+import ru.efreet.trading.bot.TradeHistory;
 import ru.gustos.trading.book.indicators.IIndicator;
 
 import java.io.*;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -97,6 +100,28 @@ public class PlayIndicator{
         HashMap<String,DecisionStats> specific = new HashMap<>();
         public double[] money;
         public double assetPriceChange;
+
+        public PlayResults() {}
+
+        public PlayResults(Sheet sheet, TradeHistory history) {
+            money = new double[sheet.moments.size()];
+            if (history.getCash().size()>0) {
+
+                int i = 0;
+                double v = 0;
+
+                for (Pair<ZonedDateTime, Double> z : history.getCash()) {
+                    while (i<money.length && z.getFirst().isAfter(sheet.moments.get(i).bar.getBeginTime())){
+                        v = z.getSecond();
+                        money[i] = v;
+                        i++;
+                    }
+                    if (i>=money.length) break;
+                }
+                Arrays.fill(money,i,money.length,v);
+            }
+
+        }
 
         public String toString(){
             StringBuilder sb = new StringBuilder();
