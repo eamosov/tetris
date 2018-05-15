@@ -49,7 +49,7 @@ public class GustosIndicator extends BaseIndicator implements IIndicatorWithProp
 
     @Override
     public Map<String,String> getMark(int ind) {
-        final BotAdvice ose = botLogic.getBotAdvice(ind, null, null, true);
+        final BotAdvice ose = botLogic.getBotAdvice(ind, null, true);
         return ose.getDecisionArgs();
     }
 
@@ -69,7 +69,7 @@ public class GustosIndicator extends BaseIndicator implements IIndicatorWithProp
 
         for (int i = from; i < to; i++) {
 
-            final BotAdvice ose = botLogic.getBotAdvice(i, null, null, true);
+            final BotAdvice ose = botLogic.getBotAdvice(i, null, true);
             values[i] = ose.getDecision() == Decision.BUY ? IIndicator.YES : IIndicator.NO;
 
         }

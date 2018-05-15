@@ -29,17 +29,11 @@ data class TradeHistory(val startUsd: Double,
     companion object {
 
         @JvmStatic
-        fun loadFromJson(path: String): TradeHistory {
-            return ru.efreet.trading.utils.loadFromJson(path)
-        }
+        fun loadFromJson(path: String): TradeHistory = ru.efreet.trading.utils.loadFromJson(path)
     }
 
-    fun profitPerDay(): Double {
-        return pow(endUsd / startUsd, (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
-    }
+    val profitPerDay: Double get() = pow(endFunds / startFunds, (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
 
-    fun profitPerDayToGrow(): Double {
-        return pow((endUsd / startUsd) / (endPrice / startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
-    }
+    val profitPerDayToGrow: Double get() = pow((endFunds / startFunds) / (endPrice / startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
 }
 

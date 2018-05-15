@@ -35,7 +35,7 @@ class ProfitCalculator {
             val startIndex = logic.getBarIndex(ti.first)
 
             for (index in startIndex until logic.barsCount()) {
-                val advice = logic.getBotAdvice(index, null, trader, fillIndicators)
+                val advice = logic.getBotAdvice(index, trader, fillIndicators)
 
                 if (!advice.time.isBefore(ti.second)) {
                     //В конце всегда всё продать

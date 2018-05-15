@@ -144,7 +144,7 @@ class Main {
                                         StatsCalculator().stats(history)
                                     },
                                     { params, stats -> tmpLogic.metrica(params, stats) },
-                                    { tmpLogic.copyParams(it) })
+                                    { tmpLogic.copyParams(it) }).last()
 
                             println("STATS: $stats")
                             println("Setting new params for ${instrument}: ${sp}")

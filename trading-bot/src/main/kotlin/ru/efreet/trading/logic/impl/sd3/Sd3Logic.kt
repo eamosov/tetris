@@ -62,10 +62,10 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         of(SimpleBotLogicParams::deviation2, "logic.sd3.deviation2", 15, 23, 1, false)
         of(SimpleBotLogicParams::deviationTimeFrame, "logic.sd3.deviationTimeFrame", 20, 60, 1, false)
 
-        of(SimpleBotLogicParams::short, "logic.sd3.short", 1, 2000, 1, false)
-        of(SimpleBotLogicParams::long, "logic.sd3.long", 1, 2000, 1, false)
-        of(SimpleBotLogicParams::signal, "logic.sd3.signal", 1, 2000, 1, false)
-        of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", 1, 2000, 1, false)
+        of(SimpleBotLogicParams::short, "logic.sd3.short", 1, 200, 1, false)
+        of(SimpleBotLogicParams::long, "logic.sd3.long", 200, 1000, 1, false)
+        of(SimpleBotLogicParams::signal, "logic.sd3.signal", 200, 500, 1, false)
+        of(SimpleBotLogicParams::signal2, "logic.sd3.signal2", 1, 100, 1, false)
 
         of(SimpleBotLogicParams::dayShort, "logic.sd3.dayShort", 1, 2000, 1, false)
         of(SimpleBotLogicParams::dayLong, "logic.sd3.dayLong", 1, 2000, 1, false)
@@ -105,8 +105,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 //.add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
                 .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0))
                 .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
-                .add("ppt", 10.0 * BotLogic.fine(stats.avrProfitPerTrade, targetAvrProfitPerTrade, 2.0))
-                .add("profit", stats.profit * 0.15)
+                .add("ppt", 10.0 * BotLogic.fine(stats.profitPerTrade, targetAvrProfitPerTrade, 2.0))
+                .add("profit", stats.relProfit * 0.15)
                 //.add("trades", stats.trades * 0.0175)
                 .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.5))
                 .add("persist1", -BotLogic.funXP(params.persist1!!.toDouble() - 1.0, 0.02))
@@ -115,7 +115,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 //                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
 //                .add("tp", -BotLogic.funXP(params.takeProfit / 5.0 - 1.0, 0.1))
 //                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.2 - 1.0, 0.1))
-                .add("pearson", (stats.pearson - 0.98) * 100.0)
+//                .add("pearson", (stats.pearson - 0.98) * 100.0)
     }
 
     override fun copyParams(src: SimpleBotLogicParams): SimpleBotLogicParams = src.copy()
@@ -179,9 +179,21 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         return dayMacd.getValue(index) < daySignal2Ema.getValue(index)
     }
 
+    private fun rising(i: Int): Boolean {
+        val pbar = getBar(i - 1)
+        val bar = getBar(i)
+        return pbar.closePrice < bar.minPrice
+    }
+
+    private fun falling(i: Int): Boolean {
+        val pbar = getBar(i - 1)
+        val bar = getBar(i)
+        return pbar.closePrice >= bar.maxPrice
+    }
+
     open protected fun getTrendDecision(index: Int, bar: XExtBar): Pair<Decision, Map<String, String>> {
 
-        return if ((maxOf(0, index - getParams().persist1!!)..index).all { dayDownTrend(it) }) {
+        return if ((maxOf(0, index - getParams().persist1!!)..index).all { dayDownTrend(it) } && !falling(index)) {
             Pair(Decision.BUY, mapOf(Pair("down", "true")))
         } else {
 
@@ -213,7 +225,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     fun shouldSell(index: Int): Boolean {
         val price = closePrice.getValue(index)
-        return price > upperBound(index) //&& localDownTrend(index)
+        return price > upperBound(index) && localDownTrend(index)
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
@@ -238,7 +250,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
-    override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
