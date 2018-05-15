@@ -3,6 +3,7 @@ package ru.efreet.trading.test;
 import kotlin.Pair;
 import ru.efreet.trading.trainer.GdmBotTrainer;
 import ru.efreet.trading.trainer.DoubleBotMetrica;
+import ru.efreet.trading.trainer.TrainItem;
 import ru.efreet.trading.utils.PropertyEditorFactory;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class CdmTest {
 
         final AtomicInteger comp = new AtomicInteger(0);
 
-        Pair<Params, Double> best = new GdmBotTrainer<Params, Double, DoubleBotMetrica>(1, new Integer[]{100,10,1}).getBestParams(
+        List<TrainItem<Params, Double, DoubleBotMetrica>> bests = new GdmBotTrainer<Params, Double, DoubleBotMetrica>(1, new Integer[]{100,10,1}).getBestParams(
             properties.getGenes(),
             origin, // исходные точки
             p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
@@ -70,10 +71,12 @@ public class CdmTest {
             p -> {  //функция копирования точек
                 return new Params(p);
             },
-            (p, r) -> { //Коллбек, когда найден новый лучший кандидат(для отслеживания процесса)
-                System.out.println("NEW: " + p.toString() + " " + r.toString());
+            (trainItem) -> { //Коллбек, когда найден новый лучший кандидат(для отслеживания процесса)
+                System.out.println("NEW: " + trainItem.toString());
                 return  null;
             });
+
+        TrainItem<Params, Double, DoubleBotMetrica> best = bests.get(bests.size()-1);
 
         System.out.println("best: " + best);
         System.out.println("comp: " + comp.get());

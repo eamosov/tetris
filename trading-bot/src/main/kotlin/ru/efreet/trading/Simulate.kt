@@ -12,6 +12,7 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.trainer.Metrica
+import ru.efreet.trading.trainer.TrainItem
 import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.LocalDate
@@ -137,7 +138,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         }
     }
 
-    fun tuneParams(endTime: ZonedDateTime, curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): Pair<Any, TradesStats> {
+    fun tuneParams(endTime: ZonedDateTime, curParams: Any, maxParamsDeviation: Double, populationSize: Int, inclCurParams: Boolean = true): TrainItem<Any, TradesStats, Metrica> {
 
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, state.interval)
@@ -164,7 +165,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                 { args, stats ->
                     tmpLogic.metrica(args, stats)
                 },
-                { tmpLogic.copyParams(it) })
+                { tmpLogic.copyParams(it) }).last()
     }
 
     fun saveState() {
