@@ -24,7 +24,7 @@ public class MinMaxToVolumeSIndicator extends BaseIndicator{
     @Override
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
         for (int i = from;i<to;i++)
-            values[i] =  Math.abs(sheet.moments.get(i).bar.deltaMaxMin())/Math.max(0.1,sheet.moments.get(i).bar.getVolume());
+            values[i] =  Math.abs(sheet.bar(i).deltaMaxMin())/Math.max(0.1,sheet.bar(i).getVolume());
     }
 
     @Override

@@ -29,7 +29,7 @@ public class RelativePriceIndicator extends BaseIndicator {
         int bars = IndicatorUtils.bars(period,sheet);
 //        if (bars<20) {
             for (int i = from; i < to; i++){
-                XBar bar = sheet.moments.get(i).bar;
+                XBar bar = sheet.bar(i);
                 double min = bar.getClosePrice();
                 double max = bar.getClosePrice();
                 for (int j = Math.max(0,i-bars);j<i;j++) {

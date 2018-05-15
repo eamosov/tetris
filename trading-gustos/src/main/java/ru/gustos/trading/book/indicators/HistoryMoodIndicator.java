@@ -70,7 +70,7 @@ public class HistoryMoodIndicator extends BaseIndicator {
         int offset = 30;
         double percent = 1.015;
         for (int i = from;i<to-offset-1;i++){
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             XBar nextbar = sheet.moments.get(i+1).bar;
             double val, nextval;
             if (optimist)
@@ -83,7 +83,7 @@ public class HistoryMoodIndicator extends BaseIndicator {
                 nextval = nextbar.getClosePrice()/sellValues[i+1+offset];
 
             if (val>percent && val>nextval){
-                double btc = money/sheet.moments.get(i).bar.getClosePrice()*fee;
+                double btc = money/sheet.bar(i).getClosePrice()*fee;
                 money = btc*sellValues[i+offset];
                 i+=61;
             }

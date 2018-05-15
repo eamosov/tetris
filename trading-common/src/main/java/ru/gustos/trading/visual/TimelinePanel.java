@@ -75,7 +75,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     private void drawIndicatorLines(Graphics g) {
         if (vis.backIndicator>=0){
             int w = getWidth();
-            int total = vis.getSheet().moments.size();
+            int total = vis.getSheet().size();
             IIndicator ind = vis.getSheet().getLib().get(vis.backIndicator);
             Color tmpcol = ind.getColorMax();
             Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
@@ -120,7 +120,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        int pos = e.getPoint().x*vis.getSheet().moments.size()/getWidth();
+        int pos = e.getPoint().x*vis.getSheet().size()/getWidth();
         vis.setMiddleIndex(pos);
     }
 
@@ -151,7 +151,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     public void mouseDragged(MouseEvent e) {
         if (dragStart!=null){
             int dx = e.getPoint().x-dragStart.x;
-            int ind = indexStart + dx*vis.getSheet().moments.size()/getWidth();
+            int ind = indexStart + dx*vis.getSheet().size()/getWidth();
             vis.setIndex(ind);
         }
     }

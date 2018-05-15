@@ -13,7 +13,7 @@ public class DemaBot {
 
 //        int from = 12000;
         int from = 1;
-        int to = sheet.moments.size();
+        int to = sheet.size();
         double money = 1000;
         double btc = 0;
         int indicator = 73;
@@ -28,12 +28,12 @@ public class DemaBot {
             if (money>0){
 //                if (sheet.getData().get(indicator,i)>0.1 && sheet.getData().get(indicator,i)<5 && sheet.getData().get(73,i-1)<=0){
                 boolean dema = sheet.getData().get(indicator, i) > 0.05 && sheet.getData().get(indicator,i)<0.8 && sheet.getData().get(indicator, i - 1) <= 0;
-                XBar bar = sheet.moments.get(i).bar;
+                XBar bar = sheet.bar(i);
                 boolean notHigh = true;//(bar.getClosePrice()-bar.getOpenPrice())<sheet.moments.get(i-1).bar.deltaMaxMin()*4;
                 boolean positive = bar.getOpenPrice()<bar.getClosePrice();
                 if (dema && notHigh && positive){
                     System.out.println("buy "+sheet.getData().get(indicator,i));
-                    buyPrice = sheet.moments.get(i).bar.getClosePrice()*1.001;
+                    buyPrice = sheet.bar(i).getClosePrice()*1.001;
                     maxprice = buyPrice;
                     btc = money/buyPrice;
                     money = 0;
@@ -41,17 +41,17 @@ public class DemaBot {
                     count++;
                 }
             } else if (btc>0){
-                double price = sheet.moments.get(i).bar.getClosePrice();
+                double price = sheet.bar(i).getClosePrice();
                 maxprice = Math.max(maxprice, price);
                 double dema = sheet.getData().get(sellIndicator, i);
                 maxdema = Math.max(dema,maxdema);
                 if (dema <0 || (dema <maxdema*0.75) || price<maxprice*0.98){
-                    double sellPrice = sheet.moments.get(i).bar.getClosePrice()*0.999;
+                    double sellPrice = sheet.bar(i).getClosePrice()*0.999;
                     money = btc*sellPrice;
                     btc = 0;
                     if (sellPrice>buyPrice)
                         profitable++;
-                    System.out.println(String.format("operation: money %.4g, profit %.4g, time %s", money,buyPrice/sellPrice,sheet.moments.get(i).bar.getBeginTime().toString()));
+                    System.out.println(String.format("operation: money %.4g, profit %.4g, time %s", money,buyPrice/sellPrice,sheet.bar(i).getBeginTime().toString()));
                 }
             }
         }

@@ -22,10 +22,10 @@ public class SheetUtils {
     }
 
     private static void filterBadBuys(Sheet sheet) {
-        for (int i = 0;i<sheet.moments.size();i++) {
+        for (int i = 0;i<sheet.size();i++) {
             Moment m1 = sheet.moments.get(i);
             if (m1.decision == Decision.BUY)
-                for (int j = i;j<sheet.moments.size();j++) {
+                for (int j = i;j<sheet.size();j++) {
                     Moment m2 = sheet.moments.get(j);
                     if (m2.decision==Decision.SELL){
                         double profit = m2.bar.getMinPrice()/m1.bar.getMaxPrice();
@@ -39,10 +39,10 @@ public class SheetUtils {
     }
 
     private static void filterBadSells(Sheet sheet) {
-        for (int i = 0;i<sheet.moments.size();i++) {
+        for (int i = 0;i<sheet.size();i++) {
             Moment m1 = sheet.moments.get(i);
             if (m1.decision == Decision.SELL)
-                for (int j = i;j<sheet.moments.size();j++) {
+                for (int j = i;j<sheet.size();j++) {
                     Moment m2 = sheet.moments.get(j);
                     if (m2.decision==Decision.BUY){
                         double profit = m2.bar.getMinPrice()/m1.bar.getMaxPrice();
@@ -57,7 +57,7 @@ public class SheetUtils {
 
     private static void initDecisions(Sheet sheet) {
         int lookNext = 10;
-        for (int i = 0;i<sheet.moments.size()-lookNext;i++)
+        for (int i = 0;i<sheet.size()-lookNext;i++)
             sheet.moments.get(i).decision = CalcDecision(sheet,i,lookNext);
     }
 
@@ -65,8 +65,8 @@ public class SheetUtils {
         double[] sellValuesPos = sellValues(sheet, true);
         double[] sellValuesNeg = sellValues(sheet, false);
         int lookNext = 60;
-        for (int i = 0;i<sheet.moments.size()-lookNext;i++) {
-            XBar bar = sheet.moments.get(i).bar;
+        for (int i = 0;i<sheet.size()-lookNext;i++) {
+            XBar bar = sheet.bar(i);
             int pos = 0;
             int neg = 0;
             for (int j = i+1;j<i+lookNext;j++){
@@ -84,7 +84,7 @@ public class SheetUtils {
         int lo = 0, hi = 0;
         double now = sheet.moments.get(from).bar.middlePrice();
         for (int i = from;i<from+next;i++) {
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             double price =  bar.middlePrice();//(bar.getOpenPrice()+bar.getClosePrice())/2;
             double loprice =  bar.getMinPrice();
             if (price>now*1.005) hi++;
@@ -98,7 +98,7 @@ public class SheetUtils {
 
     private static void initDecisionsRisky(Sheet sheet) {
         int lookNext = 5;
-        for (int i = 0;i<sheet.moments.size()-lookNext;i++)
+        for (int i = 0;i<sheet.size()-lookNext;i++)
             sheet.moments.get(i).decisionRisky = CalcDecisionRisky(sheet,i,lookNext);
     }
 
@@ -106,7 +106,7 @@ public class SheetUtils {
         int lo = 0, hi = 0;
         double now = sheet.moments.get(from).bar.middlePrice();
         for (int i = from;i<from+next;i++) {
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             double price =  bar.middlePrice();
 //            double loprice =  bar.getMinPrice();
             if (price>now*1.007) hi++;
@@ -122,10 +122,10 @@ public class SheetUtils {
         double min = Double.MAX_VALUE;
         double max = 0;
         for (int i = from; i < to; i++){
-            double cmin = sheet.moments.get(i).bar.getMinPrice();
+            double cmin = sheet.bar(i).getMinPrice();
             if (cmin<min)
                 min = cmin;
-            double cmax = sheet.moments.get(i).bar.getMaxPrice();
+            double cmax = sheet.bar(i).getMaxPrice();
             if (cmax>max)
                 max = cmax;
         }
@@ -136,7 +136,7 @@ public class SheetUtils {
         double min = Double.MAX_VALUE;
         double max = 0;
         for (int i = from; i < to; i++){
-            double close = sheet.moments.get(i).bar.getClosePrice();
+            double close = sheet.bar(i).getClosePrice();
             if (close<min)
                 min = close;
             if (close>max)
@@ -167,7 +167,7 @@ public class SheetUtils {
     }
 
     public static double sellPrice(Sheet sheet, int index, boolean optimist){
-        XBar bar = sheet.moments.get(index).bar;
+        XBar bar = sheet.bar(index);
         if (optimist)
             return bar.getMinPrice()*0.8 + bar.getMaxPrice()*0.2;
         else
@@ -175,7 +175,7 @@ public class SheetUtils {
     }
 
     public static double[] sellValues(Sheet sheet, boolean optimist){
-        double[] sellValues = new double[sheet.moments.size()];
+        double[] sellValues = new double[sheet.size()];
         for (int i = 0;i<sellValues.length;i++){
             double v = sellPrice(sheet,i,optimist);
             for (int j = i-2;j<=i+2;j++)

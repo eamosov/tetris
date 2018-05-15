@@ -57,6 +57,14 @@ public class Sheet {
         return interval;
     }
 
+    public int size(){
+        return moments.size();
+    }
+
+    public XBar bar(int index){
+        return moments.get(index).bar;
+    }
+
     public void fromExchange(){
         BarsCache cache = new BarsCache("cache.sqlite3");
         String exchName = exch.getName();
@@ -102,14 +110,14 @@ public class Sheet {
     }
 
     public void calcIndicators(){
-        if (moments.size()>0)
+        if (size()>0)
             for (IIndicator ii : indicatorsLib.listIndicators())
                 indicatorsData.calc(ii);
     }
 
     public void calcIndicatorsForLastBars(int cnt){
         for (IIndicator ii : indicatorsLib.listIndicators())
-            indicatorsData.calc(ii,moments.size()-cnt,moments.size());
+            indicatorsData.calc(ii,size()-cnt,size());
     }
 
     public void calcIndicatorsNoPredict(){
@@ -131,8 +139,8 @@ public class Sheet {
     private void fixMoments() {
         ZonedDateTime startTime = moments.get(0).bar.getBeginTime();
         int fixes = 0;
-        for (int i = 1;i<moments.size();i++){
-            ZonedDateTime t = moments.get(i).bar.getBeginTime();
+        for (int i = 1;i<size();i++){
+            ZonedDateTime t = bar(i).getBeginTime();
             ZonedDateTime tt = startTime.plus(interval.getDuration().multipliedBy(i));
             Duration between = Duration.between(t, tt);
             long secs = between.getSeconds();
@@ -144,8 +152,8 @@ public class Sheet {
                 System.out.println("inserted "+toInsert+" at "+i+" deltaSec "+secs);
                 fixes++;
             } else if (secs!=0 && Math.abs(secs)< intervalSeconds /3) {
-                moments.get(i).bar.setBeginTime(tt);
-                moments.get(i).bar.setEndTime(tt.plus(interval.getDuration()));
+                bar(i).setBeginTime(tt);
+                bar(i).setEndTime(tt.plus(interval.getDuration()));
                 fixes++;
             } else if (secs>= intervalSeconds /3)
                 System.out.println("negative step "+ between +" at "+i);
@@ -164,7 +172,7 @@ public class Sheet {
 
     @Override
     public String toString() {
-        return String.format("sheet: size=%1$d",moments.size());
+        return String.format("sheet: size=%1$d",size());
     }
 
     public ZonedDateTime getFrom() {
@@ -172,16 +180,16 @@ public class Sheet {
     }
 
     public int getBarIndex(ZonedDateTime from) {
-        for (int i = 0;i<moments.size();i++)
-            if (moments.get(i).bar.getBeginTime().isAfter(from))
+        for (int i = 0;i<size();i++)
+            if (bar(i).getBeginTime().isAfter(from))
                 return i;
-        return moments.size()-1;
+        return size()-1;
     }
 
     public XBaseBar getSumBar(int fromInd, int bars) {
         XBaseBar bar = new XBaseBar(moments.get(fromInd).bar);
-        for (int i = fromInd+1;i<Math.min(fromInd+bars,moments.size());i++)
-            bar.addBar(moments.get(i).bar);
+        for (int i = fromInd+1;i<Math.min(fromInd+bars,size());i++)
+            bar.addBar(bar(i));
         return bar;
     }
 
@@ -198,7 +206,7 @@ public class Sheet {
         double step = (toPrice-fromPrice-0.1)/steps;
         int from = index-barsBack;
         for (int i = from;i<index;i++){
-            XBar bar = moments.get(i).bar;
+            XBar bar = bar(i);
             int price1 = (int)((bar.getMinPrice()-fromPrice)/step);
             int price2 = (int)((bar.getMaxPrice()-fromPrice)/step);
             for (int j = price1;j<=price2;j++)

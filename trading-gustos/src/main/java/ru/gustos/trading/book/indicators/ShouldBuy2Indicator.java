@@ -30,7 +30,7 @@ public class ShouldBuy2Indicator extends BaseIndicator {
         int lookNext = 240;
         for (int i = from;i<to-lookNext;i++) {
             double bestprofit = 0;
-            double min = sheet.moments.get(i).bar.getClosePrice();
+            double min = sheet.bar(i).getClosePrice();
             for (int j = i+1;j<i+lookNext;j++){
                 Moment moment = sheet.moments.get(i);
                 double p = sheet.moments.get(j).bar.getClosePrice();

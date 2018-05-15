@@ -31,7 +31,7 @@ public class VolumeIndicator extends BaseIndicator{
     @Override
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
         for (int i = from;i<to;i++)
-            values[i] =  sheet.moments.get(i).bar.getVolume();
+            values[i] =  sheet.bar(i).getVolume();
     }
 
     @Override

@@ -41,7 +41,7 @@ public class VolumeToMoveIndicator extends NumberIndicator {
         }
 
         for (int i = from;i<to;i++) {
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             double p = bar.delta()*bar.delta()/Math.max(0.1,bar.getVolumeBase());
             if (bar.delta()>0){
                 ema1 = (p-ema1p)*k+ema1p;

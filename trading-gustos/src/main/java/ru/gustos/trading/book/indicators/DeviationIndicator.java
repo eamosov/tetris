@@ -33,7 +33,7 @@ public class DeviationIndicator extends NumberIndicator {
                 double v = sheet.moments.get(i-t1+j).bar.getClosePrice()-sum;
                 dev += v*v;
             }
-            values[i] = (sheet.moments.get(i).bar.getClosePrice()-sum)/Math.max(1,Math.sqrt(dev/t1));
+            values[i] = (sheet.bar(i).getClosePrice()-sum)/Math.max(1,Math.sqrt(dev/t1));
         }
     }
 

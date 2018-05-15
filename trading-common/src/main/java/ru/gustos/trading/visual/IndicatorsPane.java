@@ -33,7 +33,7 @@ public class IndicatorsPane extends JPanel {
         int scale = vis.zoomScale();
         int from = vis.getIndex();
         int bars = getSize().width*scale/vis.candleWidth();
-        int to = Math.min(from + bars, sheet.moments.size());
+        int to = Math.min(from + bars, sheet.size());
         List<IIndicator> ii = vis.getSheet().getLib().listIndicatorsShow();
         for (int j = 0;j<ii.size();j++) {
             IIndicator ind = ii.get(j);

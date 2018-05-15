@@ -15,11 +15,11 @@ public class IndicatorsData {
     }
 
     public void calc(IIndicator ind) {
-        calc(ind,0,sheet.moments.size());
+        calc(ind,0,sheet.size());
     }
 
     public void calc(IIndicator ind, int from, int to){
-        double[] values =  new double[sheet.moments.size()];
+        double[] values =  new double[sheet.size()];
         if (from!=0) {
             double[] old = data.getOrDefault(ind.getId(), null);
             if (old != null)

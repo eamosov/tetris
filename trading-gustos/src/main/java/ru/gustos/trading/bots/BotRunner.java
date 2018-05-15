@@ -33,12 +33,12 @@ public class BotRunner {
         BotInterval cur = null;
         for (int i = from;i<to;i++){
             if (money>0 && bot.shouldBuy(sheet, i)){
-                btc += money/sheet.moments.get(i).bar.getClosePrice()*fee;
+                btc += money/sheet.bar(i).getClosePrice()*fee;
                 money = 0;
                 cur = new BotInterval();
                 cur.buyMoment = i;
             } else if (btc>0 && bot.shouldSell(sheet, i)){
-                money+=btc*sheet.moments.get(i).bar.getClosePrice()*fee;
+                money+=btc*sheet.bar(i).getClosePrice()*fee;
                 btc = 0;
                 cur.sellMoment = i;
                 intervals.add(cur);

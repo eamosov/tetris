@@ -61,7 +61,7 @@ public class DemaIndicator extends BaseIndicator {
         }
         for (int i = from;i<to;i++){
 
-            double p = sheet.moments.get(i).bar.getClosePrice();
+            double p = sheet.bar(i).getClosePrice();
             ema1 = (p-ema1p)*k1+ema1p;
             ema2 = (p-ema2p)*k2+ema2p;
 

@@ -55,7 +55,7 @@ public class MacdIndicator  extends BaseIndicator {
             values[0] = yesno?IIndicator.YES:ema1p;
         }
         for (int i = from;i<to;i++){
-            double p = sheet.moments.get(i).bar.getClosePrice();
+            double p = sheet.bar(i).getClosePrice();
             ema1 = (p-ema1p)*k1+ema1p;
             ema2 = (p-ema2p)*k2+ema2p;
             double macd = ema2-ema1;

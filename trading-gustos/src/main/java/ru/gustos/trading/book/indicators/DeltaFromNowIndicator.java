@@ -21,8 +21,8 @@ public class DeltaFromNowIndicator extends NumberIndicator {
     @Override
     public void calcValues(Sheet sheet, double[] values, int from, int to) {
         for (int i = Math.max(from,t1);i<to;i++) {
-            XBar bar = sheet.moments.get(i-t1).bar;
-            XBar barn = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i-t1);
+            XBar barn = sheet.bar(i);
             values[i] =  (barn.getClosePrice()-bar.getClosePrice())/bar.middlePrice()*100;
         }
     }

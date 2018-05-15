@@ -38,8 +38,8 @@ public class OrderBot {
     public static void main(String[] args) throws Exception {
         sheet = TestUtils.makeSheet("indicators_simple.json");
 //        StringBuilder sb = new StringBuilder("<TICKER>\t<PER>\t<DATE>\t<TIME>\t<CLOSE>\n");
-//        for (int i = 0 ;i<sheet.moments.size();i++) {
-//            XBar b = sheet.moments.get(i).bar;
+//        for (int i = 0 ;i<sheet.size();i++) {
+//            XBar b = sheet.bar(i);
 //            ZonedDateTime t = b.getBeginTime();
 //            int n1 = t.getYear()*10000+t.getMonthValue()*100+t.getDayOfMonth();
 //            String n2 = Integer.toString(t.getHour()*10000+t.getMinute()*100+t.getSecond());
@@ -51,7 +51,7 @@ public class OrderBot {
 
 //        int from = 12000;
         int from = 1;
-        int to = sheet.moments.size();
+        int to = sheet.size();
 
         double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
         double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
@@ -77,7 +77,7 @@ public class OrderBot {
         Pair<Double, Double> prev = gar.feed(v[0], vols[0]);
         for (int i = from;i<to;i++) {
             Pair<Double, Double> avg = gar.feed(v[i], vols[i]);
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             if (money > 0) {
                 double p = prev.getFirst()-prev.getSecond()*2;
                 boolean check = bar.getMinPrice() <= p && bar.getMaxPrice() >= p && !falling(i) && bar.getClosePrice()<avg.getFirst()-avg.getSecond();
@@ -104,18 +104,18 @@ public class OrderBot {
 
     private static boolean rising(int i) {
         XBar pbar = sheet.moments.get(i-1).bar;
-        XBar bar = sheet.moments.get(i).bar;
+        XBar bar = sheet.bar(i);
         return pbar.getClosePrice()<bar.getMinPrice();
     }
 
     private static boolean falling(int i) {
         XBar pbar = sheet.moments.get(i-1).bar;
-        XBar bar = sheet.moments.get(i).bar;
+        XBar bar = sheet.bar(i);
         return pbar.getClosePrice()>=bar.getMaxPrice();
     }
 
     private static void sell(int index) {
-        sellOrder = sheet.moments.get(index).bar.getClosePrice();
+        sellOrder = sheet.bar(index).getClosePrice();
         money = btc*sellOrder*(1-fee);
         btc = 0;
         System.out.println(String.format("money: %d, time: %d, profit: %.3g%%", (int)money,index-buyIndex,(sellOrder*(1-fee)/buyPrice-1)*100));
@@ -128,7 +128,7 @@ public class OrderBot {
     }
 
     private static void buy(int index) {
-        buyOrder = sheet.moments.get(index).bar.getClosePrice();
+        buyOrder = sheet.bar(index).getClosePrice();
         btc = money / buyOrder * (1 - fee);
         money = 0;
         buyPrice = buyOrder * (1 + fee);

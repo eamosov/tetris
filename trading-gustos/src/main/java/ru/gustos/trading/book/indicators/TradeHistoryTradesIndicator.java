@@ -43,7 +43,7 @@ public class TradeHistoryTradesIndicator extends BaseIndicator{
             double v = 0;
             int i = from;
             for (TradeRecord tr : history.getTrades()){
-                while (i<to && tr.getTime().isAfter(sheet.moments.get(i).bar.getEndTime())){
+                while (i<to && tr.getTime().isAfter(sheet.bar(i).getEndTime())){
                     values[i] = v;
                     i++;
                 }

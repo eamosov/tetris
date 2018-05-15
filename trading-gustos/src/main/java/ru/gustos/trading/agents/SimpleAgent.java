@@ -86,7 +86,7 @@ public class SimpleAgent extends AgentBase{
         if (agentState.money>0){
             int len = Math.min(properties.buyHistory,index-agentState.lastOp);
             Pair<Double, Double> mm = SheetUtils.getMinMaxClose(manager.sheet, index - len, index);
-            double v = manager.sheet.moments.get(index).bar.getClosePrice()/mm.getFirst();
+            double v = manager.sheet.bar(index).getClosePrice()/mm.getFirst();
             if (v>properties.buyLo){// && v<properties.buyHi) {
                 if (real)
                     buy(index);
@@ -99,7 +99,7 @@ public class SimpleAgent extends AgentBase{
         if (agentState.btc>0){
             int len = Math.min(properties.sellHistory,index-agentState.lastOp);
             Pair<Double, Double> mm = SheetUtils.getMinMaxClose(manager.sheet, index - len, index);
-            double v = mm.getSecond() / manager.sheet.moments.get(index).bar.getClosePrice();
+            double v = mm.getSecond() / manager.sheet.bar(index).getClosePrice();
             if (v>properties.sellLo){// && v<properties.sellHi) {
                 if (real)
                     sell(index);

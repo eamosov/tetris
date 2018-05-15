@@ -97,8 +97,8 @@ public class Visualizator {
     private void fixFrom(){
         if (from<0) from = 0;
         from = from/zoomScale()*zoomScale();
-        if (from>sheet.moments.size()-barsOnScreen())
-            from = sheet.moments.size()-barsOnScreen();
+        if (from>sheet.size()-barsOnScreen())
+            from = sheet.size()-barsOnScreen();
     }
 
     public int candleWidth(){
@@ -183,7 +183,7 @@ public class Visualizator {
     public void goRightToIndicator() {
         int ind = from+barsOnScreen()/2+zoomScale();
         double val = sheet.getData().get(backIndicator,ind);
-        while (ind<sheet.moments.size() && sheet.getData().get(backIndicator,ind)==val)
+        while (ind<sheet.size() && sheet.getData().get(backIndicator,ind)==val)
             ind++;
         setIndex(ind-barsOnScreen()/2);
     }
@@ -215,7 +215,7 @@ public class Visualizator {
 
     public void runPlay() {
         if (backIndicator!=-1){
-            playResult = new PlayIndicator().playIndicator(sheet, backIndicator,from,sheet.moments.size()-1);
+            playResult = new PlayIndicator().playIndicator(sheet, backIndicator,from,sheet.size()-1);
             JOptionPane.showMessageDialog(null, playResult.toString());
             fireViewUpdated();
         }

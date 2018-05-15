@@ -26,8 +26,8 @@ public class DailyModels {
     private static void calcAll() throws Exception {
         int first = sheet.getBarIndex(ZonedDateTime.of(2018,2,1,0,0,0,0, ZoneId.systemDefault()));
         int prevday = -1;
-        for (int i = first;i<sheet.moments.size();i++){
-            ZonedDateTime time = sheet.moments.get(i).bar.getBeginTime();
+        for (int i = first;i<sheet.size();i++){
+            ZonedDateTime time = sheet.bar(i).getBeginTime();
             int day = time.getDayOfMonth();
             if (day!=prevday){
                 calcForDay(i,time);

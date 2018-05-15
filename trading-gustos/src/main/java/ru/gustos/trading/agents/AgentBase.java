@@ -14,7 +14,7 @@ public abstract class AgentBase {
 
     public AgentBase(AgentManager manager) {
         this.manager = manager;
-        decisions = new double[manager.sheet.moments.size()];
+        decisions = new double[manager.sheet.size()];
         initStartParams();
 
     }
@@ -51,7 +51,7 @@ public abstract class AgentBase {
 
         protected void buy(int index){
             lastOp = index;
-            buyCost = manager.sheet.moments.get(index).bar.getClosePrice() * (1 + fee);
+            buyCost = manager.sheet.bar(index).getClosePrice() * (1 + fee);
             btc+=money/ buyCost;
             money = 0;
             buys++;
@@ -59,13 +59,13 @@ public abstract class AgentBase {
 
         protected  void sell(int index){
             lastOp = index;
-            sellCost = manager.sheet.moments.get(index).bar.getClosePrice()*(1-fee);
+            sellCost = manager.sheet.bar(index).getClosePrice()*(1-fee);
             money+=btc*sellCost;
             btc = 0;
         }
 
         public double full(int index) {
-            return money+btc*manager.sheet.moments.get(index).bar.getClosePrice()*(1-fee);
+            return money+btc*manager.sheet.bar(index).getClosePrice()*(1-fee);
         }
     }
 }

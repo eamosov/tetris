@@ -73,7 +73,7 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
             if (i==to-1)
                 v = IIndicator.NO;
 
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             if (v == IIndicator.YES ){
                 if (buyPos==0) {
                     buyPrice = bar.getClosePrice();

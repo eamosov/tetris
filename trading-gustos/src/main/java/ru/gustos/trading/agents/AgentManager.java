@@ -34,7 +34,7 @@ public class AgentManager {
     }
 
     public void runTillEnd(){
-        while (index<sheet.moments.size()-1) {
+        while (index<sheet.size()-1) {
             iterateBar();
             if (index%60==0)
                 System.out.println("population: "+population.toString());

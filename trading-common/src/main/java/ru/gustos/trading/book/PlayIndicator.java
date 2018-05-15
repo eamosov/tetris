@@ -28,7 +28,7 @@ public class PlayIndicator{
         StringBuilder sb = new StringBuilder();
 
         for (int i = from;i<to;i++){
-            XBar bar = sheet.moments.get(i).bar;
+            XBar bar = sheet.bar(i);
             if (money>0 && v[i]!=0){
                 sb.append("buy "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+money+"\n");
                 moneyWhenBuy = money;
@@ -40,7 +40,7 @@ public class PlayIndicator{
                 double sellCost = bar.getClosePrice() * (1-fee);
                 double min = Double.MAX_VALUE;
                 for (int j = -2;j<=2;j++)
-                    if (i+j>=0 && i+j<sheet.moments.size())
+                    if (i+j>=0 && i+j<sheet.size())
                         min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * (1-fee));
                 bestPrice = Math.max(bestPrice,min);
                 if (i==to-1 || v[i]!=0 && v[i+1]==0) {
@@ -104,14 +104,14 @@ public class PlayIndicator{
         public PlayResults() {}
 
         public PlayResults(Sheet sheet, TradeHistory history) {
-            money = new double[sheet.moments.size()];
+            money = new double[sheet.size()];
             if (history.getCash().size()>0) {
 
                 int i = 0;
                 double v = 0;
 
                 for (Pair<ZonedDateTime, Double> z : history.getCash()) {
-                    while (i<money.length && z.getFirst().isAfter(sheet.moments.get(i).bar.getBeginTime())){
+                    while (i<money.length && z.getFirst().isAfter(sheet.bar(i).getBeginTime())){
                         v = z.getSecond();
                         money[i] = v;
                         i++;

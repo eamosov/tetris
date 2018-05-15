@@ -18,8 +18,8 @@ public class CheckPeriodBot implements  IDecisionBot{
 
     @Override
     public boolean shouldBuy(Sheet sheet, int index) {
-        if (index+period+5>=sheet.moments.size()) return false;
-        double now = sheet.moments.get(index).bar.getClosePrice();
+        if (index+period+5>=sheet.size()) return false;
+        double now = sheet.bar(index).getClosePrice();
         int bestpos = index+period+5;
         double bestp = sheet.moments.get(bestpos).bar.getClosePrice();
         for (int i = -5;i<5;i++){

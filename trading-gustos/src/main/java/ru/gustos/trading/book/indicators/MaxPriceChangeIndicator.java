@@ -30,7 +30,7 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
         int bars = IndicatorUtils.bars(period,sheet);
         if (positive) {
             for (int i = Math.max(bars,from); i < to; i++) {
-                double cur = sheet.moments.get(i).bar.getClosePrice();
+                double cur = sheet.bar(i).getClosePrice();
                 double min = cur;
                 for (int j = 0;j<=bars;j++){
                     double v = sheet.moments.get(i-bars+j).bar.getMinPrice();
@@ -41,7 +41,7 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
             }
         } else {
             for (int i = Math.max(bars,from); i < to; i++) {
-                double cur = sheet.moments.get(i).bar.getClosePrice();
+                double cur = sheet.bar(i).getClosePrice();
                 double max = cur;
                 for (int j = 0;j<=bars;j++){
                     double v = sheet.moments.get(i-bars+j).bar.getMaxPrice();

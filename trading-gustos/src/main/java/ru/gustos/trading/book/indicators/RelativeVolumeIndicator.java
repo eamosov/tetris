@@ -27,7 +27,7 @@ public class RelativeVolumeIndicator extends BaseIndicator {
         int bars = IndicatorUtils.bars(period,sheet);
         double sum = 0;
         for (int i = from; i < to; i++){
-            double vol = sheet.moments.get(i).bar.getVolume();
+            double vol = sheet.bar(i).getVolume();
             double avg;
             sum+=vol;
             if (i>=bars){

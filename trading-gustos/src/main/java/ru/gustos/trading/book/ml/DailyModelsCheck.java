@@ -30,15 +30,15 @@ public class DailyModelsCheck {
     private static void calcAll() throws Exception {
         int first = sheet.getBarIndex(ZonedDateTime.of(2018,2,1,0,0,0,0, ZoneId.systemDefault()));
         int prevday = -1;
-        Instances instances = Exporter.makeDataSet(sheet, 1, first, sheet.moments.size());
+        Instances instances = Exporter.makeDataSet(sheet, 1, first, sheet.size());
         int[][] cm1 = new int[2][2];
         int[][] cm2 = new int[2][2];
         int[][] cm3 = new int[2][2];
         int[][] cm1_ = new int[2][2];
         int[][] cm2_ = new int[2][2];
         int[][] cm3_ = new int[2][2];
-        for (int i = first;i<sheet.moments.size();i++){
-            ZonedDateTime time = sheet.moments.get(i).bar.getBeginTime();
+        for (int i = first;i<sheet.size();i++){
+            ZonedDateTime time = sheet.bar(i).getBeginTime();
             int day = time.getDayOfMonth();
             if (day!=prevday){
                 prevday = day;

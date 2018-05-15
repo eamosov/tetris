@@ -59,7 +59,7 @@ public class CandlesPane extends JPanel {
 
 
 
-        int to = Math.min(from + bars, sheet.moments.size());
+        int to = Math.min(from + bars, sheet.size());
         if (vis.graphIndicator !=-1){
             IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
                 Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
@@ -183,7 +183,7 @@ public class CandlesPane extends JPanel {
         int from = vis.getIndex();
         int scale = vis.zoomScale();
         int bars = getSize().width* scale /vis.candleWidth();
-        int to = Math.min(from + bars, sheet.moments.size());
+        int to = Math.min(from + bars, sheet.size());
         double[] vv = new double[(to-from)/scale+2];
         double[] volumes = new double[(to-from)/scale];
         int j = 0;
@@ -228,10 +228,10 @@ public class CandlesPane extends JPanel {
     public XBar getBar(int index) {
         int scale = vis.zoomScale();
         Sheet sheet = vis.getSheet();
-        if (scale ==1) return sheet.moments.get(index).bar;
+        if (scale ==1) return sheet.bar(index);
         int from = index/scale*scale;
         XBaseBar bar = new XBaseBar(sheet.moments.get(from).bar);
-        for (int j = 1;j<scale;j++) if (from+j<sheet.moments.size())
+        for (int j = 1;j<scale;j++) if (from+j<sheet.size())
             bar.addBar(sheet.moments.get(from+j).bar);
         return bar;
     }
@@ -271,7 +271,7 @@ public class CandlesPane extends JPanel {
                     g.drawLine(x*w, 0, x*w, getHeight());
             }
             x++;
-        } while (x*w<getWidth() && x*scale+from<vis.getSheet().moments.size());
+        } while (x*w<getWidth() && x*scale+from<vis.getSheet().size());
     }
 
     String prevMark = null;
