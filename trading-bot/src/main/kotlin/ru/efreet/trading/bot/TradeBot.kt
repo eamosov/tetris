@@ -51,7 +51,7 @@ class TradeBot(val exchange: Exchange,
 
     fun checkStrategy() {
 
-        val advice = logic.getAdvice(null, trader, true)
+        val advice = logic.getAdvice(trader, true)
 
         println("advice: ${advice}")
 

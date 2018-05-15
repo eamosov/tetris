@@ -13,7 +13,10 @@ import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.gustos.trading.GustosBotLogic2;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.*;
+import ru.gustos.trading.book.indicators.Gustos3NumberIndicator;
+import ru.gustos.trading.book.indicators.GustosIndicator;
+import ru.gustos.trading.book.indicators.IndicatorInitData;
+import ru.gustos.trading.book.indicators.SuccessIndicator;
 import ru.gustos.trading.visual.Visualizator;
 
 import java.io.FileNotFoundException;
@@ -63,13 +66,13 @@ public class ProfitChecker {
         ZonedDateTime t2 = times[times.length - 1];
         aa.add(new Pair<>(t1, t2));
         TradeHistory history = new ProfitCalculator().tradeHistory(logic, botLogic.getParams(), botLogic.getInstrument(), barInterval, sheet.exchange().getFee(), botLogic.getBars(), aa, false);
-        out(String.format("profit interval whole: %.3g%% (pure usd %.3g%%)", (history.profitPerDayToGrow()-1)*100,(history.profitPerDay()-1)*100));
+        out(String.format("profit interval whole: %.3g%% (pure usd %.3g%%)", (history.getProfitPerDayToGrow()-1)*100,(history.getProfitPerDay()-1)*100));
 
         for (int i = 0;i<times.length;i+=2){
             aa = new ArrayList<>();
             aa.add(new Pair<>(times[i],times[i+1]));
             history = new ProfitCalculator().tradeHistory(logic, botLogic.getParams(), botLogic.getInstrument(), barInterval, sheet.exchange().getFee(), botLogic.getBars(), aa, false);
-            out(String.format("profit interval %d: %.3g%% (pure usd %.3g%%)", i/2,(history.profitPerDayToGrow()-1)*100,(history.profitPerDay()-1)*100));
+            out(String.format("profit interval %d: %.3g%% (pure usd %.3g%%)", i/2,(history.getProfitPerDayToGrow()-1)*100,(history.getProfitPerDay()-1)*100));
         }
 
 

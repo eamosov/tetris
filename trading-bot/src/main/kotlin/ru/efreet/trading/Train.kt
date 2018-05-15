@@ -37,7 +37,7 @@ class Train {
 //            var bars = cache.getBars("binance", Instrument.BTC_USDT, BarInterval.ONE_SECOND, ZonedDateTime.now().minusDays(10), ZonedDateTime.now())
 
 
-            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee() * 2, cmd.barInterval, BarsCache(cmd.cachePath))
+            val exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
 
             val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             val stateLoaded = logic.loadState(cmd.settings!!)
@@ -60,16 +60,16 @@ class Train {
                     },
                     { params, stats -> logic.metrica(params, stats) },
                     { logic.copyParams(it) },
-                    { params, stats ->
+                    { trainItem ->
                         synchronized(Train.Companion) {
                             val savePath = cmd.settings + ".out"
                             println("Saving intermediate logic's properties to ${savePath}")
                             val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-                            tmpLogic.setMinMax(params, 50.0, false)
-                            tmpLogic.setParams(params)
-                            tmpLogic.saveState(savePath, stats.toString())
+                            tmpLogic.setMinMax(trainItem.args, 50.0, false)
+                            tmpLogic.setParams(trainItem.args)
+                            tmpLogic.saveState(savePath, trainItem.result.toString())
                         }
-                    })
+                    }).last()
 
             println(sp.toJson())
             val savePath = cmd.settings + ".out"

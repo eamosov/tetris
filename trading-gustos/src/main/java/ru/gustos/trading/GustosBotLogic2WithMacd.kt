@@ -186,12 +186,12 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
                 .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 100.0, 4.0))
                 .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0))
                 .add("fine_profit", BotLogic.fine(stats.profit, 4.0))
-                .add("profit", stats.profit/4.0)
+                .add("profit", stats.relProfit/4.0)
                 .add("pearson", (stats.pearson - 0.96) * 40.0)
     }
 
 
-    override fun getBotAdviceImpl(index: Int, stats: TradesStats?, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
