@@ -34,24 +34,24 @@ public class SimpleAgent extends AgentBase{
 
         GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica> trainer = new GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica>();
         trainer.logs = false;
-        Pair<SimpleAgentProperties, Double> best = trainer.getBestParams(
-                pp.getGenes(),
-                origin, // исходные точки
-                p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
-                    return estimate(p);
-                },
-                (p, r) ->  { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
-                    return new DoubleBotMetrica(r);
-                },
-                p -> {  //функция копирования точек
-                    return new SimpleAgentProperties(p);
-                },
-                (p, r) -> { //Коллбек, когда найден новый лучший кандидат(для отслеживания процесса)
-//                    System.out.println("NEW: " + p.toString() + " " + r.toString());
-                    return  null;
-                });
-        properties = best.getFirst();
-        System.out.println("optimize "+best.getSecond());
+//        Pair<SimpleAgentProperties, Double> best = trainer.getBestParams(
+//                pp.getGenes(),
+//                origin, // исходные точки
+//                p -> {  // функция, которая для каждой исходной точки подсчитвает результат (любого типа)
+//                    return estimate(p);
+//                },
+//                (p, r) ->  { //функция, которая для пары (точка,результат) подсчитывает метрику, которая максимизируется
+//                    return new DoubleBotMetrica(r);
+//                },
+//                p -> {  //функция копирования точек
+//                    return new SimpleAgentProperties(p);
+//                },
+//                (p, r) -> { //Коллбек, когда найден новый лучший кандидат(для отслеживания процесса)
+////                    System.out.println("NEW: " + p.toString() + " " + r.toString());
+//                    return  null;
+//                });
+//        properties = best.getFirst();
+//        System.out.println("optimize "+best.getSecond());
 
     }
 

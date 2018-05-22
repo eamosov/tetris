@@ -4,6 +4,7 @@ import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.FakeTrader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
+import ru.efreet.trading.bot.TradesStatsShort
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
@@ -14,9 +15,11 @@ import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.trainer.TrainItem
 import ru.efreet.trading.utils.*
+import java.io.File
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.*
 
 data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-03-01T00:00Z[GMT]"),
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-05-12T00:00Z[GMT]"),
@@ -27,6 +30,8 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-03-01T
                  var startMaxParamsDeviation: Double = 50.0,
                  var maxParamsDeviation: Double = 10.0,
                  var hardBounds: Boolean = false,
+                 var noSaveState: Boolean = false,
+                 var saveDaysData: Boolean = false,
                  val trainPeriod: Duration = Duration.ofHours(24),
                  var startPopulation: Int = 500,
                  var population: Int = 20,
@@ -69,7 +74,8 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         if (state.initOptimisation) {
             val (params, _stats) = tuneParams(state.startTime, logic.getParams(), state.startMaxParamsDeviation, state.startPopulation, false)
             logic.setParams(params)
-            logic.saveState(state.properties, _stats.toString())
+            if (!state.noSaveState)
+                logic.saveState(state.properties, _stats.toString())
             println("Initial optimisation of random parameters: ${params} $_stats")
         }
 
@@ -91,14 +97,22 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         var skipBuy = false
 
+        var savedN = 0
+
         for (bar in bars){
 
             if (Duration.between(lastTrainTime, bar.endTime).toMillis() >= state.trainPeriod.toMillis()
                     && trader.availableAsset(cmd.instrument) == 0.0) { //если мы в баксах
-
+                logic.loadState(state.properties)
                 val (params, _stats) = tuneParams(bar.endTime, logic.getParams(), state.maxParamsDeviation, state.population)
+
                 logic.setParams(params)
-                logic.saveState(state.properties, _stats.toString())
+                if (!state.noSaveState)
+                    logic.saveState(state.properties, _stats.toString())
+                if (state.saveDaysData) {
+                    File("props").mkdir()
+                    logic.saveState("props/${bar.endTime.toEpochSecond()}.properties", _stats.toString())
+                }
                 println("STRATEGY: ${logic.getParams()} $_stats")
                 lastTrainTime = bar.endTime
                 skipBuy = true
@@ -143,7 +157,8 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         //tmpLogic нужно для генерации population и передачи tmpLogic.genes в getBestParams
         val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, state.interval)
         tmpLogic.setParams(curParams)
-        tmpLogic.setMinMax(curParams, maxParamsDeviation, state.hardBounds)
+        if (maxParamsDeviation>0)
+            tmpLogic.setMinMax(curParams, maxParamsDeviation, state.hardBounds)
 
         val population = tmpLogic.seed(SeedType.RANDOM, populationSize)
         if (inclCurParams)
@@ -156,7 +171,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         bars.checkBars()
 
 
-        return trainer.getBestParams(tmpLogic.genes, population,
+        val result = trainer.getBestParams(tmpLogic.genes, population,
                 {
                     val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, state.interval, exchange.getFee(), bars, arrayListOf(Pair(trainStart, endTime)), false)
                     val stats = StatsCalculator().stats(history)
@@ -165,7 +180,15 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                 { args, stats ->
                     tmpLogic.metrica(args, stats)
                 },
-                { tmpLogic.copyParams(it) }).last()
+                { tmpLogic.copyParams(it) })
+        if (state.saveDaysData) {
+            File("pops").mkdir()
+            File("pops/${endTime.toEpochSecond()}.population").printWriter().use { out ->
+                out.println(result.map { it -> TrainItem(it.args, TradesStatsShort(it.result.trades, it.result.profit, it.result.pearson), it.metrica) }.toJson())
+            }
+        }
+
+        return result.last()
     }
 
     fun saveState() {

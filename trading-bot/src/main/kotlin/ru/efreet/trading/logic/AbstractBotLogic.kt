@@ -187,8 +187,8 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
     override fun metrica(params: P, stats: TradesStats): Metrica {
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 4.0))
-                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0))
+                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 2.0))
+                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0)*2+1)
                 .add("fine_profit", BotLogic.fine(stats.profit, 1.0))
                 .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0))
     }

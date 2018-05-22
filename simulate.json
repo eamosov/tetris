@@ -1,20 +1,21 @@
 {
   "startTime": "2018-03-01T00:00Z[GMT]",
-  "endTime": "2018-03-20T00:00Z[GMT]",
+  "endTime": "2018-05-15T00:00Z[GMT]",
   "usd": 1000.0,
   "asset": 0.0,
-  "trainDays": 60,
+  "trainDays": 90,
   "interval": "ONE_MIN",
   "startMaxParamsDeviation": 50.0,
-  "maxParamsDeviation": 10.0,
+  "maxParamsDeviation": 30.0,
   "hardBounds": false,
   "trainPeriod": {
     "seconds": 86400,
     "nanos": 0
   },
   "startPopulation": 500,
-  "population": 0,
+  "population": 200,
   "historyPath": "simulate_history.json",
   "properties": "simulate.properties",
-  "initOptimisation": false
+  "initOptimisation": true,
+  "graph": false
 }

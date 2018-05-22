@@ -15,3 +15,8 @@ data class TradesStats(var trades: Int = 0,
                        var profitPerDay: Double = 0.0,
                        var relProfit: Double = 0.0
 )
+
+data class TradesStatsShort(var trades: Int = 0,
+                       var profit: Double = 0.0,
+                       var pearson: Double = 0.0
+)

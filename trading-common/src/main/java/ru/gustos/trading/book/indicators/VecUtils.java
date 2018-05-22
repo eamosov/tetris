@@ -181,6 +181,14 @@ public class VecUtils {
         return new Pair<>(min,max);
     }
 
+    public static void minMax(double[] v, double[] min, double[] max){
+        for (int i = 0;i<v.length;i++){
+            double vv = v[i];
+            if (min[i]>vv) min[i] = vv;
+            if (max[i]<vv) max[i] = vv;
+        }
+    }
+
     public static double[] ema(double[] v, int t) {
         double[] res = new double[v.length];
         double k = 2.0/(t+1);

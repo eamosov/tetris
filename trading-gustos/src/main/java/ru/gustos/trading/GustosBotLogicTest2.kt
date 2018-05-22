@@ -10,21 +10,25 @@ import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.ta.indicators.XClosePriceIndicator
-import ru.efreet.trading.ta.indicators.XIndicator
-import ru.efreet.trading.ta.indicators.XLastDecisionIndicator
+import ru.efreet.trading.ta.indicators.*
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent
 import java.time.Duration
 
-open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams>(name, GustosBotLogicParams::class, instrument, barInterval, bars) {
+open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams>(name, GustosBotLogicParams::class, instrument, barInterval, bars) {
 
     val closePrice = XClosePriceIndicator(bars)
-    
+
     var prepared: Boolean = false
     lateinit var garBuy: GustosAverageRecurrent
     lateinit var garSell: GustosAverageRecurrent
     lateinit var lastDecisionIndicator: XLastDecisionIndicator<XExtBar>
+
+    lateinit var shortEma: XCachedIndicator<XExtBar>
+    lateinit var longEma: XCachedIndicator<XExtBar>
+    lateinit var macd: XMACDIndicator<XExtBar>
+    lateinit var signalEma: XCachedIndicator<XExtBar>
+
 
     override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
 
@@ -58,11 +62,18 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
     override fun prepareBarsImpl() {
 
+        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, 600)
+        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, 1300)
+        macd = XMACDIndicator(shortEma, longEma)
+        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, 450)
+        shortEma.prepare()
+        longEma.prepare()
+        signalEma.prepare()
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!, getParams().volumePow1!!/10.0, getParams().volumePow2!!/10.0)
+        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
         bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice, it.volume); it.sma = sma;it.sd = sd; }
-        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!, getParams().volumePow1!!/10.0, getParams().volumePow2!!/10.0)
+        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
         bars.forEach { val (sma, sd) = garSell.feed(it.closePrice, it.volume); it.smaSell = sma;it.sdSell = sd; }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
@@ -83,6 +94,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
     }
 
     private fun shouldBuy(i: Int): Boolean {
+//        if (!upTrend(i)) return false;
         val pbar = getBar(i - 1)
         val bar = getBar(i)
         val p = pbar.sma - pbar.sd * getParams().buyDiv!! / 10
@@ -94,6 +106,10 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
         val p = bar.smaSell + bar.sdSell * getParams().sellDiv!! / 10
         return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().sellBoundDiv!! / 10 && !rising(i)
 
+    }
+
+    private fun upTrend(index: Int): Boolean {
+        return macd.getValue(index) > signalEma.getValue(index)
     }
 
     private fun rising(i: Int): Boolean {
@@ -183,5 +199,3 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
 
 }
-
-

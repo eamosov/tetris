@@ -3,6 +3,7 @@ package ru.efreet.trading
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
+import ru.efreet.trading.bot.TradesStatsShort
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
@@ -10,9 +11,12 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.ProfitCalculator
 import ru.efreet.trading.logic.impl.LogicFactory
 import ru.efreet.trading.trainer.Metrica
+import ru.efreet.trading.trainer.TrainItem
 import ru.efreet.trading.utils.CmdArgs
 import ru.efreet.trading.utils.SeedType
+import ru.efreet.trading.utils.SortedProperties
 import ru.efreet.trading.utils.toJson
+import java.io.File
 
 /**
  * Created by fluder on 08/02/2018.
@@ -22,6 +26,12 @@ import ru.efreet.trading.utils.toJson
 
 class Train {
     companion object {
+        private fun saveAllResults(path: String, result: List<TrainItem<Any, TradesStats, Metrica>>) {
+            File(path).printWriter().use{ out ->
+                out.println(result.map { it -> TrainItem(it.args,TradesStatsShort(it.result.trades,it.result.profit, it.result.pearson),it.metrica) }.toJson())
+            }
+
+        }
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -52,7 +62,7 @@ class Train {
 
             bars.checkBars()
 
-            val (sp, stats) = trainer.getBestParams(logic.genes, population,
+            val result = trainer.getBestParams(logic.genes, population,
                     {
                         val history = ProfitCalculator().tradeHistory(cmd.logicName, it, cmd.instrument, cmd.barInterval, exchange.getFee(), bars, arrayListOf(Pair(cmd.start!!, cmd.end!!)), false)
 
@@ -69,7 +79,9 @@ class Train {
                             tmpLogic.setParams(trainItem.args)
                             tmpLogic.saveState(savePath, trainItem.result.toString())
                         }
-                    }).last()
+                    })
+
+            val (sp, stats) = result.last()
 
             println(sp.toJson())
             val savePath = cmd.settings + ".out"
@@ -79,6 +91,10 @@ class Train {
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())
             println(logic.logState())
+            val saveResultsPath = cmd.settings + ".results"
+            println("Saving results to ${saveResultsPath}")
+            saveAllResults(saveResultsPath,result);
         }
+
     }
 }

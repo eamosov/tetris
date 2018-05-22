@@ -11,6 +11,8 @@ data class GustosBotLogicParams(var volumeShort: Int? = null,
                                 var sellDiv: Int? = null,
                                 var buyBoundDiv: Int? = null,
                                 var sellBoundDiv: Int? = null,
+                                var volumePow1: Int? = 24,
+                                var volumePow2: Int? = 14,
 
                                 override var stopLoss: Double = 2.5,
                                 override var tStopLoss: Double = 50.0,
@@ -19,6 +21,7 @@ data class GustosBotLogicParams(var volumeShort: Int? = null,
                                 override var tTakeProfit: Double = 0.1
 
                                 ) : AbstractBotLogicParams {
+    fun copyIt() : GustosBotLogicParams = copy()
 
 }
 

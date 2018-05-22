@@ -12,14 +12,23 @@ public class GustosAverageRecurrent {
     private final EmaRecurrent volumeEmaShort;
     private double value;
     private double disp;
-    private double pow1 = 2.4;
-    private double pow2 = 1.4;
+    private double pow1;// = 2.4;
+    private double pow2;// = 1.4;
 
 
-    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow){
+    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow) {
+        this(window,volumeWindow,shortVolumeWindow,2.4,1.4);
+    }
+    public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow, double pow1, double pow2){
         this.window = window;
         volumeEma = new EmaRecurrent(volumeWindow);
         volumeEmaShort = new EmaRecurrent(shortVolumeWindow < 1 ? 1 : shortVolumeWindow);
+        if (pow1<0) pow1 = 0;
+        if (pow2<0) pow2 = 0;
+        if (pow1>4) pow1 = 4;
+        if (pow2>4) pow2 = 4;
+        this.pow1 = pow1;
+        this.pow2 = pow2;
     }
 
     public Pair<Double,Double> feed(double price, double volume){
@@ -49,6 +58,10 @@ public class GustosAverageRecurrent {
                 a = price/next;
                 a*=a*=a;
                 next = next + (price - next) / (0.6 * window * a);
+                if (Math.abs(next/price-1)<0.0001) {
+                    vk = 0;
+                    break;
+                }
 
                 vk-=1;
             }

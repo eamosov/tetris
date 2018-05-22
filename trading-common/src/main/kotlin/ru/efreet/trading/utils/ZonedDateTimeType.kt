@@ -23,3 +23,4 @@ class ZonedDateTimeType : TypeAdapter<ZonedDateTime>() {
         return ZonedDateTime.parse(`in`.nextString())
     }
 }
+

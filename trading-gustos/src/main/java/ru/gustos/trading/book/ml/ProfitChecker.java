@@ -44,7 +44,7 @@ public class ProfitChecker {
             ZonedDateTime.of(2018,5,11,11,0,0,0, ZoneId.systemDefault()),
 
             ZonedDateTime.of(2018,5,1,0,0,0,0, ZoneId.systemDefault()),
-            ZonedDateTime.of(2018,5,11,11,0,0,0, ZoneId.systemDefault()),
+            ZonedDateTime.of(2018,5,20,0,0,0,0, ZoneId.systemDefault()),
 
 
     };
@@ -134,8 +134,8 @@ public class ProfitChecker {
 //        out("BCC:");
 //        printTest(Instrument.Companion.getBCC_USDT(), "gustoslogic_bcc.properties");
         out("BTC:");
-        String properties = "gustostest.properties";
-        String logic = "gustostest";
+        String properties = "gustoslogic2_.properties";
+        String logic = "gustos2";
         printTest(Instrument.Companion.getBTC_USDT(), logic,properties);
 //        out("BTCi:");
 //        printTest(Instrument.Companion.getBTC_USDT(), "gustoslogic2i.properties");

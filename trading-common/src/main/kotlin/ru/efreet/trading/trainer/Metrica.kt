@@ -16,6 +16,11 @@ class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
         return add(MetricaTerm(name, value))
     }
 
+    fun get(name: String) : Double{
+        elements.forEach { if (it.name.equals(name)) return it.value; }
+        return 0.0;
+    }
+
     override fun compareTo(other: Metrica): Int {
         return this.value.compareTo(other.value)
     }

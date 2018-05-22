@@ -59,7 +59,15 @@ data class TradeRecord(
 
         @DatabaseField
         val fundsAfter: Double? = null
+
 ) : Serializable {
 
+        fun before() : Double{
+                return usdBefore!!+assetBefore!!*price!!
+        }
+
+        fun after() : Double{
+                return usdAfter!!+assetAfter!!*price!!
+        }
 
 }
