@@ -91,9 +91,11 @@ class Train {
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())
             println(logic.logState())
-            val saveResultsPath = cmd.settings + ".results"
-            println("Saving results to ${saveResultsPath}")
-            saveAllResults(saveResultsPath,result);
+            if (cmd.saveAll) {
+                val saveResultsPath = cmd.settings + ".results"
+                println("Saving results to ${saveResultsPath}")
+                saveAllResults(saveResultsPath, result);
+            }
         }
 
     }

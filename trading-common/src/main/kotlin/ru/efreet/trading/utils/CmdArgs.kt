@@ -20,6 +20,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                    var instruments: List<Instrument> = arrayListOf(Instrument("BTC", "USDT")),
                    var barInterval: BarInterval = BarInterval.ONE_MIN,
                    var testOnly: Boolean = false,
+                   var saveAll: Boolean = false,
                    var logicName: String = "sd3",
                    var cachePath: String = "cache.sqlite3",
                    var settings: String? = null, // = "bot.properties",
@@ -63,6 +64,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
                     .addOption("d", "steps", true, "CDM steps, default 1,5,20")
                     .addOption("z", "shorttest", false, "no test on start")
                     .addOption("r", "trainer", true, "cdm(default)|gdm")
+                    .addOption("1", "saveall", false, "save all results")
 
 
             val parser = BasicParser()
@@ -95,6 +97,10 @@ data class CmdArgs(var start: ZonedDateTime? = null,
 
             if (cmd.hasOption('n')) {
                 cmdArgs.testOnly = true
+            }
+
+            if (cmd.hasOption('1')) {
+                cmdArgs.saveAll = true
             }
 
             if (cmd.hasOption('z')) {
