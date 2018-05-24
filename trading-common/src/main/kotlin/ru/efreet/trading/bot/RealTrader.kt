@@ -104,8 +104,7 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
                         usdBefore,
                         assetBefore,
                         balanceResult.balances[baseName]!!,
-                        balanceResult.balances[advice.instrument.asset]!!,
-                        balanceResult.toBase["total"]!!
+                        balanceResult.balances[advice.instrument.asset]!!
                 )
 
                 trades.add(lastTrade!!)
@@ -127,8 +126,7 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
                         usdBefore!!,
                         assetBefore!!,
                         balanceResult.balances[baseName]!!,
-                        balanceResult.balances[advice.instrument.asset]!!,
-                        balanceResult.toBase["total"]!!
+                        balanceResult.balances[advice.instrument.asset]!!
                 )
 
                 trades.add(lastTrade!!)

@@ -39,38 +39,67 @@ data class TradeHistory(val startUsd: Double,
 
     val profitPerDayToGrow: Double get() = pow((endFunds / startFunds) / (endPrice / startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
 
-    fun profitBeforeExtended(time : ZonedDateTime) : Double {
+    fun profitBeforeExtended(time: ZonedDateTime): Double {
         val start = startUsd
         var end = start
-        for (i in 0..trades.size-1){
-            if (trades[i].decision==Decision.BUY){
-                if (trades[i].time!!.isAfter(time)) return end/ start
-            } else if (trades[i].decision==Decision.SELL){
+        for (i in 0 until trades.size) {
+            if (trades[i].decision == Decision.BUY) {
+                if (trades[i].time!!.isAfter(time)) return end / start
+            } else if (trades[i].decision == Decision.SELL) {
                 end = trades[i].usdAfter!!
-                if (trades[i].time!!.isAfter(time)) return end/ start
+                if (trades[i].time!!.isAfter(time)) return end / start
             }
         }
-        return end/ start
+        return end / start
     }
 
-    fun profitBefore(time : ZonedDateTime) : Double {
+    fun profitBefore(time: ZonedDateTime): Double {
         val start = startUsd
         var end = start
-        for (i in 0..trades.size-1){
-            if (trades[i].time!!.isAfter(time)) return end/ start
-            if (trades[i].decision==Decision.SELL)
+        for (i in 0 until trades.size) {
+            if (trades[i].time!!.isAfter(time)) return end / start
+            if (trades[i].decision == Decision.SELL)
                 end = trades[i].usdAfter!!
 
         }
-        return end/ start
+        return end / start
     }
 
-    fun worstInterval(len : Int) : Double {
+    fun worstInterval(len: Int): Double {
         return when {
-            trades.size>len -> return (len..trades.size-1).map { trades.get(it).after()/trades.get(it - len).before()}.min()!!
-            trades.size>0 -> trades.get(trades.size-1).after()/trades.get(0).before()
+            trades.size > len -> return (len until trades.size).map { trades[it].after() / trades[it - len].before() }.min()!!
+            trades.isNotEmpty() -> trades[trades.size - 1].after() / trades[0].before()
             else -> 1.0
         }
     }
+
+    fun relWorstInterval(len: Int): Double {
+
+        if (trades.isEmpty())
+            return 1.0
+
+        val y1 = 0.0
+        val y2 = 3.0
+        val x1=0.0
+        val x2=1.0
+        val exp = 5.0
+
+        val a = (y1-y2) / (Math.pow(exp, x1) - Math.pow(exp, x2))
+        val b = y1 - a * Math.pow(exp, x1)
+
+        fun y(x:Double):Double = a * Math.pow(exp, x) + b
+
+        val endEpoch = trades.last().time!!.toEpochSecond()
+        val startEpoch = trades.first().time!!.toEpochSecond()
+
+        return when {
+            trades.size > len -> return (len until trades.size).map {
+                val k = y((trades[it].time!!.toEpochSecond() - startEpoch).toDouble() / (endEpoch - startEpoch).toDouble())
+                k * trades[it].after() / trades[it - len].before()
+            }.min()!!
+            else -> trades[trades.size - 1].after() / trades[0].before()
+        }
+    }
+
 }
 

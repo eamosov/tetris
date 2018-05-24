@@ -74,8 +74,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
                         usdBefore,
                         assetBefore,
                         usd,
-                        asset,
-                        usd + asset * advice.price)
+                        asset)
 
                 trades.add(lastTrade!!)
                 return lastTrade
@@ -100,8 +99,7 @@ class FakeTrader(var startUsd: Double = 1000.0,
                         usdBefore,
                         assetBefore,
                         usd,
-                        asset,
-                        usd + asset * advice.price)
+                        asset)
 
                 trades.add(lastTrade!!)
                 return lastTrade

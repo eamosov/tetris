@@ -33,13 +33,13 @@ class StatsCalculator {
                 trades++
 
                 if (i > 0 && history.trades[i - 1].decision == Decision.BUY) {
-                    if (trade.fundsAfter != 0.0 && history.trades[i - 1].fundsAfter != 0.0) {
-                        val tradeProfit = trade.fundsAfter!! / history.trades[i - 1].usdBefore!!
+                    if (trade.after() != 0.0 && history.trades[i - 1].after() != 0.0) {
+                        val tradeProfit = trade.after()!! / history.trades[i - 1].usdBefore!!
                         if (tradeProfit > 1)
                             tradesWithProfit++
 
                         profits.add(Pair(trade.time!!, tradeProfit))
-                        funds.add(Pair(trade.time, trade.fundsAfter))
+                        funds.add(Pair(trade.time, trade.after()))
                     }
                 }
             }

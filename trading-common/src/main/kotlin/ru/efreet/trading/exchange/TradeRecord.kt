@@ -33,7 +33,7 @@ data class TradeRecord(
         @DatabaseField(persisterClass = EnumStringType::class)
         val decision: Decision? = null,
 
-        @DatabaseField (persisterClass = MapPersister::class)
+        @DatabaseField(persisterClass = MapPersister::class)
         val decisionArgs: Map<String, String>? = null,
 
         @DatabaseField(persisterClass = EnumStringType::class)
@@ -55,19 +55,16 @@ data class TradeRecord(
         val usdAfter: Double? = null,
 
         @DatabaseField
-        val assetAfter: Double? = null,
-
-        @DatabaseField
-        val fundsAfter: Double? = null
+        val assetAfter: Double? = null
 
 ) : Serializable {
 
-        fun before() : Double{
-                return usdBefore!!+assetBefore!!*price!!
-        }
+    fun before(): Double {
+        return usdBefore!! + assetBefore!! * price!!
+    }
 
-        fun after() : Double{
-                return usdAfter!!+assetAfter!!*price!!
-        }
+    fun after(): Double {
+        return usdAfter!! + assetAfter!! * price!!
+    }
 
 }
