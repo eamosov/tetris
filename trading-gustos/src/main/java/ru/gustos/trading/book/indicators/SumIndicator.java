@@ -4,9 +4,8 @@ import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
-import java.util.Arrays;
 
-public class SumIndicator extends BaseIndicator{
+public class SumIndicator extends NumberIndicator{
 
     int[] ids;
     double[] weights;
@@ -23,31 +22,19 @@ public class SumIndicator extends BaseIndicator{
     }
 
     @Override
-    public String getName() {
-        return "Sum_"+id;
+    public IndicatorResultType getResultType() {
+        return IndicatorResultType.NUMBER;
     }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         for (int i = from;i<to;i++)
             for (int j = 0;j<ids.length;j++)
-                values[i] +=  sheet.getData().get(ids[j],i)*weights[j];
+                values[0][i] +=  sheet.getData().get(ids[j],i)*weights[j];
     }
 
     @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    public Color getColorMin() {        return Color.gray;    }
-
-    @Override
-    public boolean fromZero() {
-        return true;
+    public ColorScheme getColors() {
+        return ColorScheme.GREENGRAY;
     }
 }

@@ -8,32 +8,26 @@ import java.util.Arrays;
 
 public class DeviationIndicator extends NumberIndicator {
 
-    int t1;
 
     public DeviationIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
     }
 
-    @Override
-    public String getName() {
-        return "Deviation_"+t1;
-    }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        for (int i = Math.max(from,t1);i<to;i++){
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        for (int i = Math.max(from,data.t1);i<to;i++){
             double sum = 0;
-            for (int j = 0;j<t1;j++)
-                sum += sheet.moments.get(i-t1+j).bar.getClosePrice();
+            for (int j = 0;j<data.t1;j++)
+                sum += sheet.moments.get(i-data.t1+j).bar.getClosePrice();
 
-            sum/=t1;
+            sum/=data.t1;
             double dev = 0;
-            for (int j = 0;j<t1;j++){
-                double v = sheet.moments.get(i-t1+j).bar.getClosePrice()-sum;
+            for (int j = 0;j<data.t1;j++){
+                double v = sheet.moments.get(i-data.t1+j).bar.getClosePrice()-sum;
                 dev += v*v;
             }
-            values[i] = (sheet.bar(i).getClosePrice()-sum)/Math.max(1,Math.sqrt(dev/t1));
+            values[0][i] = (sheet.bar(i).getClosePrice()-sum)/Math.max(1,Math.sqrt(dev/data.t1));
         }
     }
 

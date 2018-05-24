@@ -8,24 +8,17 @@ import java.awt.*;
 
 public class MinMaxDeltaIndicator extends NumberIndicator {
 
-    int t1;
 
     public MinMaxDeltaIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
-    }
-
-    @Override
-    public String getName() {
-        return "minmaxdelta_"+t1;
     }
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        for (int i = Math.max(t1,from);i<to;i++) {
-            XBar bar = sheet.bar(i-t1);
-            values[i] =  (bar.getMaxPrice()-bar.getMinPrice())/bar.middlePrice()*100;
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        for (int i = Math.max(data.t1,from);i<to;i++) {
+            XBar bar = sheet.bar(i-data.t1);
+            values[0][i] =  (bar.getMaxPrice()-bar.getMinPrice())/bar.middlePrice()*100;
         }
     }
 

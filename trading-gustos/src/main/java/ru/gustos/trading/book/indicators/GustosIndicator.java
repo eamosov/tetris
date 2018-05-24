@@ -9,68 +9,44 @@ import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.gustos.trading.book.Sheet;
 
-import java.awt.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-public class GustosIndicator extends BaseIndicator implements IIndicatorWithProperties{
+public class GustosIndicator extends Indicator implements IIndicatorWithProperties{
     public static int Id;
-    String logic;
-    String state;
     BotLogic botLogic;
 
     public GustosIndicator(IndicatorInitData data) {
         super(data);
         Id = data.id;
-        logic = data.logic;
-        state = data.state;
     }
 
-    @Override
-    public String getName() {
-        return "gustos"+logic;
-    }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.YESNO;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return Color.green;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return Color.red;
-    }
-
-    @Override
-    public Map<String,String> getMark(int ind) {
+    public Map<String,String> getMarks(int ind) {
         final BotAdvice ose = botLogic.getBotAdvice(ind, null, true);
         return ose.getDecisionArgs();
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
 
         if (botLogic==null) {
-            botLogic = LogicFactory.Companion.getLogic(this.logic,
+            botLogic = LogicFactory.Companion.getLogic(data.logic,
                     Instrument.Companion.getBTC_USDT(),
                     BarInterval.ONE_MIN,
                     sheet.moments.stream()
                             .map(m -> new XExtBar(m.bar))
                             .collect(Collectors.toList()));
 
-            botLogic.loadState(state);
+            botLogic.loadState(data.state);
         }
 
         for (int i = from; i < to; i++) {
 
             final BotAdvice ose = botLogic.getBotAdvice(i, null, true);
-            values[i] = ose.getDecision() == Decision.BUY ? IIndicator.YES : IIndicator.NO;
+            values[0][i] = ose.getDecision() == Decision.BUY ? Indicator.YES : Indicator.NO;
 
         }
 

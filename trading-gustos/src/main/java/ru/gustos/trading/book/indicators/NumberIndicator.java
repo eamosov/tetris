@@ -1,23 +1,12 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.gustos.trading.visual.CandlesPane;
-
-import java.awt.*;
-
-public abstract class NumberIndicator extends BaseIndicator{
+public abstract class NumberIndicator extends Indicator {
     public NumberIndicator(IndicatorInitData data) {
         super(data);
     }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
+    public IndicatorResultType getResultType() {
+        return IndicatorResultType.NUMBER;
     }
-
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    public Color getColorMin() {        return CandlesPane.RED;    }
 }

@@ -5,54 +5,23 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class PrecalcedIndicator implements IIndicator{
-    int id;
-    String name;
-    IndicatorType type;
+public class PrecalcedIndicator extends Indicator {
+    IndicatorResultType type;
     double[] data;
 
-    public PrecalcedIndicator(int id, String name, IndicatorType type, double[] data){
-        this.id = id;
-        this.name = name;
+    public PrecalcedIndicator(int id, String name, IndicatorResultType type, double[] data){
+        super(new IndicatorInitData(){{this.id = id;this.name = name;}});
         this.type = type;
         this.data = data;
     }
 
     @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public IndicatorType getType() {
+    public IndicatorResultType getResultType() {
         return type;
     }
 
     @Override
-    public boolean fromZero() {
-        return false;
-    }
-
-    @Override
-    public boolean showOnPane() {
-        return true;
-    }
-
-    @Override
-    public Color getColorMax() { return CandlesPane.GREEN; }
-
-    @Override
-    public Color getColorMin() {
-        return CandlesPane.RED;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        System.arraycopy(data,from,values,from,to-from);
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        System.arraycopy(data,from,values[0],from,to-from);
     }
 }

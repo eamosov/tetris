@@ -1,12 +1,12 @@
 package ru.gustos.trading.visual;
 
-import kotlin.Pair;
 import ru.efreet.trading.bot.TradeHistory;
 import ru.gustos.trading.book.PlayIndicator;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IndicatorType;
+import ru.gustos.trading.book.indicators.Indicator;
+import ru.gustos.trading.book.indicators.IndicatorResultType;
+import ru.gustos.trading.book.indicators.IndicatorsData;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -19,12 +19,10 @@ public class Visualizator {
     private Sheet sheet;
     private int from;
     private int zoom;
-    private VisualizatorFrame frame;
+    public VisualizatorFrame frame;
     protected EventListenerList viewListeners = new EventListenerList();
+    private IndicatorsFrame indicatorsFrame;
 
-    int backIndicator = -1;
-    int graphIndicator = -1;
-    private ArrayList<Integer> selectedIndicators = new ArrayList<>();
     PlayIndicator.PlayResults playResult = null;
 
     double param = 0;
@@ -172,40 +170,28 @@ public class Visualizator {
 
     }
 
-    public void goLeftToIndicator() {
-        int ind = from+barsOnScreen()/2-zoomScale();
-        double val = sheet.getData().get(backIndicator,ind);
-        while (ind>0 && sheet.getData().get(backIndicator,ind)==val)
-            ind--;
-        setIndex(ind-barsOnScreen()/2);
-    }
-
-    public void goRightToIndicator() {
-        int ind = from+barsOnScreen()/2+zoomScale();
-        double val = sheet.getData().get(backIndicator,ind);
-        while (ind<sheet.size() && sheet.getData().get(backIndicator,ind)==val)
-            ind++;
+    public void moveToIndicator(int dir) {
+        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
+        if (back.size()==0) return;
+        int start = from+barsOnScreen()/2-zoomScale();
+        int ind = start;
+        boolean found = false;
+        IndicatorsData data = sheet.getData();
+        while (ind>0 && ind<sheet.size() && !found) {
+            ind+=dir;
+            for (Indicator i : back){
+                if (data.get(i,start)!= data.get(i,ind)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
         setIndex(ind-barsOnScreen()/2);
     }
 
     public void updateSelectedIndicator(int ind) {
-        IIndicator ii = sheet.getLib().get(ind);
-        selectedIndicators.remove((Object)ind);
-        selectedIndicators.removeIf(c->sheet.getLib().get(c).getType()==ii.getType());
-        selectedIndicators.add(ind);
-        backIndicator = -1;
-        graphIndicator = -1;
-        playResult = null;
-        for (int i = 0;i<selectedIndicators.size();i++) {
-            Integer id = selectedIndicators.get(i);
-            IndicatorType type = sheet.getLib().get(id).getType();
-            if (type == IndicatorType.YESNO)
-                backIndicator = id;
-            else
-                graphIndicator = id;
-        }
-        frame.form.updateScrollToIndicators();
-        fireViewUpdated();
+        Indicator indicator = sheet.getLib().get(ind);
+        setIndicatorShow(indicator,!indicator.data.show);
     }
 
     public void setParam(double v) {
@@ -214,11 +200,13 @@ public class Visualizator {
     }
 
     public void runPlay() {
-        if (backIndicator!=-1){
-            playResult = new PlayIndicator().playIndicator(sheet, backIndicator,from,sheet.size()-1);
+        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
+        if (back.size()==1){
+            playResult = new PlayIndicator().playIndicator(sheet, back.get(0).getId(),from,sheet.size()-1);
             JOptionPane.showMessageDialog(null, playResult.toString());
             fireViewUpdated();
-        }
+        } else
+            JOptionPane.showMessageDialog(null, String.format("back indicators: %d, must be 1", back.size()));
     }
 
     public void setPlayHistory(TradeHistory history){
@@ -231,5 +219,31 @@ public class Visualizator {
         averageType = type;
         fireViewUpdated();
     }
+
+    public void onShowIndicators() {
+        if (indicatorsFrame==null){
+            indicatorsFrame = new IndicatorsFrame(this);
+        } else {
+            indicatorsFrame.setVisible(!indicatorsFrame.isVisible());
+        }
+    }
+
+    public void setIndicatorShowOnBottom(Indicator indicator, boolean show) {
+        indicator.data.showOnBottom = show;
+        indicatorUpdated();
+    }
+
+    public void setIndicatorShow(Indicator indicator, boolean show) {
+        indicator.data.show = show;
+        indicatorUpdated();
+    }
+
+    private void indicatorUpdated(){
+        sheet.getLib().sortIndicators();
+        fireViewUpdated();
+        frame.form.getCenter().revalidate();
+        frame.form.getCenter().repaint();
+    }
+
 }
 

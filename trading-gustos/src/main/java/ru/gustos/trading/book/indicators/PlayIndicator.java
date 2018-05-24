@@ -1,33 +1,22 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.visual.CandlesPane;
 
-import java.awt.*;
-
-public class PlayIndicator extends BaseIndicator{
-    int ind;
+public class PlayIndicator extends Indicator {
     public PlayIndicator(IndicatorInitData data){
         super(data);
-        ind = data.ind;
     }
 
     @Override
-    public String getName() {
-        return "play_"+ind;
+    public IndicatorResultType getResultType() {
+        return IndicatorResultType.YESNO;
     }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.YESNO;
-    }
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
 
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-
-        double[] d = sheet.getData().get(ind);
+        double[] d = sheet.getData().get(data.ind);
         Sd5Logic sd3 = (Sd5Logic)((EfreetIndicator)sheet.getLib().get(1)).botLogic;
 
         try {
@@ -46,7 +35,7 @@ public class PlayIndicator extends BaseIndicator{
                     if (d[i]<=0)
                         stopBuy = false;
                 }
-                values[i] = buy ? IIndicator.YES : 0;
+                values[0][i] = buy ? Indicator.YES : 0;
             }
 
         } catch (Exception e) {
@@ -56,12 +45,7 @@ public class PlayIndicator extends BaseIndicator{
     }
 
     @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return Color.darkGray;
+    public ColorScheme getColors() {
+        return ColorScheme.GREENGRAY;
     }
 }

@@ -3,10 +3,8 @@ package ru.gustos.trading.book;
 import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.Decision;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IndicatorType;
-
-import java.util.Arrays;
+import ru.gustos.trading.book.indicators.Indicator;
+import ru.gustos.trading.book.indicators.IndicatorResultType;
 
 public class SheetUtils {
 
@@ -145,10 +143,10 @@ public class SheetUtils {
         return new Pair<>(min,max);
     }
 
-    public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, IIndicator ind, int from, int to, int scale) {
+    public static Pair<Double, Double> getIndicatorMinMax(Sheet sheet, Indicator ind, int from, int to, int scale) {
         double min = ind.fromZero()?0:Double.MAX_VALUE;
         double max = -Double.MAX_VALUE;
-        if (ind.getType()== IndicatorType.NUMBER){
+        if (ind.getResultType()== IndicatorResultType.NUMBER){
             for (int i = from; i < to; i+=scale){
                 double val = sheet.getData().get(ind,i,scale);
                 if (val < min) min = val;

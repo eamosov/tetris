@@ -3,51 +3,26 @@ package ru.gustos.trading.book.indicators;
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
-import java.awt.*;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class SuccessIndicator extends BaseIndicator implements IStringPropertyHolder {
-    private int ind;
-    private IIndicator indicator;
+public class SuccessIndicator extends Indicator implements IStringPropertyHolder {
+    private Indicator indicator;
     private String filter = "";
 
     public SuccessIndicator(IndicatorInitData data){
         super(data);
-        ind = data.ind;
     }
 
     public SuccessIndicator(int id, int ind){
-        super(id);
-        this.ind = ind;
+        this(new IndicatorInitData(){{this.id = id;this.ind = ind;}});
     }
 
     @Override
-    public String getName() {
-        return "success_"+ind;
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.YESNO;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return Color.green;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return Color.red;
-    }
-
-    @Override
-    public Map<String,String> getMark(int ind) {
-        return indicator.getMark(ind);
+    public Map<String,String> getMarks(int ind) {
+        return indicator.getMarks(ind);
     }
 
     private boolean hasFilteredMark(Set<String> removeMarks, Map<String, String> marks){
@@ -58,10 +33,10 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
     }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        indicator = sheet.getLib().get(ind);
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        indicator = sheet.getLib().get(data.ind);
 
-        double[] data = sheet.getData().get(ind);
+        double[] data = sheet.getData().get(this.data.ind);
         Set<String> removeMarks = Arrays.stream(filter.split(",")).collect(Collectors.toSet());
         removeMarks.remove("");
         double buyPrice = 0;
@@ -71,21 +46,21 @@ public class SuccessIndicator extends BaseIndicator implements IStringPropertyHo
 
             double v = data[i];
             if (i==to-1)
-                v = IIndicator.NO;
+                v = Indicator.NO;
 
             XBar bar = sheet.bar(i);
-            if (v == IIndicator.YES ){
+            if (v == Indicator.YES ){
                 if (buyPos==0) {
                     buyPrice = bar.getClosePrice();
                     buyPos = i;
-                    buyKeys = getMark(i);
+                    buyKeys = getMarks(i);
                 }
             } else if (buyPos>0){
                 double price = bar.getClosePrice();
-                if (removeMarks.size()==0 || hasFilteredMark(removeMarks,buyKeys) || hasFilteredMark(removeMarks,getMark(i))) {
-                    double result = price / buyPrice > 1.001 ? IIndicator.YES : IIndicator.NO;
+                if (removeMarks.size()==0 || hasFilteredMark(removeMarks,buyKeys) || hasFilteredMark(removeMarks, getMarks(i))) {
+                    double result = price / buyPrice > 1.001 ? Indicator.YES : Indicator.NO;
                     for (int j = buyPos; j <= i; j++)
-                        values[j] = result;
+                        values[0][j] = result;
                 }
                 buyKeys = null;
                 buyPos = 0;

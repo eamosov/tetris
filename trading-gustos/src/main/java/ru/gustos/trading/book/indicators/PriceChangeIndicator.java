@@ -16,16 +16,10 @@ public class PriceChangeIndicator extends NumberIndicator {
     }
 
     @Override
-    public String getName() {
-        return "PriceChange_"+period.name();
-    }
-
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
         for (int i = from;i<to;i++)
-            values[i] =  (sheet.bar(i).getClosePrice()/sheet.moments.get(Math.max(0,i-bars)).bar.getClosePrice()-1)*10;
+            values[0][i] =  (sheet.bar(i).getClosePrice()/sheet.moments.get(Math.max(0,i-bars)).bar.getClosePrice()-1)*10;
     }
 }
 

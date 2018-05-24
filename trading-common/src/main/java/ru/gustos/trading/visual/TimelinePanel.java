@@ -2,8 +2,7 @@ package ru.gustos.trading.visual;
 
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Moment;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IndicatorType;
+import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.VecUtils;
 
 import javax.swing.*;
@@ -64,7 +63,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     }
 
     private void drawProfitLine(Graphics g) {
-        if (vis.playResult!=null && vis.backIndicator>=0) {
+        if (vis.playResult!=null) {
 
             double[] v = VecUtils.resize(vis.playResult.money,getWidth());
 //            v = VecUtils.ma(v,10);
@@ -73,16 +72,16 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     }
 
     private void drawIndicatorLines(Graphics g) {
-        if (vis.backIndicator>=0){
+        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
+        for (Indicator ind : back){
             int w = getWidth();
             int total = vis.getSheet().size();
-            IIndicator ind = vis.getSheet().getLib().get(vis.backIndicator);
-            Color tmpcol = ind.getColorMax();
+            Color tmpcol = ind.getColors().max();
             Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
-            tmpcol = ind.getColorMin();
+            tmpcol = ind.getColors().min();
             Color colMin = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
 
-            double[] data = vis.getSheet().getData().get(vis.backIndicator);
+            double[] data = vis.getSheet().getData().get(ind.getId());
             for (int x = 0;x<w;x++) {
                 int from = x*total/w;
                 int to = (x+1)*total/w;
@@ -90,9 +89,9 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
                 boolean hasNo = false;
                 for (int i = from;i<to;i++) {
                     double v = data[i];
-                    if (v== IIndicator.YES)
+                    if (v== Indicator.YES)
                         hasYes = true;
-                    if (v== IIndicator.NO)
+                    if (v== Indicator.NO)
                         hasNo = true;
                 }
 

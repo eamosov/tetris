@@ -4,32 +4,32 @@ import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
 public class CountComovesIndicator extends NumberIndicator {
-    int t1;
-    boolean positive;
 
 
     public CountComovesIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
-        positive = data.positive;
     }
 
     @Override
-    public String getName() {
-        return "countcomoves_"+t1+"_"+(positive?"pos":"neg");
+    public double getLowerBound() {
+        return 0;
     }
 
+    @Override
+    public double getUpperBound() {
+        return 10;
+    }
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        for (int i = Math.max(from,t1+10);i<to;i++) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        for (int i = Math.max(from,data.t1+10);i<to;i++) {
             int cc = 0;
             for (int j = 0;j<10;j++){
-                XBar bar = sheet.moments.get(i-t1-j).bar;
-                if (positive && bar.isBullish()) cc++;
-                if (!positive && bar.isBearish()) cc++;
+                XBar bar = sheet.moments.get(i-data.t1-j).bar;
+                if (data.positive && bar.isBullish()) cc++;
+                if (!data.positive && bar.isBearish()) cc++;
             }
-            values[i] = cc;
+            values[0][i] = cc;
         }
     }
 

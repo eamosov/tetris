@@ -1,6 +1,6 @@
 package ru.gustos.trading.visual;
 
-import ru.gustos.trading.book.indicators.IIndicator;
+import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.IIndicatorWithProperties;
 
 import javax.swing.*;
@@ -10,9 +10,9 @@ import java.util.Properties;
 
 public class IndicatorPropertiesWindow extends JFrame {
     Visualizator vis;
-    IIndicator indicator;
+    Indicator indicator;
     Hashtable<String,JTextField> data = new Hashtable<>();
-    public IndicatorPropertiesWindow(Visualizator vis, IIndicator indicator){
+    public IndicatorPropertiesWindow(Visualizator vis, Indicator indicator){
         super("Logic properties "+indicator.getName());
         this.vis = vis;
         this.indicator = indicator;

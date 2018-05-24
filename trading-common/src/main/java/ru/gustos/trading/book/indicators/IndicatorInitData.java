@@ -9,7 +9,8 @@ public class IndicatorInitData {
     public double k1,k2,k3;
     public boolean b1,b2,b3;
     public int ind;
-    public boolean show = true;
+    public boolean show;
+    public boolean showOnBottom = true;
     public String classifier;
     public String indicators;
     public String logic;

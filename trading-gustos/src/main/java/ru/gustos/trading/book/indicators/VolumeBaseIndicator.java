@@ -4,7 +4,7 @@ import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
 
-public class VolumeBaseIndicator extends BaseIndicator{
+public class VolumeBaseIndicator extends NumberIndicator{
 
 
     public VolumeBaseIndicator(IndicatorInitData data){
@@ -12,31 +12,19 @@ public class VolumeBaseIndicator extends BaseIndicator{
     }
 
     @Override
-    public String getName() {
-        return "Volume_base";
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         for (int i = from;i<to;i++)
-            values[i] =  sheet.bar(i).getVolumeBase();
+            values[0][i] =  sheet.bar(i).getVolumeBase();
     }
 
     @Override
-    public Color getColorMax() {
-        return VolumeIndicator.COLOR;
+    public ColorScheme getColors() {
+        return ColorScheme.WHITEBLUE;
     }
 
-    public Color getColorMin() {        return VolumeIndicator.COLORMIN;    }
-
     @Override
-    public boolean fromZero() {
-        return true;
+    public double getLowerBound() {
+        return 0;
     }
 }
 

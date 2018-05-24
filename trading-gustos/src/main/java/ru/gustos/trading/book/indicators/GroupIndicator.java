@@ -1,12 +1,10 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Sheet;
 
-import java.awt.*;
 import java.util.Arrays;
 
-public class GroupIndicator extends BaseIndicator{
+public class GroupIndicator extends Indicator {
     private int[] ind;
     public GroupIndicator(IndicatorInitData data){
         super(data);
@@ -14,27 +12,7 @@ public class GroupIndicator extends BaseIndicator{
     }
 
     @Override
-    public String getName() {
-        return "group_"+Arrays.toString(ind);
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.YESNO;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return Color.green;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return Color.red;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
 
         double[][] datas = new double[ind.length][];
 
@@ -45,19 +23,19 @@ public class GroupIndicator extends BaseIndicator{
         for (int i = 0; i < to; i++) {
             int ii = -1;
             for (int j = 0;j<ind.length;j++) {
-                if (datas[j][i] == IIndicator.YES) {
+                if (datas[j][i] == Indicator.YES) {
                     ii = j;
                     break;
                 }
             }
             if (cur==-1 && ii>=0){
                 cur = ii;
-                values[i] = IIndicator.YES;
+                values[0][i] = Indicator.YES;
             } else if (cur>=0 && ii>=0){
                 cur = Math.min(cur,ii);
-                values[i] = IIndicator.YES;
+                values[0][i] = Indicator.YES;
             } else {
-                values[i] = IIndicator.NO;
+                values[0][i] = Indicator.NO;
                 cur = -1;
             }
 

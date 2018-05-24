@@ -1,35 +1,17 @@
 package ru.gustos.trading.book.indicators;
 
-import ru.efreet.trading.bars.XBar;
-import ru.efreet.trading.logic.BotLogic;
-import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.book.Moment;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.visual.CandlesPane;
 
-import java.awt.*;
-
-import static ru.gustos.trading.book.SheetUtils.sellValues;
-
-public class ShouldBuyIndicator extends BaseIndicator {
+public class ShouldBuyIndicator extends Indicator {
 
     public ShouldBuyIndicator(IndicatorInitData data){
         super(data);
     }
 
     @Override
-    public String getName() {
-        return "ShouldBuy";
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return IndicatorType.YESNO;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         EfreetIndicator indicator = (EfreetIndicator)sheet.getLib().get(EfreetIndicator.Id);
         Sd5Logic botLogic = (Sd5Logic)indicator.botLogic;
         int lookNext = 240;
@@ -48,7 +30,7 @@ public class ShouldBuyIndicator extends BaseIndicator {
                     double bestprofit = p/min;
 
                     if (profit<1.002 || better>(j-i)/2+5){
-                        values[i] = 0;
+                        values[0][i] = 0;
                         double ww = (bestprofit/profit-1);
                         if (profit<1.002) {
                             double w = (1 / (profit / 1.002)) - 1;
@@ -58,7 +40,7 @@ public class ShouldBuyIndicator extends BaseIndicator {
 //                        values[i] = -moment.weight;
 
                     } else {
-                        values[i] = IIndicator.YES;
+                        values[0][i] = Indicator.YES;
                         moment.weight = (profit-1)*100;
 //                        values[i] = moment.weight;
                     }
@@ -69,14 +51,5 @@ public class ShouldBuyIndicator extends BaseIndicator {
         }
     }
 
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public Color getColorMin() {
-        return Color.RED;
-    }
 }
 

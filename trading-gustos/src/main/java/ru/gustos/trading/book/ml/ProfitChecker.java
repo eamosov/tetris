@@ -1,19 +1,15 @@
 package ru.gustos.trading.book.ml;
 
 import kotlin.Pair;
-import org.apache.commons.math3.analysis.function.Abs;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.logic.AbstractBotLogic;
-import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.ProfitCalculator;
 import ru.efreet.trading.logic.impl.LogicFactory;
-import ru.gustos.trading.GustosBotLogic2;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.Gustos3NumberIndicator;
 import ru.gustos.trading.book.indicators.GustosIndicator;
 import ru.gustos.trading.book.indicators.IndicatorInitData;
 import ru.gustos.trading.book.indicators.SuccessIndicator;

@@ -10,6 +10,7 @@ import ru.gustos.trading.book.indicators.*;
 import javax.swing.*;
 import java.awt.*;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class CandlesPane extends JPanel {
@@ -39,66 +40,62 @@ public class CandlesPane extends JPanel {
             }
         });
     }
-    XBaseBar minMax;
+
+    private XBaseBar minMax;
+    private int from;
+    private int scale;
+    private int bars;
+    private int to;
+
     public void paint(Graphics g){
         Sheet sheet = vis.getSheet();
         if (sheet ==null) return;
         boolean hasAverage = vis.averageWindow > 0 && !vis.averageType.equalsIgnoreCase("None");
-        int from = vis.getIndex();
-        int scale = vis.zoomScale();
-        int bars = getSize().width* scale /vis.candleWidth();
+        from = vis.getIndex();
+        scale = vis.zoomScale();
+        bars = getSize().width* scale /vis.candleWidth();
+        to = Math.min(from + bars, sheet.size());
         minMax = sheet.getSumBar(from, bars);
         if (hasAverage) {
             prepareAverage();
             minMax = VecUtils.expandMinMax(minMax,avg,disp,2.1, from, bars);
         }
 
-        for (IIndicator ii : vis.getSheet().getLib().listIndicators())
-            if (ii.priceLine() && ii.showOnPane())
-                minMax = VecUtils.expandMinMax(minMax,vis.getSheet().getData().get(ii.getId()),null,2.1, from, bars);
+        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
+            minMax = VecUtils.expandMinMax(minMax,vis.getSheet().getData().get(ii.getId()),null,2.1, from, bars);
 
 
 
-        int to = Math.min(from + bars, sheet.size());
-        if (vis.graphIndicator !=-1){
-            IIndicator ii = vis.getSheet().getLib().get(vis.graphIndicator);
-                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
-                for (int i = from; i< to; i+=scale)
-                    paintIndicatorBar(g,i,scale,ii,mm);
-        }
-
-        if (vis.backIndicator !=-1){
-            IIndicator ii = vis.getSheet().getLib().get(vis.backIndicator);
-                Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(sheet,ii,from,to,scale);
-                prevMark = null;
-                for (int i = from; i< to; i+=scale)
-                    paintIndicatorBar(g,i,scale,ii,mm);
-        }
-
-        paintGrid(g,minMax, from,false);
+        paintBackIndicators(g);
+        paintGrid(g,false);
 //        paintVolumes(g);
         for (int i = from; i< to; i+=scale) {
             XBar bar = getBar(i);
-            paintBar(g,i,bar,minMax);
+            paintBar(g,i,bar);
         }
         if (vis.param>0)
             paintVolumeLine(g);
-        paintGrid(g,minMax, from,true);
+        paintGrid(g,true);
         if (hasAverage)
             paintAverage(g);
-        for (IIndicator ii : vis.getSheet().getLib().listIndicators()){
-            if (ii.priceLine() && ii.showOnPane())
+        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
                 paintPriceLine(g,ii);
-
-        }
         super.paint(g);
     }
 
-    private void paintPriceLine(Graphics g, IIndicator ii) {
-        float stroke = 2f;
-        if (ii instanceof IStrokeProvider)
-            stroke = ((IStrokeProvider)ii).getStroke();
-        paintPriceLine(g,vis.getSheet().getData().get(ii.getId()), ii.getColorMax(), stroke);
+    private void paintBackIndicators(Graphics g) {
+        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
+        for (Indicator ii : back){
+            Pair<Double,Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(),ii,from,to,scale);
+            prevMark = null;
+            for (int i = from; i< to; i+=scale)
+                paintBackIndicator(g,i,scale,ii,mm);
+        }
+
+    }
+
+    private void paintPriceLine(Graphics g, Indicator ii) {
+        paintPriceLine(g,vis.getSheet().getData().get(ii.getId()), ii.getColors().lineColor(), ii.getColors().stroke());
     }
 
     private int prevWindow = -1;
@@ -236,7 +233,7 @@ public class CandlesPane extends JPanel {
         return bar;
     }
 
-    private void paintGrid(Graphics g, XBaseBar minMax, int from, boolean text) {
+    private void paintGrid(Graphics g, boolean text) {
         double price = minMax.getMinPrice();
         Graphics2D g2 = (Graphics2D)g;
         g2.setStroke(new BasicStroke(1.5f,1,1));
@@ -274,51 +271,27 @@ public class CandlesPane extends JPanel {
         } while (x*w<getWidth() && x*scale+from<vis.getSheet().size());
     }
 
-    String prevMark = null;
-    private void paintIndicatorBar(Graphics g, int index, int scale, IIndicator indicator, Pair<Double, Double> mm) {
+    private String prevMark = null;
+    private void paintBackIndicator(Graphics g, int index, int scale, Indicator indicator, Pair<Double, Double> mm) {
         int w = vis.candleWidth();
         int x = (index-vis.getIndex())/scale* w;
         Color col = VisUtils.NumberColor(vis.getSheet(),index, scale,indicator, mm.getFirst(), mm.getSecond());
-        if (indicator.getType()==IndicatorType.YESNO){
             g.setColor(VisUtils.alpha(col,40));
             g.fillRect(x, 0, w, getHeight());
-            Map<String, String> markMap = indicator.getMark(index);
+            Map<String, String> markMap = indicator.getMarks(index);
             String mark = markMap==null?"":markMap.toString();
             g.setColor(darkerColor);
             if (mark!=null && !mark.equals(prevMark)) {
                 g.drawString(mark, x, 35);
                 prevMark = mark;
             }
-        } else if (indicator.getType()==IndicatorType.NUMBER) {
-            double value = vis.getSheet().getData().get(indicator,index,scale);
-            if (Double.isNaN(value)) return;
-            g.setColor(col);
-            if (indicator.fromZero()) {
-                double min = 0;//mm.getFirst();
-                int h = (int) (getHeight() * 0.15 * (value - min) / (mm.getSecond() - mm.getFirst()));
-                g.fillRect(x, getHeight() - h, w, h);
-            } else {
-
-                double c = getHeight() * 0.075;
-                if (value > 0) {
-                    int h = (int) (c * value / mm.getSecond());
-                    g.fillRect(x, getHeight() - h - (int) c, w, h);
-                } else {
-                    int h = (int) (c * value / mm.getFirst());
-                    g.fillRect(x, getHeight() - (int) c, w, h);
-
-                }
-
-            }
-        }
-
     }
 
     private int price2screen(double price){
         return getHeight()*8/10-(int)((price-minMax.getMinPrice())/(minMax.getMaxPrice()-minMax.getMinPrice())*getHeight()*0.7);
     }
 
-    private void paintBar(Graphics g, int index, XBar bar, XBaseBar minMax) {
+    private void paintBar(Graphics g, int index, XBar bar) {
         int w = vis.candleWidth();
         int bound = 1;
         int x = (index-vis.getIndex())/vis.zoomScale()* w;

@@ -1,6 +1,6 @@
 package ru.gustos.trading.agents;
 
-import ru.gustos.trading.book.indicators.IIndicator;
+import ru.gustos.trading.book.indicators.Indicator;
 
 import java.util.Arrays;
 
@@ -28,7 +28,7 @@ public abstract class AgentBase {
     protected void sell(int index) {
         int buyIndex = agentState.lastOp;
         agentState.sell(index);
-        Arrays.fill(decisions,buyIndex,index, agentState.sellCost>agentState.buyCost?IIndicator.YES:IIndicator.NO);
+        Arrays.fill(decisions,buyIndex,index, agentState.sellCost>agentState.buyCost? Indicator.YES: Indicator.NO);
     }
 
     protected void buy(int index) {

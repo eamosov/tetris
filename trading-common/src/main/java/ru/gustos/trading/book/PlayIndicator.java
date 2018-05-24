@@ -3,16 +3,17 @@ package ru.gustos.trading.book;
 import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bot.TradeHistory;
-import ru.gustos.trading.book.indicators.IIndicator;
+import ru.gustos.trading.book.indicators.Indicator;
 
 import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PlayIndicator{
     public PlayResults playIndicator(Sheet sheet, int indicator, int from, int to) {
-        IIndicator ii = sheet.getLib().get(indicator);
+        Indicator ii = sheet.getLib().get(indicator);
         double[] v = sheet.getData().get(indicator);
         double buyCost = 0;
         double btc = 0;
@@ -29,13 +30,15 @@ public class PlayIndicator{
 
         for (int i = from;i<to;i++){
             XBar bar = sheet.bar(i);
+            Map<String, String> marks = ii.getMarks(i);
+
             if (money>0 && v[i]!=0){
                 sb.append("buy "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+money+"\n");
                 moneyWhenBuy = money;
                 bestPrice = buyCost = bar.getClosePrice()*(1+fee);
                 btc += money/buyCost;
                 money = 0;
-                buyWhy = ii.getMark(i).toString();
+                buyWhy = marks==null?"":marks.toString();
             } else if (btc>0){
                 double sellCost = bar.getClosePrice() * (1-fee);
                 double min = Double.MAX_VALUE;
@@ -45,7 +48,7 @@ public class PlayIndicator{
                 bestPrice = Math.max(bestPrice,min);
                 if (i==to-1 || v[i]!=0 && v[i+1]==0) {
                     sb.append("sell "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+btc+"\n");
-                    String key = buyWhy + ii.getMark(i);
+                    String key = buyWhy + (marks==null?"":marks.toString());
                     money += btc * sellCost;
                     btc = 0;
                     DecisionStats spec;

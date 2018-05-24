@@ -111,17 +111,17 @@ public class Sheet {
 
     public void calcIndicators(){
         if (size()>0)
-            for (IIndicator ii : indicatorsLib.listIndicators())
+            for (Indicator ii : indicatorsLib.indicators)
                 indicatorsData.calc(ii);
     }
 
     public void calcIndicatorsForLastBars(int cnt){
-        for (IIndicator ii : indicatorsLib.listIndicators())
+        for (Indicator ii : indicatorsLib.indicators)
             indicatorsData.calc(ii,size()-cnt,size());
     }
 
     public void calcIndicatorsNoPredict(){
-        for (IIndicator ii : indicatorsLib.listIndicators())
+        for (Indicator ii : indicatorsLib.indicators)
             if (ii.getId()<200)
                 indicatorsData.calc(ii);
 //        try {

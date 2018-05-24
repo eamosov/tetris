@@ -9,14 +9,11 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 public class Exporter {
 
@@ -45,18 +42,18 @@ public class Exporter {
         HashSet<Integer> ignore = ignore();
         ArrayList<Attribute> result = new ArrayList<>();
 
-        for (IIndicator ii : sheet.getLib().listIndicators()) {
+        for (Indicator ii : sheet.getLib().indicators) {
             if (!ignore.contains(ii.getId()))
                 result.add(createAttribute(ii));
         }
-        IIndicator ii = sheet.getLib().get(target);
+        Indicator ii = sheet.getLib().get(target);
         result.add(createAttribute(ii));
 
         return result;
     }
 
-    private static Attribute createAttribute(IIndicator ii){
-        if (ii.getType() == IndicatorType.NUMBER)
+    private static Attribute createAttribute(Indicator ii){
+        if (ii.getResultType() == IndicatorResultType.NUMBER)
             return new Attribute(ii.getName());
         else
             return new Attribute(ii.getName(), Arrays.asList("false", "true"));
@@ -82,11 +79,11 @@ public class Exporter {
         HashSet<Integer> ignore = ignore();
         double[] instance = new double[data.numAttributes()];
         int j = 0;
-        for (IIndicator ii : sheet.getLib().listIndicators()) {
+        for (Indicator ii : sheet.getLib().indicators) {
             if (!ignore.contains(ii.getId())){
                 double v = sheet.getData().get(ii.getId(), i);
-                if (ii.getType()==IndicatorType.YESNO && v<0) v = 0;
-                if (ii.getType()==IndicatorType.YESNO && v>0 && v!=1) {
+                if (ii.getResultType()== IndicatorResultType.YESNO && v<0) v = 0;
+                if (ii.getResultType()== IndicatorResultType.YESNO && v>0 && v!=1) {
                     System.out.println("not 1 "+ii.getName()+" "+ii.getId()+" "+v);
                 }
                 instance[j] = v;
@@ -133,7 +130,7 @@ public class Exporter {
         StringBuilder sb = new StringBuilder();
         sb.append("@relation ").append(name).append("\n\n");
 
-        for (IIndicator ii : sheet.getLib().listIndicators())
+        for (Indicator ii : sheet.getLib().indicators)
             if (!ignore.contains(ii.getId()))
                 addAttribute(sb,ii);
 
@@ -144,7 +141,7 @@ public class Exporter {
         sb.append("@data\n");
 
         for (int i = from;i<to;i++) if (!noZeroes || sheet.getData().get(targetId,i)!=0){
-            for (IIndicator ii : sheet.getLib().listIndicators())
+            for (Indicator ii : sheet.getLib().indicators)
                 if (!ignore.contains(ii.getId())) {
                     addValue(sb,sheet,i,ii);
                     sb.append(',');
@@ -158,17 +155,17 @@ public class Exporter {
 
     }
 
-    private static void addValue(StringBuilder sb, Sheet sheet, int index, IIndicator ii) {
+    private static void addValue(StringBuilder sb, Sheet sheet, int index, Indicator ii) {
         double v = sheet.getData().get(ii, index);
-        if (ii.getType()== IndicatorType.YESNO)
+        if (ii.getResultType()== IndicatorResultType.YESNO)
             sb.append(v>0?"true":"false");
         else
             sb.append(String.format("%.4f", v).replace(',','.'));
     }
 
-    private static void addAttribute(StringBuilder sb, IIndicator ii) {
+    private static void addAttribute(StringBuilder sb, Indicator ii) {
         sb.append("@attribute ").append(ii.getName());
-        if (ii.getType()==IndicatorType.NUMBER)
+        if (ii.getResultType()== IndicatorResultType.NUMBER)
             sb.append(" numeric");
         else
             sb.append(" {false,true}");

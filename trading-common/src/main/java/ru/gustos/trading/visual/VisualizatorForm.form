@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ru.gustos.trading.visual.VisualizatorForm">
   <grid id="27dc6" binding="root" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="979" height="491"/>
+      <xy x="20" y="20" width="1018" height="491"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -104,6 +104,12 @@
             <constraints/>
             <properties>
               <columns value="4"/>
+            </properties>
+          </component>
+          <component id="e04b6" class="javax.swing.JButton" binding="indicatorsButton">
+            <constraints/>
+            <properties>
+              <text value="Indicators"/>
             </properties>
           </component>
         </children>

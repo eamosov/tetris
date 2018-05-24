@@ -1,38 +1,18 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.visual.CandlesPane;
 
-import java.awt.*;
-
-public class MacdIndicator  extends BaseIndicator {
-    int t1,t2,t3;
+public class MacdIndicator  extends Indicator {
     boolean yesno;
 
     public MacdIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
-        t2 = data.t2;
-        t3 = data.t3;
         yesno = data.b1;
     }
 
     @Override
-    public IndicatorType getType() {
-        return yesno?IndicatorType.YESNO:IndicatorType.NUMBER;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public Color getColorMin() {        return CandlesPane.RED;    }
-
-    @Override
-    public String getName() {
-        return "macd_"+t1+"_"+yesno;
+    public IndicatorResultType getResultType() {
+        return yesno? IndicatorResultType.YESNO: IndicatorResultType.NUMBER;
     }
 
 
@@ -40,10 +20,10 @@ public class MacdIndicator  extends BaseIndicator {
     private double ema1p, ema2p, emasp;
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        double k1 = 2.0/(t1+1);
-        double k2 = 2.0/(t2+1);
-        double ks = 2.0/(t3+1);
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        double k1 = 2.0/(data.t1+1);
+        double k2 = 2.0/(data.t2+1);
+        double ks = 2.0/(data.t3+1);
         double ema1;
         double ema2;
         double emas;
@@ -52,7 +32,7 @@ public class MacdIndicator  extends BaseIndicator {
             ema1p = sheet.moments.get(0).bar.getClosePrice();
             ema2p = ema1p;
             emasp = 0;
-            values[0] = yesno?IIndicator.YES:ema1p;
+            values[0][0] = yesno? Indicator.YES:ema1p;
         }
         for (int i = from;i<to;i++){
             double p = sheet.bar(i).getClosePrice();
@@ -61,7 +41,7 @@ public class MacdIndicator  extends BaseIndicator {
             double macd = ema2-ema1;
             emas = (macd-emasp)*ks+emasp;
             double vv = macd - emas;
-            values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
+            values[0][i] = yesno?(vv>0? Indicator.YES: Indicator.NO):vv;
 
             ema1p = ema1;
             ema2p = ema2;

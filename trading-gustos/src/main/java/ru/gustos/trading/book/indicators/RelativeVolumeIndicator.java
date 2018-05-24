@@ -4,7 +4,7 @@ import ru.gustos.trading.book.Sheet;
 
 import java.awt.*;
 
-public class RelativeVolumeIndicator extends BaseIndicator {
+public class RelativeVolumeIndicator extends NumberIndicator {
     IndicatorPeriod period;
 
     public RelativeVolumeIndicator(IndicatorInitData data){
@@ -12,18 +12,9 @@ public class RelativeVolumeIndicator extends BaseIndicator {
         period =  IndicatorPeriod.values()[data.period];
     }
 
-    @Override
-    public String getName() {
-        return "RelativeVolume_"+period.name();
-    }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
         double sum = 0;
         for (int i = from; i < to; i++){
@@ -37,22 +28,20 @@ public class RelativeVolumeIndicator extends BaseIndicator {
                 avg = sum/(i+1);
             }
             if (avg<0.0001)
-                values[i] = 0;
+                values[0][i] = 0;
             else
-                values[i] =vol/avg;
+                values[0][i] =vol/avg;
         }
     }
 
     @Override
-    public Color getColorMax() {
-        return Color.blue;
+    public ColorScheme getColors() {
+        return ColorScheme.WHITEBLUE;
     }
 
-    public Color getColorMin() {        return Color.white;    }
-
     @Override
-    public boolean fromZero() {
-        return true;
+    public double getLowerBound() {
+        return 0;
     }
 }
 

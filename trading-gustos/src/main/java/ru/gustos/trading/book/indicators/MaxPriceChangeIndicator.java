@@ -5,30 +5,19 @@ import ru.gustos.trading.visual.CandlesPane;
 
 import java.awt.*;
 
-public class MaxPriceChangeIndicator extends BaseIndicator {
+public class MaxPriceChangeIndicator extends NumberIndicator {
     IndicatorPeriod period;
-    boolean positive;
 
     public MaxPriceChangeIndicator(IndicatorInitData data){
         super(data);
-        positive = data.positive;
         period =  IndicatorPeriod.values()[data.period];
     }
 
-    @Override
-    public String getName() {
-        return "MaxPriceChange_"+period.name()+"_"+(positive?"pos":"neg");
-    }
 
     @Override
-    public IndicatorType getType() {
-        return IndicatorType.NUMBER;
-    }
-
-    @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
         int bars = IndicatorUtils.bars(period,sheet);
-        if (positive) {
+        if (data.positive) {
             for (int i = Math.max(bars,from); i < to; i++) {
                 double cur = sheet.bar(i).getClosePrice();
                 double min = cur;
@@ -36,7 +25,7 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
                     double v = sheet.moments.get(i-bars+j).bar.getMinPrice();
                     if (v<min) min = v;
                 }
-                values[i] = (cur/min-1)*10;
+                values[0][i] = (cur/min-1)*10;
 
             }
         } else {
@@ -47,23 +36,12 @@ public class MaxPriceChangeIndicator extends BaseIndicator {
                     double v = sheet.moments.get(i-bars+j).bar.getMaxPrice();
                     if (v>max) max = v;
                 }
-                values[i] = (max/cur-1)*10;
+                values[0][i] = (max/cur-1)*10;
 
             }
         }
     }
 
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public boolean fromZero() {
-        return true;
-    }
-
-    public Color getColorMin() {        return Color.black;    }
 }
 
 

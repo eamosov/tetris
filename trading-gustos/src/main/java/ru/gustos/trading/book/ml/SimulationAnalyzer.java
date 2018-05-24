@@ -83,10 +83,9 @@ public class SimulationAnalyzer {
         }
 
         public void calcShake() {
-            if (shake==-666) {
-                shake = LogicUtils.shake(sheet, tm.args, 0.05, time.minusDays(10), time) / history.getProfitPerDay();
+            if (shake2==-666)
                 shake2 = LogicUtils.shake(sheet, tm.args, 0.05, time.minusDays(30), time) / history.getProfitPerDay();
-            }
+                shake = LogicUtils.shake(sheet, tm.args, 0.05, time.minusDays(40), time) / history.getProfitPerDay();
         }
     }
     static class DayResult{
@@ -107,6 +106,7 @@ public class SimulationAnalyzer {
     public static String[] fnames;
     public static DayResult[] result;
     static ForkJoinPool executor;
+    static boolean pack;
 
 
     private static void loadPopulations() throws IOException {
@@ -126,13 +126,12 @@ public class SimulationAnalyzer {
         }
     }
 
-    public static void loadResults(int n) throws IOException {
+    public static void loadResults() throws IOException {
         String dir = "popanal2";//calcFolder;
-//        String saveDir = "popanal2";
         File[] files = new File(dir).listFiles();
         long[] tt = Arrays.stream(files).mapToLong(f -> Long.parseLong(f.getName())).toArray();
         Arrays.sort(tt);
-        n = Math.min(n,tt.length);
+        int n = tt.length;
         result = new DayResult[n];
         times = new ZonedDateTime[n];
         fnames = new String[n];
@@ -140,11 +139,27 @@ public class SimulationAnalyzer {
             times[i] = ZonedDateTime.ofInstant(Instant.ofEpochSecond(tt[i]),ZoneId.systemDefault());
             fnames[i] = Long.toString(tt[i]);
             result[i] = DayResult.fromJson(FileUtils.readFileToString(new File(dir+"/"+tt[i])));
-//            for (PopResult r : result[i].results)
-//                r.freeHistory();
-//            System.gc();
-//            Exporter.string2file(saveDir+"/"+tt[i],result[i].toJson());
-            //FileUtils.readFileToString(new File(saveDir+"/"+tt[i])))
+        }
+
+    }
+
+    public static void packResults() throws IOException {
+//        String saveDir = "popanal2";
+        File[] files = new File(sourceFolder).listFiles();
+        long[] tt = Arrays.stream(files).mapToLong(f -> Long.parseLong(f.getName())).toArray();
+        Arrays.sort(tt);
+        int n = tt.length;
+        result = new DayResult[n];
+        times = new ZonedDateTime[n];
+        fnames = new String[n];
+        for (int i = 0;i<n;i++){
+            times[i] = ZonedDateTime.ofInstant(Instant.ofEpochSecond(tt[i]),ZoneId.systemDefault());
+            fnames[i] = Long.toString(tt[i]);
+            result[i] = DayResult.fromJson(FileUtils.readFileToString(new File(sourceFolder+"/"+tt[i])));
+            for (PopResult r : result[i].results)
+                r.freeHistory();
+            System.gc();
+            Exporter.string2file(calcFolder+"/"+tt[i],result[i].toJson());
         }
 
     }
@@ -162,11 +177,6 @@ public class SimulationAnalyzer {
             executor = new ForkJoinPool(cpus,ForkJoinPool.defaultForkJoinWorkerThreadFactory,null,true);
         nn = 0;
         for (int ii = 0;ii<tm.length;ii++){
-//            CompletableFuture.supplyAsync(Supplier {
-//                val steppedParams = copy(origin.args)
-//                gene.step(steppedParams, it)
-//                return@Supplier Triple(gene, it, TrainItem.of(steppedParams, function, metrica))
-//            }, executor)
             final int i = ii;
             futures.add(CompletableFuture.supplyAsync((Supplier<Boolean>) () -> {
                 TradeHistory history = LogicUtils.doLogic(sheet, tm[i].args, time.minusDays(60), time);
@@ -421,10 +431,18 @@ public class SimulationAnalyzer {
             switch (args[i]){
                 case "--cpu":
                     cpus = Integer.parseInt(args[i+1]);
+                    break;
                 case "--in":
                     sourceFolder = args[i+1];
+                    break;
                 case "--out":
                     calcFolder = args[i+1];
+                    break;
+                case "--pack":
+                    pack = true;
+                    i--;
+                    break;
+
             }
         }
     }
@@ -454,14 +472,16 @@ public class SimulationAnalyzer {
 
         init();
 
-        loadPopulations();
+        if (pack){
+            packResults();
 
-        for (int i = 0;i<populations.length;i++) {
-            doPopulation(i);
-//            doPopulationSelection(i);
+        } else {
+            loadPopulations();
+
+            for (int i = 0; i < populations.length; i++)
+                doPopulation(i);
         }
-//        for (int i = 10;i<populations.length;i++)
-//
+
 //        export();
     }
 

@@ -1,48 +1,28 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.visual.CandlesPane;
 
-import java.awt.*;
+public class DemaIndicator extends Indicator {
 
-public class DemaIndicator extends BaseIndicator {
-
-    int t1,t2,t3;
     boolean yesno;
 
     public DemaIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
-        t2 = data.t2;
-        t3 = data.t3;
         yesno = data.b1;
     }
 
-    @Override
-    public String getName() {
-        return "dema_"+t1+"_"+yesno;
+    public IndicatorResultType getResultType() {
+        return yesno? IndicatorResultType.YESNO: IndicatorResultType.NUMBER;
     }
-
-    public IndicatorType getType() {
-        return yesno?IndicatorType.YESNO:IndicatorType.NUMBER;
-    }
-
-    @Override
-    public Color getColorMax() {
-        return CandlesPane.GREEN;
-    }
-
-    @Override
-    public Color getColorMin() {        return CandlesPane.RED;    }
 
     private int lastTo = -1;
     private double ema1p, ema2p, emasp, dema1p, dema2p, demasp;
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        double k1 = 2.0/(t1+1);
-        double k2 = 2.0/(t2+1);
-        double ks = 2.0/(t3+1);
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        double k1 = 2.0/(data.t1+1);
+        double k2 = 2.0/(data.t2+1);
+        double ks = 2.0/(data.t3+1);
         double ema1;
         double ema2;
         double emas;
@@ -57,7 +37,7 @@ public class DemaIndicator extends BaseIndicator {
             dema1p = ema1p;
             dema2p = ema1p;
             demasp = 0;
-            values[0] = yesno?IIndicator.YES:dema1p;
+            values[0][0] = yesno? Indicator.YES:dema1p;
         }
         for (int i = from;i<to;i++){
 
@@ -76,7 +56,7 @@ public class DemaIndicator extends BaseIndicator {
             double ds = emas*2 - demas;
 
             double vv = macd - ds;
-            values[i] = yesno?(vv>0?IIndicator.YES:IIndicator.NO):vv;
+            values[0][i] = yesno?(vv>0? Indicator.YES: Indicator.NO):vv;
 
             ema1p = ema1;
             ema2p = ema2;

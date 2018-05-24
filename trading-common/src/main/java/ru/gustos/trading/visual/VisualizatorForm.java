@@ -29,11 +29,12 @@ public class VisualizatorForm {
     private JButton runButton;
     private JTextField avg;
     private JComboBox averageType;
+    private JButton indicatorsButton;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
-    private IndicatorsPane indicators;
-    private IndicatorOptionsPane indicatorOptions;
+    private IndicatorsBottomPane indicatorsBottom;
+    private IndicatorsUnderPane indicatorsUnder;
 
     private Visualizator vis;
 
@@ -63,11 +64,13 @@ public class VisualizatorForm {
         candles = new CandlesPane(vis);
         panelWithLine.add(candles, BorderLayout.CENTER);
 
-        indicators = new IndicatorsPane(vis);
-        panelWithLine.add(indicators,BorderLayout.SOUTH);
+        JPanel south = new JPanel(new BorderLayout());
+        panelWithLine.add(south,BorderLayout.SOUTH);
+        indicatorsUnder = new IndicatorsUnderPane(vis);
+        indicatorsBottom = new IndicatorsBottomPane(vis);
+        south.add(indicatorsUnder,BorderLayout.CENTER);
+        south.add(indicatorsBottom,BorderLayout.SOUTH);
 
-        indicatorOptions = new IndicatorOptionsPane(vis);
-        center.add(indicatorOptions,BorderLayout.SOUTH);
 
         indexField.addActionListener(new ActionListener() {
             @Override
@@ -153,13 +156,13 @@ public class VisualizatorForm {
         leftToIndicator.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                vis.goLeftToIndicator();
+                vis.moveToIndicator(-1);
             }
         });
         rightToIndicator.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                vis.goRightToIndicator();
+                vis.moveToIndicator(1);
             }
         });
         updateScrollToIndicators();
@@ -190,6 +193,12 @@ public class VisualizatorForm {
 
             }
         });
+        indicatorsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                vis.onShowIndicators();
+            }
+        });
     }
 
     public void setZoom(int zoom){
@@ -217,27 +226,29 @@ public class VisualizatorForm {
 
             String info = info4bar(candles.getBar(index));
             if (point!=null) {
-                int indY = point.y - indicators.getLocation().y;
+
+                int indY = candles.getLocationOnScreen().y+point.y - indicatorsBottom.getLocationOnScreen().y;
 
                 if (indY >= 0)
-                    info += "      " + indicators.getIndicatorInfo(index, new Point(point.x, indY));
+                    info += "      " + indicatorsBottom.getIndicatorInfo(index, new Point(point.x, indY));
             }
             candles.setInfoText(info);
         }
     }
 
     private void mouseClick(Point point) {
-        int indY = point.y-indicators.getLocation().y;
+        int indY = candles.getLocationOnScreen().y + point.y- indicatorsBottom.getLocationOnScreen().y;
         if (indY>=0){
-            int ind = indicators.getIndicatorId(new Point(point.x,indY));
+            int ind = indicatorsBottom.getIndicatorId(new Point(point.x,indY));
             vis.updateSelectedIndicator(ind);
             updateScrollToIndicators();
         }
     }
 
     void updateScrollToIndicators() {
-        leftToIndicator.setEnabled(vis.backIndicator>=0);
-        rightToIndicator.setEnabled(vis.backIndicator>=0);
+        boolean has = vis.getSheet().getLib().indicatorsBack.size() > 0;
+        leftToIndicator.setEnabled(has);
+        rightToIndicator.setEnabled(has);
     }
 
     private String info4bar(XBar bar) {

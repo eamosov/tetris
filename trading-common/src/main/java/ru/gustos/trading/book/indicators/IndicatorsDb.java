@@ -36,7 +36,7 @@ public class IndicatorsDb {
                 if (!name.equalsIgnoreCase("time"))
                     columns.add(name.toLowerCase());
             } while (r.next());
-            for (IIndicator ind : sheet.getLib().listIndicators()) if (!columns.contains(ind.getName().toLowerCase())) {
+            for (Indicator ind : sheet.getLib().indicators) if (!columns.contains(ind.getName().toLowerCase())) {
                 String q = String.format("ALTER TABLE %s ADD COLUMN %s double", tableName, ind.getName().toLowerCase());
                 System.out.println(q);
                 conn.createStatement().execute(q);
@@ -50,7 +50,7 @@ public class IndicatorsDb {
 
     private String makeColumns(IndicatorsLib lib) {
         StringBuilder sb = new StringBuilder();
-        for (IIndicator ind : lib.listIndicators()) {
+        for (Indicator ind : lib.indicators) {
             if (sb.length()>0)
                 sb.append(", ");
             sb.append(ind.getName().toLowerCase()).append(" double");

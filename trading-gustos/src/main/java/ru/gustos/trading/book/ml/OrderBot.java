@@ -1,24 +1,13 @@
 package ru.gustos.trading.book.ml;
 
-import com.sun.org.apache.bcel.internal.generic.IINC;
 import kotlin.Pair;
 import ru.efreet.trading.bars.XBar;
-import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.exchange.BarInterval;
-import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.logic.BotLogic;
-import ru.efreet.trading.logic.impl.LogicFactory;
-import ru.efreet.trading.logic.impl.sd5.Sd5Logic;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent;
-import ru.gustos.trading.book.indicators.IIndicator;
-import ru.gustos.trading.book.indicators.IndicatorType;
-import ru.gustos.trading.book.indicators.VecUtils;
+import ru.gustos.trading.book.indicators.Indicator;
+import ru.gustos.trading.book.indicators.IndicatorResultType;
 import ru.gustos.trading.visual.Visualizator;
-
-import java.time.ZonedDateTime;
-import java.util.stream.Collectors;
 
 public class OrderBot {
     static Sheet sheet;
@@ -95,7 +84,7 @@ public class OrderBot {
             prev = avg;
         }
         System.out.println(String.format("profitable: %.3g, count: %d, pertrade: %.5g", profitable*1.0/count,count,Math.pow(money/1000,1.0/count)));
-        sheet.getLib().add("result", IndicatorType.YESNO,g);
+        sheet.getLib().add("result", IndicatorResultType.YESNO,g);
         sheet.calcIndicators();
 
         new Visualizator(sheet);
@@ -123,7 +112,7 @@ public class OrderBot {
         if (good)
             profitable++;
         for (int j = buyIndex;j<=index;j++)
-            g[j] = good? IIndicator.YES: IIndicator.NO;
+            g[j] = good? Indicator.YES: Indicator.NO;
         sellOrder = 0;
     }
 

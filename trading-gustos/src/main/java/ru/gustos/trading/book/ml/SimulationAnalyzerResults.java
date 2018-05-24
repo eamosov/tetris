@@ -54,7 +54,7 @@ public class SimulationAnalyzerResults{
 
     public static void main(String[] args) throws Exception {
         SimulationAnalyzer.init();
-        SimulationAnalyzer.loadResults(150);
+        SimulationAnalyzer.loadResults();
         historyAndPart();
 //        SimulationAnalyzer.doSelection(5, 97,0);
 

@@ -8,24 +8,17 @@ import java.awt.*;
 
 public class DeltaIndicator extends NumberIndicator {
 
-    int t1;
 
     public DeltaIndicator(IndicatorInitData data){
         super(data);
-        t1 = data.t1;
-    }
-
-    @Override
-    public String getName() {
-        return "delta_"+t1;
     }
 
 
     @Override
-    public void calcValues(Sheet sheet, double[] values, int from, int to) {
-        for (int i = Math.max(from,t1);i<to;i++) {
-            XBar bar = sheet.bar(i-t1);
-            values[i] =  (bar.getClosePrice()-bar.getOpenPrice())/bar.middlePrice()*100;
+    public void calcValues(Sheet sheet, double[][] values, int from, int to) {
+        for (int i = Math.max(from,data.t1);i<to;i++) {
+            XBar bar = sheet.bar(i-data.t1);
+            values[0][i] =  (bar.getClosePrice()-bar.getOpenPrice())/bar.middlePrice()*100;
         }
     }
 
