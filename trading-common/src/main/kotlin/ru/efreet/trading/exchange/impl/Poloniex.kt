@@ -176,4 +176,7 @@ class Poloniex() : Exchange {
 
     }
 
+    override fun getPricesMap(): Map<Instrument, Double> {
+        throw NotImplementedError()
+    }
 }

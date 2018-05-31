@@ -52,4 +52,8 @@ class CachedExchange(val _name:String, val _fee:Double, val interval: BarInterva
     override fun getTicker(): Map<Instrument, Ticker> {
         return hashMapOf()
     }
+
+    override fun getPricesMap(): Map<Instrument, Double> {
+        throw NotImplementedError()
+    }
 }

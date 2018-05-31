@@ -49,7 +49,7 @@ class Main {
                 logic.loadState(bot.settings)
 
                 val lastCachedBar = cache.getLast(exchange.getName(), instrument, interval)
-                println("Updating cache from ${lastCachedBar.endTime}...")
+                println("Updating cache from ${lastCachedBar!!.endTime}...")
                 val newCachedBars = exchange.loadBars(instrument, interval, lastCachedBar.endTime.minusHours(1), ZonedDateTime.now())
                 cache.saveBars(exchange.getName(), instrument, newCachedBars.filter { it.timePeriod == interval.duration })
 

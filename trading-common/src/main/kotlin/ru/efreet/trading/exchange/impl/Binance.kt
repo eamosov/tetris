@@ -32,8 +32,13 @@ class Binance() : Exchange {
 
     override fun getName(): String = "binance"
 
+
     override fun getBalancesMap(): Map<String, Double> {
         return api.balancesMap().mapValues { it.value.free.toDouble() }
+    }
+
+    override fun getPricesMap(): Map<Instrument, Double> {
+        return api.pricesMap().mapKeys { asInstrument(it.key) }.mapValues { it.value.toDouble() }
     }
 
     fun symbol(instrument: Instrument): BinanceSymbol {

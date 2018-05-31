@@ -4,9 +4,7 @@ import org.sqlite.SQLiteException
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.BarInterval
-import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.utils.CmdArgs
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -14,6 +12,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
+import java.util.regex.Pattern
 
 /**
  * Created by fluder on 11/02/2018.
@@ -33,7 +32,7 @@ class BarsCache(val path: String) {
 
     fun getConnection(): Connection = conn
 
-    fun getFirst(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
+    fun getFirst(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar? {
         return synchronized(this) {
             conn.createStatement().use { statement ->
                 val time = statement.executeQuery("select min(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
@@ -42,28 +41,57 @@ class BarsCache(val path: String) {
                 }
 
                 statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                    resultSet.next()
+
+                    if (!resultSet.next())
+                        return null
+
                     mapToBar(resultSet, interval);
                 }
             }
         }
     }
 
-    fun getLast(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar {
+    fun getLast(exchange: String, instrument: Instrument, interval: BarInterval): XBaseBar? {
 
         return synchronized(this) {
             conn.createStatement().use { statement ->
                 val time = statement.executeQuery("select max(time) from ${tableName(exchange, instrument, interval)}").use { resultSet ->
-                    resultSet.next()
                     resultSet.getLong(1)
                 }
 
                 statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time = ${time}").use { resultSet ->
-                    resultSet.next()
+
+                    if (!resultSet.next())
+                        return null
+
                     mapToBar(resultSet, interval);
                 }
             }
         }
+    }
+
+    fun getInstruments(exchange: String, interval: BarInterval): List<Instrument> {
+        val instruments = mutableListOf<Instrument>()
+        val pattern = Pattern.compile("${exchange}_([a-z]+)_([a-z]+)_${interval.toString().toLowerCase()}")
+
+        synchronized(this) {
+            conn.createStatement().use { statement ->
+                val resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")
+
+                while (resultSet.next()) {
+                    val tableName = resultSet.getString(1)
+                    val m = pattern.matcher(tableName)
+                    if (m.matches()) {
+                        val base = m.group(1).toUpperCase()
+                        val asset = m.group(2).toUpperCase()
+                        instruments.add(Instrument(asset, base))
+                    }
+                }
+                resultSet.close()
+            }
+        }
+
+        return instruments
     }
 
     fun mapToBar(resultSet: ResultSet, interval: BarInterval): XBaseBar {
@@ -79,7 +107,7 @@ class BarsCache(val path: String) {
                 resultSet.getDouble("volumebase"),
                 resultSet.getDouble("volumequote"),
                 resultSet.getInt("trades")
-                )
+        )
     }
 
     fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBaseBar> {
@@ -134,26 +162,6 @@ class BarsCache(val path: String) {
             }
             conn.commit()
             conn.autoCommit = true
-        }
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-
-            val cmd = CmdArgs.parse(args)
-            val cache = BarsCache(cmd.cachePath)
-            val exchange = Exchange.getExchange(cmd.exchange)
-
-            cache.createTable(exchange.getName(), cmd.instrument, cmd.barInterval)
-
-            println("Fetching ${cmd.instrument}/${cmd.barInterval.duration} from ${exchange.getName()} between ${cmd.start} and ${cmd.end} ")
-
-            val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!, cmd.end!!)
-
-            println("Saving ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}")
-
-            cache.saveBars(exchange.getName(), cmd.instrument, bars.filter { it.timePeriod == cmd.barInterval.duration })
         }
     }
 
