@@ -18,5 +18,7 @@
   "properties": "simulate.properties",
   "initOptimisation": true,
   "graph": false,
-  "feeFactor": 3.0
+  "feeFactor": 3.0,
+  "noSaveState": false,
+  "saveDaysData": false
 }
