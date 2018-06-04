@@ -17,5 +17,6 @@
   "historyPath": "simulate_history.json",
   "properties": "simulate.properties",
   "initOptimisation": true,
-  "graph": false
+  "graph": false,
+  "feeFactor": 3.0
 }
