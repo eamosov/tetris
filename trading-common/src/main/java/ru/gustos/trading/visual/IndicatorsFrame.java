@@ -63,6 +63,7 @@ public class IndicatorsFrame extends JFrame {
         }
 
         Hashtable<String, JTextField> indicatorParams = new Hashtable<>();
+        Hashtable<String, String> oldValue = new Hashtable<>();
         void set(Indicator indicator) {
             this.indicator = null;
             show.setSelected(indicator.show());
@@ -84,6 +85,7 @@ public class IndicatorsFrame extends JFrame {
                 JTextField txt = new JTextField(p.getSecond());
                 add(txt);
                 indicatorParams.put(p.getFirst(),txt);
+                oldValue.put(p.getFirst(),p.getSecond());
                 txt.addActionListener(l->{
                     updateParams();
                 });
@@ -104,10 +106,20 @@ public class IndicatorsFrame extends JFrame {
         }
 
         void updateParams(){
-            for (String key : indicatorParams.keySet())
-                indicator.setParameter(key,indicatorParams.get(key).getText().trim());
-            vis.getSheet().getData().calc(indicator);
-            vis.fireViewUpdated();
+            boolean changed = false;
+            for (String key : indicatorParams.keySet()) {
+                String old = oldValue.get(key);
+                String now = indicatorParams.get(key).getText().trim();
+                if (!old.equals(now)) {
+                    indicator.setParameter(key, now);
+                    oldValue.put(key,now);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                vis.getSheet().getData().calc(indicator);
+                vis.fireViewUpdated();
+            }
         }
 
     }

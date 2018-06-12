@@ -4,6 +4,7 @@ import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.TestUtils;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class SimulationAnalyzerResults{
 
@@ -19,10 +20,12 @@ public class SimulationAnalyzerResults{
             for (int part = partFrom+1; part <= 96; part++) {
                 System.out.println("history: " + history + ", part: " + part);
                 SimulationAnalyzer.doSelection(history+2, part,0);
-                double v = SimulationAnalyzer.totalSelected;//SimulationAnalyzer.selectedTop10 / SimulationAnalyzer.totalTopUsual;
+                double v = SimulationAnalyzer.totalSelected / SimulationAnalyzer.totalUsual;
+//                double v = SimulationAnalyzer.totalSelected;
                 pp[history-1][part - partFrom] = v;
                 total +=v;
-                total2 += SimulationAnalyzer.totalUsual;// SimulationAnalyzer.totalSelected / SimulationAnalyzer.totalTopUsual;
+                total2 += SimulationAnalyzer.selectedTop10 / SimulationAnalyzer.totalTopUsual;
+//                total2 += SimulationAnalyzer.totalUsual;
                 sum+=v;
                 tc++;
                 cc++;
@@ -33,6 +36,9 @@ public class SimulationAnalyzerResults{
         System.out.println(Arrays.deepToString(pp).replace("], ","\n").replace("[","").replace("]","").replace(", "," ").replace("  "," ").replace(".",","));
         System.out.println(total/tc);
         System.out.println(total2/tc);
+        int k = SimulationAnalyzer.moneypop[2];
+        System.out.println(Arrays.toString(Arrays.stream(SimulationAnalyzer.moneypop).map(i->i*1000/k).toArray()));
+        System.out.println(Arrays.toString(IntStream.range(2,SimulationAnalyzer.moneypop.length).map(i->(int)(SimulationAnalyzer.totalpop[i]*100/Math.max(1,SimulationAnalyzer.npop[i]))).toArray()));
 
     }
 

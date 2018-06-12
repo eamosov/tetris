@@ -141,6 +141,10 @@ interface XBar {
         return 100000000.0/minPrice
     }
 
+    fun contains(price : Double) : Boolean{
+        return price>=minPrice && price<=maxPrice
+    }
+
     /**
      * Adds a trade at the end of bar period.
      * @param tradeVolume the traded volume

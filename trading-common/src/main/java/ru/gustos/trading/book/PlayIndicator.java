@@ -39,14 +39,15 @@ public class PlayIndicator{
                 btc += money/buyCost;
                 money = 0;
                 buyWhy = marks==null?"":marks.toString();
-            } else if (btc>0){
+            }
+            if (btc>0){
                 double sellCost = bar.getClosePrice() * (1-fee);
                 double min = Double.MAX_VALUE;
                 for (int j = -2;j<=2;j++)
                     if (i+j>=0 && i+j<sheet.size())
                         min = Math.min(min,sheet.moments.get(i+j).bar.getMinPrice() * (1-fee));
                 bestPrice = Math.max(bestPrice,min);
-                if (i==to-1 || v[i]!=0 && v[i+1]==0) {
+                if (i==to-1 || v[i]<=0) {
                     sb.append("sell "+bar.getBeginTime()+" for "+bar.getClosePrice()+" result "+btc+"\n");
                     String key = buyWhy + (marks==null?"":marks.toString());
                     money += btc * sellCost;
@@ -75,7 +76,7 @@ public class PlayIndicator{
                     }
                 }
             }
-            result.money[i] = money==0?moneyWhenBuy:money;
+            result.money[i] = money==0?btc*bar.getClosePrice()*0.9995:money;
         }
         if (to<result.money.length)
             Arrays.fill(result.money,to,result.money.length,money);
@@ -111,14 +112,17 @@ public class PlayIndicator{
             if (history.getCash().size()>0) {
 
                 int i = 0;
-                double v = 0;
-
+                double v = history.getStartUsd();
                 for (Pair<ZonedDateTime, Double> z : history.getCash()) {
-                    while (i<money.length && z.getFirst().isAfter(sheet.bar(i).getBeginTime())){
-                        v = z.getSecond();
-                        money[i] = v;
+                    double now = v;
+                    double next = z.getSecond();
+                    int from = i;
+                    int to = sheet.getBarIndex(z.getFirst());
+                    while (i<to){
+                        money[i] = now+(next-now)*(i-from)/(to-from);
                         i++;
                     }
+                    v = z.getSecond();
                     if (i>=money.length) break;
                 }
                 Arrays.fill(money,i,money.length,v);

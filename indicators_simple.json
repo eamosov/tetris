@@ -1,6 +1,7 @@
 [
 {"id" : 11, "name": "Volume"},
-{"id" : 12, "name": "PriceChangeToVolume"},
-{"id" : 20, "name": "Macd$60", "t1" : 60, "t2" : 25, "t3" : 17}
+{"id" : 12, "name": "VolumePike"}
+
+
 
 ]

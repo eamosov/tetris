@@ -36,11 +36,38 @@ public class ResultsToWeka {
 
     public static void initFields(){
 
-        for (Method f : GustosBotLogicParams.class.getMethods()){
-            if (f.getReturnType()==Integer.class && f.getName().startsWith("get")){
-                fields.add(f);
-            }
+//        for (Method f : GustosBotLogicParams.class.getMethods()){
+//            if (f.getReturnType()==Integer.class && f.getName().startsWith("get")){
+//                fields.add(f);
+//            }
+//        }
+        try {
+//            fields.add(GustosBotLogicParams.class.getMethod("getBuyBoundDiv"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellBoundDiv"));
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumeShort"));
+            fields.add(GustosBotLogicParams.class.getMethod("getBuyWindow"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellWindow"));
+            fields.add(GustosBotLogicParams.class.getMethod("getBuyDiv"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellDiv"));
+//            fields.add(GustosBotLogicParams.class.getMethod("getBuyVolumeWindow"));
+//            fields.add(GustosBotLogicParams.class.getMethod("getSellVolumeWindow"));
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumePow1"));
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumePow2"));
+
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumePow1Sq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumePow2Sq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getBuyWindowSq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellWindowSq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellBoundDivSq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getVolumeShortSq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getBuyDivSq"));
+            fields.add(GustosBotLogicParams.class.getMethod("getSellDivSq"));
+
+
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
         }
+
         limits.put("BuyBoundDiv",60);
         limits.put("SellBoundDiv",60);
         limits.put("VolumeShort",60);
@@ -71,7 +98,8 @@ public class ResultsToWeka {
         for (Method f :  fields) {
             int v = (Integer) f.invoke(args);
             String key = f.getName().substring(3);
-            v = (int)(Math.min(v,limits.get(key))*muls.get(key));
+            if (limits.containsKey(key))
+                v = (int)(Math.min(v,limits.get(key))*muls.get(key));
             instance[i++] = v;
         }
         return i;
@@ -82,7 +110,7 @@ public class ResultsToWeka {
         for (Method f :  fields) {
             int v = (Integer) f.invoke(args);
             String key = f.getName().substring(3);
-            if (v>limits.get(key)) return false;
+            if (limits.containsKey(key) && v>limits.get(key)) return false;
         }
         return true;
     }

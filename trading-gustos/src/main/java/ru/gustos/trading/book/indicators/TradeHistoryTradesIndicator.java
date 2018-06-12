@@ -9,8 +9,8 @@ import java.util.Arrays;
 
 public class TradeHistoryTradesIndicator extends Indicator {
     TradeHistory history;
-    public TradeHistoryTradesIndicator(int id, TradeHistory history){
-        super(new IndicatorInitData(){{this.id = id;show = false;}});
+    public TradeHistoryTradesIndicator(int idd, TradeHistory history){
+        super(new IndicatorInitData(){{id = idd;show = false;showOnBottom = false;}});
         this.history = history;
     }
 

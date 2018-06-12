@@ -19,6 +19,8 @@ import ru.gustos.trading.book.indicators.VecUtils;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.LinearRegression;
+import weka.classifiers.functions.Logistic;
+import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -66,6 +68,8 @@ public class SimulationAnalyzer {
         public TradesStats stats;
         public double worst;
         public double worst2;
+        public double worst3;
+        public double worst4;
         public double profitPerDay;
 
 
@@ -78,6 +82,8 @@ public class SimulationAnalyzer {
             stats = new StatsCalculator().stats(history);
             worst = history.worstInterval(3);
             worst2 = history.worstInterval(6);
+            worst3 = history.relWorstInterval(3);
+            worst4 = history.relWorstInterval(6);
             profitPerDay = history.getProfitPerDay();
             history = null;
         }
@@ -127,7 +133,7 @@ public class SimulationAnalyzer {
     }
 
     public static void loadResults() throws IOException {
-        String dir = "popanal2";//calcFolder;
+        String dir = "popanal4";//calcFolder;
         File[] files = new File(dir).listFiles();
         long[] tt = Arrays.stream(files).mapToLong(f -> Long.parseLong(f.getName())).toArray();
         Arrays.sort(tt);
@@ -218,17 +224,6 @@ public class SimulationAnalyzer {
         Exporter.string2file(path+"/"+fnames[n],r.toJson());
     }
 
-    private static void applyMinMax(Instances ii, double[] min, double[] max){
-        for (int i = 0;i<ii.size();i++){
-            Instance inst = ii.get(i);
-            for (int j= 0;j<min.length;j++) if (ii.attribute(j).isNumeric()){
-                double v = inst.value(j);
-                v = (v-min[j])/(max[j]-min[j])*2-1;
-                inst.setValue(j,v);
-            }
-        }
-    }
-
     static double totalAvg = 1;
     static double totalSelected = 1;
     static double totalUsual = 1;
@@ -247,8 +242,12 @@ public class SimulationAnalyzer {
         money = 1000;
     }
 
+    static int[] moneypop = new int[150];
+    static double[] totalpop = new double[150];
+    static int[] npop = new int[150];
+
     private static void doPopulationSelection(int n, int history, int part, int fromBest) throws Exception {
-        Instances set = initDataSet(true);
+        Instances set = initDataSet(false);
         popSet = initDataSet(false);
         for (int p = Math.max(0,n-1-history);p<n-1;p++){
             PopResult[] rr = result[p].results;
@@ -259,6 +258,7 @@ public class SimulationAnalyzer {
         }
         if (set.size()==0) return;
         set.setClassIndex(set.numAttributes()-1);
+
         double[] dd = set.get(0).toDoubleArray();
         double[] min = dd.clone();
         double[] max = dd.clone();
@@ -266,7 +266,7 @@ public class SimulationAnalyzer {
             dd = set.get(i).toDoubleArray();
             VecUtils.minMax(dd,min,max);
         }
-        applyMinMax(popSet,min,max);
+//        applyMinMax(popSet,min,max);
         Exporter.string2file(wekaOutFolder+"/pop"+n+".arff",popSet.toString());
         double[] profits = new double[set.size()];
         for (int i = 0;i<set.size();i++)
@@ -281,18 +281,19 @@ public class SimulationAnalyzer {
 //        }
 
 
-        applyMinMax(set,min,max);
+        MlUtils.applyMinMax(set,min,max);
 //        SMO smo = new SMO();
 //        smo.setKernel(new NormalizedPolyKernel());
-        Classifier classifier = new LinearRegression();
+        Classifier classifier = new Logistic();
+//        Classifier classifier = new RandomForest();
         classifier.buildClassifier(set);
-        Instances set2 = initDataSet(true);
+        Instances set2 = initDataSet(false);
         PopResult[] rr = result[n].results;
         int from = rr.length * part / 100;
         for (int j = from; j<rr.length; j++) {
             addInstance(set2, n, j,1);
         }
-        applyMinMax(set2,min,max);
+        MlUtils.applyMinMax(set2,min,max);
         set2.setClassIndex(set2.numAttributes()-1);
         Evaluation evaluation2 = new Evaluation(set);
         evaluation2.evaluateModel(classifier, set2);
@@ -304,25 +305,33 @@ public class SimulationAnalyzer {
         int profitable = 0;
         double[] bestprofits = new double[rr.length-from];
         ArrayList<Pair<Integer,Double>> sorted = new ArrayList<>();
+//        boolean lastOk = false;
+        int selectedIndex = rr.length-1;
         for (int j = from; j<rr.length; j++) {
             double[] distr2 = classifier.distributionForInstance(set2.instance(j-from));
-            sorted.add(new Pair<>(j,distr2[0]));
+            if (distr2[1]>0.5) {
+                selectedIndex = j;
+                sorted.add(new Pair<>(j, distr2[1]));
+            }
             if (rr[j].futureProfit>1)
                 profitable++;
+
             sum+=rr[j].futureProfit;
             best = Math.max(best,rr[j].futureProfit);
             bestprofits[j-from] = rr[j].futureProfit;
         }
         Arrays.sort(bestprofits);
-        sorted.sort(Comparator.comparing(Pair<Integer, Double>::getSecond));
+//        sorted.sort(Comparator.comparing(Pair<Integer, Double>::getSecond));
 //        System.out.println(sorted.toString());
-        int selectedIndex = sorted.get(sorted.size()-1-fromBest).getFirst();
+        if (sorted.size()==0)
+            sorted.add(new Pair(selectedIndex,1));
         double top10Classifier = 0;
         double topUsual = 0;
         int cnt = Math.min(4,sorted.size());
         for (int i = 0;i<cnt;i++) {
+            double usualProfit = rr[rr.length - 1 - i].futureProfit;
             top10Classifier += rr[sorted.get(sorted.size() - 1 - i).getFirst()].futureProfit;
-            topUsual+=rr[rr.length-1-i].futureProfit;
+            topUsual+= usualProfit;
         }
 
         top10Classifier/=cnt;
@@ -336,6 +345,9 @@ public class SimulationAnalyzer {
 //        totalTop10 *= bestprofits[bestprofits.length-30];
         selectedTop10*=top10Classifier;
         money*=rr[selectedIndex].futureProfit;
+        moneypop[n]+=money;
+        totalpop[n]+=totalSelected/totalUsual;
+        npop[n]++;
         System.out.println(String.format("pop %d: profit: %.5g, compare: %.5g, best: %.5g, profitable: %d, avg: %.5g, selectedTop10: %.5g, money %d", n,rr[selectedIndex].futureProfit, rr[selectedIndex].futureProfit/ usual,best,profitable,sum/(rr.length-from),top10Classifier, (int)money));
 
     }
@@ -349,19 +361,21 @@ public class SimulationAnalyzer {
 //        res.add(new Attribute("metrica"));
 //        res.add(new Attribute("pearson"));
         res.add(new Attribute("sma"));
-        res.add(new Attribute("sma2"));
+        res.add(new Attribute("smaS"));
         res.add(new Attribute("relProfit"));
-        res.add(new Attribute("relProfit2"));
+        res.add(new Attribute("relProfitS"));
         res.add(new Attribute("profit_perday"));
-        res.add(new Attribute("profit_perday2"));
-        res.add(new Attribute("trades"));
+        res.add(new Attribute("profit_perdayS"));
+//        res.add(new Attribute("trades"));
 //        res.add(new Attribute("sims"));
-//        res.add(new Attribute("shake"));
+        res.add(new Attribute("shake"));
         res.add(new Attribute("shake2"));
-        res.add(new Attribute("shake22"));
-        res.add(new Attribute("shake23"));
+        res.add(new Attribute("shake2S"));
+        res.add(new Attribute("shake2SS"));
         res.add(new Attribute("worst"));
         res.add(new Attribute("worst2"));
+        res.add(new Attribute("rworst"));
+        res.add(new Attribute("rworst2"));
         if (numProfit)
             res.add(new Attribute("profit"));//, Arrays.asList("false", "true")));
         else
@@ -391,24 +405,27 @@ public class SimulationAnalyzer {
         ii[i++] = Math.max(-1, stats.getRelProfit()*stats.getRelProfit());
         ii[i++] = Math.max(-1, rr[j].profitPerDay);
         ii[i++] = Math.max(-1, rr[j].profitPerDay*rr[j].profitPerDay);
-        ii[i++] = Math.max(-1, stats.getTrades());
+//        ii[i++] = Math.max(-1, stats.getTrades());
 //        ii[i++] = rr[j].historySims;
-//        ii[i++] = rr[j].shake;
         ii[i++] = rr[j].shake2;
-        ii[i++] = rr[j].shake2*rr[j].shake2;
-        ii[i++] = rr[j].shake2*rr[j].shake2*rr[j].shake2;
+        ii[i++] = rr[j].shake;
+        ii[i++] = rr[j].shake*rr[j].shake;
+        ii[i++] = rr[j].shake*rr[j].shake*rr[j].shake;
         ii[i++] = rr[j].worst;
         ii[i++] = rr[j].worst2;
+        ii[i++] = rr[j].worst3;
+        ii[i++] = rr[j].worst4;
         double profit = rr[j].futureProfit;
 
         boolean good = profit > 1;
         ii[i] = profit;//good ? 1.0 : 0;
-        DenseInstance instance = new DenseInstance((good ? profit : 1 / profit)*weightk, ii);
+        DenseInstance instance = new DenseInstance(1, ii);
+//        DenseInstance instance = new DenseInstance((good ? profit : 1 / profit)*weightk, ii);
         set.add(instance);
         ii = ii.clone();
         ii[i] = good? 1:0;
-        instance = new DenseInstance(weightk, ii);
-        popSet.add(instance);
+//        instance = ;
+        popSet.add(new DenseInstance(weightk, ii));
         return instance;
     }
 
@@ -487,5 +504,4 @@ public class SimulationAnalyzer {
 
 
 }
-
 

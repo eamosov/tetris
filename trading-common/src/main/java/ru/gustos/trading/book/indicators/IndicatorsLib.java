@@ -45,16 +45,13 @@ public class IndicatorsLib {
     public void add(String name, IndicatorResultType type, double[] data){
         int id = indicators.size()==0?1:indicators.get(indicators.size() - 1).getId() + 1;
         PrecalcedIndicator ii = new PrecalcedIndicator(id, name, type, data);
-        indicators.add(ii);
-        indicatorsShow.add(ii);
-        map[ii.getId()] = ii;
+        add(ii);
     }
 
     public void add(Indicator ii){
         indicators.add(ii);
-        if (ii.show())
-            indicatorsShow.add(ii);
         map[ii.getId()] = ii;
+        sortIndicators();
     }
 
     private Indicator createIndicator(IndicatorInitData data) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {

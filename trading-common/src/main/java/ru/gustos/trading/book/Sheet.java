@@ -28,6 +28,7 @@ public class Sheet {
     IndicatorsLib indicatorsLib;
     IndicatorsData indicatorsData;
 //    IndicatorsDb indicatorsDb;
+    Volumes volumes;
 
     public Sheet()throws Exception {
         this(new IndicatorsLib("indicators.json"));
@@ -63,6 +64,12 @@ public class Sheet {
 
     public XBar bar(int index){
         return moments.get(index).bar;
+    }
+
+    public Volumes volumes(){
+        if (volumes==null)
+            volumes = new Volumes(this,true);
+        return volumes;
     }
 
     public void fromExchange(){
@@ -222,6 +229,18 @@ public class Sheet {
         moments.add(new Moment(new XBaseBar(bar)));
         if (recalc)
             calcIndicatorsForLastBars(1);
+    }
+
+    public double lastDayAvgVolume() {
+        double sum = 0;
+        for (int i = size()-24*60;i<size();i++)
+            sum+=bar(i).getVolume()*bar(i).middlePrice();
+        return sum/(24*60);
+    }
+
+    public int whenPriceWas(int ind, double price) {
+        while (ind>=0 && !bar(ind).contains(price)) ind--;
+        return ind;
     }
 }
 

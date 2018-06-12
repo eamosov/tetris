@@ -42,7 +42,7 @@ public class VisUtils {
                 col = VisUtils.lerp(ind.getColors().min(),ind.getColors().max(),p);
             } else if (ind.getResultType() == IndicatorResultType.NUMBER && !ind.fromZero()) {
                 if (val>0)
-                    col =  ind.getColors().max();
+                    col = ind.getColors().max();
                 else if (val<0)
                     col = ind.getColors().min();
             }

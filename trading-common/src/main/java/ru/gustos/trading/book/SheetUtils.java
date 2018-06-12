@@ -189,6 +189,21 @@ public class SheetUtils {
         return sellValues;
     }
 
+    public static double gridPrice(double price, double grid) {
+        price = Math.pow(grid, (int) (Math.log(price) / Math.log(grid)));
+        if (price <= 0.00000001) price = 0.00000001;
+        return price;
+    }
+
+    public static String price2string(Sheet sheet, double price) {
+        double minPrice = sheet.totalBar().getMinPrice();
+        double mul = 1;
+        while (minPrice*mul<1000)
+            mul*=10;
+        while (minPrice*mul>10000)
+            mul/=10;
+        return Integer.toString((int)(price*mul));
+    }
 }
 
 

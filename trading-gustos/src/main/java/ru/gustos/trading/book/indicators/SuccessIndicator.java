@@ -16,8 +16,8 @@ public class SuccessIndicator extends Indicator implements IStringPropertyHolder
         super(data);
     }
 
-    public SuccessIndicator(int id, int ind){
-        this(new IndicatorInitData(){{this.id = id;this.ind = ind;}});
+    public SuccessIndicator(int idd, int indd){
+        this(new IndicatorInitData(){{this.id = idd;this.ind = indd;}});
     }
 
     @Override
@@ -30,6 +30,16 @@ public class SuccessIndicator extends Indicator implements IStringPropertyHolder
         for (String key : marks.keySet())
             if (removeMarks.contains(key)) return true;
         return false;
+    }
+
+    @Override
+    public IndicatorVisualType getVisualType() {
+        return IndicatorVisualType.BACK;
+    }
+
+    @Override
+    public IndicatorResultType getResultType() {
+        return IndicatorResultType.NUMBER;
     }
 
     @Override
@@ -58,9 +68,9 @@ public class SuccessIndicator extends Indicator implements IStringPropertyHolder
             } else if (buyPos>0){
                 double price = bar.getClosePrice();
                 if (removeMarks.size()==0 || hasFilteredMark(removeMarks,buyKeys) || hasFilteredMark(removeMarks, getMarks(i))) {
-                    double result = price / buyPrice > 1.001 ? Indicator.YES : Indicator.NO;
+//                    double result = price / buyPrice > 1.001 ? Indicator.YES : Indicator.NO;
                     for (int j = buyPos; j <= i; j++)
-                        values[0][j] = result;
+                        values[0][j] = price / buyPrice-1.001;
                 }
                 buyKeys = null;
                 buyPos = 0;

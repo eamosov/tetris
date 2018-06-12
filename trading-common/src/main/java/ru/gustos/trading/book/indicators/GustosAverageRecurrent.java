@@ -74,21 +74,6 @@ public class GustosAverageRecurrent {
         d*=d;
         disp = (d- disp)* 2.0/(window/ volumek +1) + disp;
 
-//        if (volumek<=1){
-//            double vk = Math.pow(volumek, 5);
-//            disp = oldDisp * (1 - vk) + next * vk;
-//        } else {
-//            double vk = Math.pow(volumek,pow2);
-//            double pn = 0;
-//            while (vk>1) {
-//                pn = next;
-//                next = (d-next)*2.0/(window+1)+next;
-//                vk-=1;
-//            }
-//            disp = pn+vk*(next-pn);
-//        }
-
-
         return new Pair<>(value,Math.sqrt(disp));
     }
 

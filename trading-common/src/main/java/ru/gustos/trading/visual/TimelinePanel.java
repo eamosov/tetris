@@ -1,8 +1,11 @@
 package ru.gustos.trading.visual;
 
+import kotlin.Pair;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Moment;
+import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.Indicator;
+import ru.gustos.trading.book.indicators.IndicatorResultType;
 import ru.gustos.trading.book.indicators.VecUtils;
 
 import javax.swing.*;
@@ -80,28 +83,37 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
             Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
             tmpcol = ind.getColors().min();
             Color colMin = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
-
+            int alphaMin = 90, alphaMax = 90;
+            Pair<Double, Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(), ind, 0, vis.getSheet().size(), 1);
             double[] data = vis.getSheet().getData().get(ind.getId());
             for (int x = 0;x<w;x++) {
                 int from = x*total/w;
                 int to = (x+1)*total/w;
-                boolean hasYes = false;
-                boolean hasNo = false;
+                double max = 0;
+                double min = 0;
                 for (int i = from;i<to;i++) {
                     double v = data[i];
-                    if (v== Indicator.YES)
-                        hasYes = true;
-                    if (v== Indicator.NO)
-                        hasNo = true;
+                    if (v> max)
+                        max = v;
+                    if (v< min)
+                        min = v;
                 }
 
-                if (hasYes && hasNo){
-                    g.setColor(colMax);
+                if (ind.getResultType()==IndicatorResultType.NUMBER) {
+                    if (min != 0)
+                        alphaMin = (int) (40 + min * 160 / mm.getFirst());
+
+                    if (max!=0)
+                        alphaMax = (int) (40 + max * 160 / mm.getSecond());
+                }
+
+                if (min!=0 && max!=0){
+                    g.setColor(VisUtils.alpha(colMax,alphaMax));
                     g.fillRect(x, 0, 1, getHeight()/2);
-                    g.setColor(colMin);
+                    g.setColor(VisUtils.alpha(colMax,alphaMin));
                     g.fillRect(x, getHeight()/2, 1, getHeight()/2);
-                } else if (hasYes || hasNo){
-                    Color col = hasYes?colMax:colMin;
+                } else if (min!=0 || max!=0){
+                    Color col = max!=0?VisUtils.alpha(colMax,alphaMax):VisUtils.alpha(colMin,alphaMin);
                     g.setColor(col);
                     g.fillRect(x, 0, 1, getHeight());
                 }

@@ -26,6 +26,12 @@ public abstract class Indicator {
             parameters.add("t2");
         if (data.t3!=0)
             parameters.add("t3");
+        if (data.k1!=0)
+            parameters.add("k1");
+        if (data.k2!=0)
+            parameters.add("k2");
+        if (data.k3!=0)
+            parameters.add("k3");
     }
 
     public int getId() {
@@ -112,6 +118,10 @@ public abstract class Indicator {
         for (Pair<String,String> p : params){
             setParameter(p.getFirst(),p.getSecond());
         }
+    }
+
+    public Object getCoreObject(){
+        return null;
     }
 
 }

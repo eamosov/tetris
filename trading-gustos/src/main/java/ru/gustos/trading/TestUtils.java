@@ -62,11 +62,20 @@ public class TestUtils {
 
     public static Sheet makeSheet(String libfile) throws Exception {
         return makeSheet(libfile, Instrument.Companion.getBTC_USDT());
+//        return makeSheet(libfile, Instrument.Companion.getTHETA_BTC());
     }
 
     public static Sheet makeSheet(String libfile,Instrument instr) throws Exception {
         ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
         return makeSheet(libfile, instr, from, ZonedDateTime.now());
+    }
+
+    public static List<Instrument> getInstruments(){
+        Exchange exch = new Binance();
+        BarInterval interval = BarInterval.ONE_MIN;
+
+        BarsCache cache = new BarsCache("cache.sqlite3");
+        return cache.getInstruments(exch.getName(),interval);
     }
 
     public static Sheet makeSheet(String libfile, Instrument instr, ZonedDateTime from, ZonedDateTime to) throws Exception {
@@ -79,6 +88,7 @@ public class TestUtils {
         IndicatorsLib lib = libfile==null?new IndicatorsLib():new IndicatorsLib(libfile);
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
+        bars = BarsPacker.packBarsVolumeAvg(bars,30);
         sheet.fromBars(bars);
         return sheet;
     }

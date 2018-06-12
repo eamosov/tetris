@@ -4,10 +4,17 @@ import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BarsPacker {
-    public static ArrayList<XBaseBar> packBarsVolume(List<? extends XBar> list, int volume){
+    public static ArrayList<XBaseBar> packBarsVolumeAvg(List<? extends XBar> list, int minutes){
+        double[] dd = list.stream().mapToDouble(XBar::getVolume).toArray();
+        Arrays.sort(dd);
+        double avg = dd[dd.length/2];
+        return packBarsVolume(list,minutes*avg);
+    }
+    public static ArrayList<XBaseBar> packBarsVolume(List<? extends XBar> list, double volume){
         ArrayList<XBaseBar> result = new ArrayList<XBaseBar>();
         XBaseBar last = null;
         for (XBar b : list){

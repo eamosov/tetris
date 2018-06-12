@@ -15,6 +15,10 @@ data class Instrument(var asset: String?, var base: String?) : Serializable {
     companion object {
         @JvmStatic
         val BTC_USDT = Instrument("BTC", "USDT")
+        val IOTX_BTC = Instrument("IOTX", "BTC")
+        val XLM_BTC = Instrument("XLM", "BTC")
+        val BNB_BTC = Instrument("BNB", "BTC")
+        val THETA_BTC = Instrument("THETA", "BTC")
         val BCC_USDT = Instrument("BCC", "USDT")
         val BNB_USDT = Instrument("BNB", "USDT")
 

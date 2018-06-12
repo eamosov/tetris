@@ -2,6 +2,7 @@ package ru.gustos.trading.visual;
 
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.Moment;
+import ru.gustos.trading.book.SheetUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,13 +27,13 @@ public class VisualizatorForm {
     private JButton leftToIndicator;
     private JButton rightToIndicator;
     private JTextField param;
-    private JButton runButton;
     private JTextField avg;
     private JComboBox averageType;
-    private JButton indicatorsButton;
+    private JTextField vZoom;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
+    private PriceVolumesPanel priceVolumes;
     private IndicatorsBottomPane indicatorsBottom;
     private IndicatorsUnderPane indicatorsUnder;
 
@@ -63,6 +64,9 @@ public class VisualizatorForm {
 
         candles = new CandlesPane(vis);
         panelWithLine.add(candles, BorderLayout.CENTER);
+
+        priceVolumes = new PriceVolumesPanel(vis);
+        panelWithLine.add(priceVolumes,BorderLayout.EAST);
 
         JPanel south = new JPanel(new BorderLayout());
         panelWithLine.add(south,BorderLayout.SOUTH);
@@ -172,12 +176,6 @@ public class VisualizatorForm {
                 vis.setParam(Double.parseDouble(param.getText()));
             }
         });
-        runButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                vis.runPlay();
-            }
-        });
         avg.setText(Integer.toString(vis.averageWindow));
         averageType.setSelectedItem(vis.averageType);
         avg.addActionListener(new ActionListener() {
@@ -193,16 +191,16 @@ public class VisualizatorForm {
 
             }
         });
-        indicatorsButton.addActionListener(new ActionListener() {
+        vZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                vis.onShowIndicators();
+                vis.setVerticalZoom(Integer.parseInt(vZoom.getText()));
             }
         });
     }
 
     public void setZoom(int zoom){
-        zoomLabel.setText("  Zoom level: "+zoom+"  ");
+        zoomLabel.setText("  Zoom: "+zoom+"  ");
     }
 
     JPanel getCenter(){
@@ -225,10 +223,9 @@ public class VisualizatorForm {
         else {
 
             String info = info4bar(candles.getBar(index));
+            vis.setSelectedIndex(index);
             if (point!=null) {
-
                 int indY = candles.getLocationOnScreen().y+point.y - indicatorsBottom.getLocationOnScreen().y;
-
                 if (indY >= 0)
                     info += "      " + indicatorsBottom.getIndicatorInfo(index, new Point(point.x, indY));
             }
@@ -252,7 +249,7 @@ public class VisualizatorForm {
     }
 
     private String info4bar(XBar bar) {
-        return String.format("time: %s, open: %.2f, close: %.2f, volume: %.2f, min: %.2f, max: %.2f",bar.getBeginTime().toString(),bar.getOpenPrice(),bar.getClosePrice(),bar.getVolume(),bar.getMinPrice(),bar.getMaxPrice());
+        return String.format("time: %s, open: %s, close: %s, volume: %.2f, min: %s, max: %s",bar.getBeginTime().toString(), SheetUtils.price2string(vis.getSheet(),bar.getOpenPrice()),SheetUtils.price2string(vis.getSheet(),bar.getClosePrice()),bar.getVolume(),SheetUtils.price2string(vis.getSheet(),bar.getMinPrice()),SheetUtils.price2string(vis.getSheet(),bar.getMaxPrice()));
     }
 
     public CandlesPane getCandlesPane(){
@@ -270,3 +267,4 @@ public class VisualizatorForm {
     }
 
 }
+

@@ -19,6 +19,7 @@ public class Visualizator {
     private Sheet sheet;
     private int from;
     private int zoom;
+    private int vzoom;
     public VisualizatorFrame frame;
     protected EventListenerList viewListeners = new EventListenerList();
     private IndicatorsFrame indicatorsFrame;
@@ -28,6 +29,10 @@ public class Visualizator {
     double param = 0;
     int averageWindow = 50;
     String averageType = "None";
+    private boolean fixedVolumes = true;
+    private boolean gustosVolumes = false;
+    private int selectedIndex;
+    private boolean fullZoom = false;
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -38,6 +43,10 @@ public class Visualizator {
 
     public void addListener(VisualizatorViewListener listener){
         viewListeners.add(VisualizatorViewListener.class,listener);
+    }
+
+    public void addListener(VisualizatorBarAtMouseListener listener){
+        viewListeners.add(VisualizatorBarAtMouseListener.class,listener);
     }
 
     public void addListener(VisualizatorMouseListener listener){
@@ -85,7 +94,7 @@ public class Visualizator {
     }
 
     public int barsOnScreen(){
-        return frame.form.getCenter().getWidth()*zoomScale()/candleWidth();
+        return frame.form.getCandlesPane().getWidth()*zoomScale()/candleWidth();
     }
 
     public int zoomScale(){
@@ -108,8 +117,14 @@ public class Visualizator {
     }
 
     public void zoomPlus() {
-        if (zoom>=9) return;
+        if (zoom>=12) return;
+        int middle = from+barsOnScreen()/2;
         zoom++;
+        if (barsOnScreen()>sheet.size()) {
+            zoom--;
+            return;
+        }
+        from = middle-barsOnScreen()/2;
         frame.form.setZoom(zoom);
         fixFrom();
         fireViewUpdated();
@@ -117,14 +132,16 @@ public class Visualizator {
 
     public void zoomMinus() {
         if (zoom<=0) return;
+        int middle = from+barsOnScreen()/2;
         zoom--;
+        from = middle-barsOnScreen()/2;
         frame.form.setZoom(zoom);
         fixFrom();
         fireViewUpdated();
     }
 
     public int getIndexAt(Point point) {
-        return getIndex()+point.x*zoomScale()/candleWidth();
+        return getIndex()+point.x/candleWidth()*zoomScale();
     }
 
     public void mouseMove(Point point) {
@@ -173,7 +190,7 @@ public class Visualizator {
     public void moveToIndicator(int dir) {
         ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
         if (back.size()==0) return;
-        int start = from+barsOnScreen()/2-zoomScale();
+        int start = from+barsOnScreen()/2+zoomScale()*dir;
         int ind = start;
         boolean found = false;
         IndicatorsData data = sheet.getData();
@@ -224,7 +241,13 @@ public class Visualizator {
         if (indicatorsFrame==null){
             indicatorsFrame = new IndicatorsFrame(this);
         } else {
-            indicatorsFrame.setVisible(!indicatorsFrame.isVisible());
+            if (!indicatorsFrame.isVisible())
+                indicatorsFrame.setVisible(true);
+            else if (!indicatorsFrame.isFocused())
+                indicatorsFrame.requestFocus();
+            else
+                indicatorsFrame.setVisible(false);
+
         }
     }
 
@@ -245,5 +268,63 @@ public class Visualizator {
         frame.form.getCenter().repaint();
     }
 
+    public void setVerticalZoom(int zoom) {
+        vzoom = zoom;
+        fireViewUpdated();
+    }
+
+    public int getVZoom() {
+        return vzoom;
+    }
+
+    public void setFixedVolumes(boolean state) {
+        fixedVolumes = state;
+        fireViewUpdated();
+    }
+
+    public void setGustosVolumes(boolean state) {
+        gustosVolumes = state;
+        fireViewUpdated();
+    }
+
+    public boolean getFixedVolumes(){
+        return fixedVolumes;
+    }
+
+    public void setSelectedIndex(int index) {
+        selectedIndex = index;
+        Arrays.stream(viewListeners.getListeners(VisualizatorBarAtMouseListener.class)).forEach(i->i.visualizatorBarAtMouseChanged(selectedIndex));
+    }
+
+    public int getSelectedIndex(){
+        return selectedIndex;
+    }
+
+    public boolean getGustosVolumes() {
+        return gustosVolumes;
+    }
+
+    public void right() {
+        from+=zoomScale();
+        fixFrom();
+        setSelectedIndex(from+barsOnScreen()-1);
+        fireViewUpdated();
+    }
+
+    public void left() {
+        from-=zoomScale();
+        fixFrom();
+        setSelectedIndex(from+barsOnScreen()-1);
+        fireViewUpdated();
+    }
+
+    public void setFullZoom(boolean state) {
+        fullZoom = state;
+        fireViewUpdated();
+    }
+
+    public boolean getFullZoom() {
+        return fullZoom;
+    }
 }
 

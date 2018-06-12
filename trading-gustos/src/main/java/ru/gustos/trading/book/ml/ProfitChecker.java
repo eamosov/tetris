@@ -5,14 +5,13 @@ import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
+import ru.efreet.trading.exchange.impl.cache.BarsCache;
 import ru.efreet.trading.logic.AbstractBotLogic;
 import ru.efreet.trading.logic.ProfitCalculator;
 import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.GustosIndicator;
-import ru.gustos.trading.book.indicators.IndicatorInitData;
-import ru.gustos.trading.book.indicators.SuccessIndicator;
+import ru.gustos.trading.book.indicators.*;
 import ru.gustos.trading.visual.Visualizator;
 
 import java.io.FileNotFoundException;
@@ -40,13 +39,17 @@ public class ProfitChecker {
             ZonedDateTime.of(2018,5,11,11,0,0,0, ZoneId.systemDefault()),
 
             ZonedDateTime.of(2018,5,1,0,0,0,0, ZoneId.systemDefault()),
-            ZonedDateTime.of(2018,5,20,0,0,0,0, ZoneId.systemDefault()),
+            ZonedDateTime.of(2018,5,25,0,0,0,0, ZoneId.systemDefault()),
 
 
     };
 
     private static void printTest(Instrument instr, String logic, String properties) throws Exception {
         sheet = TestUtils.makeSheet("indicators_simple.json", instr);
+        double lastvol = sheet.lastDayAvgVolume();
+        System.out.println(String.format("\ntesting %s. volumes per day: %g", instr, lastvol));
+        if (lastvol<1 || !instr.getBase().equals("BTC"))
+            return;
         AbstractBotLogic<Object> botLogic;
         BarInterval barInterval = BarInterval.ONE_MIN;
             botLogic = (AbstractBotLogic<Object>)LogicFactory.Companion.getLogic(logic,
@@ -93,6 +96,14 @@ public class ProfitChecker {
         data.id = 401;
         data.ind = 400;
         sheet.getLib().add(new SuccessIndicator(data));
+        data = new IndicatorInitData();
+        data.id = 402;
+        data.ind = 400;
+        sheet.getLib().add(new LevelsLogicLineIndicator(data));
+        data = new IndicatorInitData();
+        data.id = 404;
+        data.ind = 400;
+        sheet.getLib().add(new LevelsLogicHighIndicator(data));
 
 //        data = new IndicatorInitData();
 //        data.ind = 400;
@@ -130,9 +141,15 @@ public class ProfitChecker {
 //        out("BCC:");
 //        printTest(Instrument.Companion.getBCC_USDT(), "gustoslogic_bcc.properties");
         out("BTC:");
+//        String properties = "gustoslogic2_.properties";
+//        String logic = "gustostest";
         String properties = "gustoslogic2_.properties";
         String logic = "gustos2";
-        printTest(Instrument.Companion.getBTC_USDT(), logic,properties);
+//        String properties = "levels.properties.out";
+//        String logic = "levels";
+        for (Instrument i : TestUtils.getInstruments())
+            printTest(i, logic,properties);
+//        printTest(Instrument.Companion.getBTC_USDT(), logic,properties);
 //        out("BTCi:");
 //        printTest(Instrument.Companion.getBTC_USDT(), "gustoslogic2i.properties");
         sheet = TestUtils.makeSheet("indicators_simple.json");

@@ -126,6 +126,7 @@ data class XExtBar(val bar: XBar) : XBar {
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
         var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignal2Ema })
+        var _stohastic = BarGetterSetter2<XExtBar,Decision>({ o, v -> o.stohastic = v }, { it.stohastic })
 
         var _lastDecision = BarGetterSetter2<XExtBar, Pair<Decision, Map<String, String>>>({ o, v -> o.lastDecision = v }, { it.lastDecision })
         var _decisionStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.decisionStart = v }, { it.decisionStart })
@@ -178,6 +179,8 @@ data class XExtBar(val bar: XBar) : XBar {
     var dayLongEma: Double = Double.MAX_VALUE
     var daySignalEma: Double = Double.MAX_VALUE
     var daySignal2Ema: Double = Double.MAX_VALUE
+
+    var stohastic: Decision = Decision.NONE
 
     var lastDecision: Pair<Decision, Map<String, String>>? = null
     var decisionStart: XExtBar? = null

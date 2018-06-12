@@ -16,14 +16,14 @@ public class ColorScheme{
         this.max = max;
     }
 
-    public Color lineColor() {
-        return max;
+    public Color lineColor(int line) {
+        return line==0?max:min;
     }
 
     public Color min(){ return min;}
     public Color max(){ return max;}
 
-    public float stroke() {
-        return 2.0f;
+    public float stroke(int line) {
+        return line==0?2.0f:1.0f;
     }
 }

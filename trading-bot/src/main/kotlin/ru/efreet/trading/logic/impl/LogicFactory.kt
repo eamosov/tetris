@@ -21,6 +21,7 @@ class LogicFactory {
                     "sd5" -> Sd5Logic("sd5", instrument, barInterval, bars) as BotLogic<P>
                     "gustos2" -> Class.forName("ru.gustos.trading.GustosBotLogic2").constructors[0].newInstance("gustos2", instrument, barInterval, bars) as BotLogic<P>
                     "gustostest" -> Class.forName("ru.gustos.trading.GustosBotLogicTest2").constructors[0].newInstance("gustostest2", instrument, barInterval, bars) as BotLogic<P>
+                    "levels" -> Class.forName("ru.gustos.trading.LevelsBotLogic").constructors[0].newInstance("levels", instrument, barInterval, bars) as BotLogic<P>
                     else -> throw RuntimeException("Unknown logic ${name}")
                 }
     }
