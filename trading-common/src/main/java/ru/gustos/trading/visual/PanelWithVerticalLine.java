@@ -1,5 +1,7 @@
 package ru.gustos.trading.visual;
 
+import ru.gustos.trading.book.Extrapolation;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -17,8 +19,13 @@ public class PanelWithVerticalLine extends JPanel {
             }
 
             @Override
-            public void visualizatorMouseClicked(Point p) {
-
+            public void visualizatorMouseClicked(Point p, int button) {
+                if (vis.getLocalModelByClick()){
+                    int index = vis.getIndexAt(p);
+                    Extrapolation ex = new Extrapolation(vis.getSheet(), index,vis.param==0?100:(int)vis.param);
+                    vis.setExtrapolation(ex);
+                    System.out.println(String.format("base: %.3g, prev: %.3g, here: %.3g", ex.errbase,ex.err1, ex.err0));
+                }
             }
         });
     }

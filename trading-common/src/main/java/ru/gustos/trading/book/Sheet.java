@@ -1,5 +1,6 @@
 package ru.gustos.trading.book;
 
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
@@ -15,9 +16,10 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class Sheet {
+public class Sheet implements BarsSource {
     Exchange exch;
     Instrument instr;
     BarInterval interval;
@@ -29,6 +31,7 @@ public class Sheet {
     IndicatorsData indicatorsData;
 //    IndicatorsDb indicatorsDb;
     Volumes volumes;
+    GoodBad goodbad;
 
     public Sheet()throws Exception {
         this(new IndicatorsLib("indicators.json"));
@@ -66,10 +69,40 @@ public class Sheet {
         return moments.get(index).bar;
     }
 
+    public boolean isMinimum(int index, int window){
+        double here = bar(index).getMinPrice();
+        for (int i = 1;i<=window;i++){
+            if (index-i>=0 && bar(index-i).getMinPrice()<here) return false;
+            if (index+i<size() && bar(index+i).getMinPrice()<here) return false;
+        }
+        return true;
+    }
+
+    public boolean isMaximum(int index, int window){
+        double here = bar(index).getMaxPrice();
+        for (int i = 1;i<=window;i++){
+            if (index-i>=0 && bar(index-i).getMaxPrice()>here) return false;
+            if (index+i<size() && bar(index+i).getMaxPrice()>here) return false;
+        }
+        return true;
+    }
+
+    public boolean isOptimum(int index, int window, int code){
+        if (code==1) return isMaximum(index,window);
+        if (code==-1) return isMinimum(index,window);
+        throw new NullPointerException("unknown code "+code);
+    }
+
     public Volumes volumes(){
         if (volumes==null)
-            volumes = new Volumes(this,true);
+            volumes = new Volumes(this,true, true);
         return volumes;
+    }
+
+    public GoodBad goodbad(){
+        if (goodbad==null)
+            goodbad = new GoodBad(this,true);
+        return goodbad;
     }
 
     public void fromExchange(){
@@ -186,9 +219,9 @@ public class Sheet {
         return moments.get(0).bar.getBeginTime();
     }
 
-    public int getBarIndex(ZonedDateTime from) {
+    public int getBarIndex(ZonedDateTime time) {
         for (int i = 0;i<size();i++)
-            if (bar(i).getBeginTime().isAfter(from))
+            if (bar(i).getBeginTime().isAfter(time))
                 return i;
         return size()-1;
     }
@@ -242,5 +275,20 @@ public class Sheet {
         while (ind>=0 && !bar(ind).contains(price)) ind--;
         return ind;
     }
+    public int whenPriceWillBe(int ind, double price) {
+        while (ind<size() && !bar(ind).contains(price)) ind++;
+        return ind;
+    }
+
+    public Pair<Boolean, Integer> willBeProfit(int ind, double sell, double sl, int limit) {
+        limit = Math.min(limit,size());
+        while (ind<size()) {
+            if (bar(ind).contains(sl)) return new Pair<>(false,ind);
+            if (bar(ind).contains(sell)) return new Pair<>(true,ind);
+            ind++;
+        }
+        return new Pair<>(false,ind);
+    }
+
 }
 

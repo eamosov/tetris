@@ -13,7 +13,7 @@ public class VolumeLevelIndicator extends Indicator{
 
     @Override
     public void calcValues(Sheet sheet, double[][] values, int from, int to) {
-        Volumes volumes = new Volumes(sheet,false);
+        Volumes volumes = new Volumes(sheet,false, false);
         boolean money = true;
         int buypow = 0;
         int targetmax = 0;
@@ -26,7 +26,7 @@ public class VolumeLevelIndicator extends Indicator{
             int powOpen = volumes.price2pow(bar.getOpenPrice());
             int powMin = volumes.price2pow(bar.getMinPrice());
             int powMax = volumes.price2pow(bar.getMaxPrice());
-            Pair<double[], double[]> vv = volumes.getGustosVolumes();
+            Pair<double[], double[]> vv = volumes.get();
             double[] v = VecUtils.ma(VecUtils.add(vv.getFirst(), vv.getSecond(), 1),8);
             values[0][i] = money?0:1;
             if (money) {

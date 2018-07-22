@@ -431,13 +431,15 @@ public class VecUtils {
                 res.setMaxPrice(Math.max(res.getMaxPrice(), avg[i] + disp[i] * k));
             }
         } else
-            for (int i = from; i < to; i++) {
-                res.setMinPrice(Math.min(res.getMinPrice(), avg[i]));
-                res.setMaxPrice(Math.max(res.getMaxPrice(), avg[i]));
-            }
-
-
+            for (int i = from; i < to; i++)
+                expandMinMax(minMax,avg[i]);
         return res;
+    }
+
+    public static XBaseBar expandMinMax(XBaseBar minMax, double price){
+        minMax.setMinPrice(Math.min(minMax.getMinPrice(), price));
+        minMax.setMaxPrice(Math.max(minMax.getMaxPrice(), price));
+        return minMax;
     }
 
     public static Pair<double[], double[]> futureMaAndDisp(double[] v, int window) {
@@ -591,27 +593,41 @@ public class VecUtils {
 
     }
 
-
-    public static List<Integer> listLevels(double[] v, double k) {
-        v = VecUtils.makeDifForLevels(v,k);
+    public static ArrayList<Double> integrals = new ArrayList<>();
+    public static int[] listLevels(double[] v, double k, double k2) {
+        v = VecUtils.makeDifForLevels(v,k, k2);
+        integrals.clear();
         int p = 0;
         List<Integer> l = new ArrayList<>();
+        double sum = 0;
         do {
+            sum+=v[p];
             p++;
-            if (v[p-1]!=0 && v[p]==0)
-                l.add(p-1);
-            else if (v[p-1]*v[p]<0)
-                l.add(Math.abs(v[p-1])<Math.abs(v[p])?p-1:p);
+            if (v[p-1]!=0 && v[p]==0) {
+                l.add(p - 1);
+                integrals.add(sum);
+                sum = 0;
+            }else if (v[p-1]*v[p]<0) {
+                l.add(Math.abs(v[p - 1]) < Math.abs(v[p]) ? p - 1 : p);
+                integrals.add(sum);
+                sum = 0;
+            }
+
 
             else if (v[p-1]==0 && v[p]!=0) {
-                if (l.size()==0 || p-l.get(l.size()-1)>20)
+                if (l.size()==0 || p-l.get(l.size()-1)>10) {
                     l.add(p);
-                else
+                    integrals.add(sum);
+                    sum = 0;
+                }else
                     l.set(l.size()-1,(l.get(l.size()-1)+p)/2);
             }
 
             if (p >= v.length-1) break;
         } while (true);
+        integrals.add(0.0);
+        integrals.add(0.0);
+        integrals.add(0.0);
 //        v = dif(v);
 //        v = dif(v);
 //        for (int i = 1;i<v.length;i++)
@@ -620,7 +636,7 @@ public class VecUtils {
 //        for (int i = 1;i<v.length;i++)
 //            if ((v[i]==0) != (v[i-1]==0)) l.add(i);
 //        l.sort(Integer::compare);
-        return l;
+        return l.stream().mapToInt(Integer::intValue).toArray();
     }
 
     public static double[] hairFilter(double[] v) {
@@ -641,19 +657,19 @@ public class VecUtils {
         return r;
     }
 
-    public static double[] removeSmallsOnDif(double[] v, double[] longMa, double eps) {
+    public static double[] removeSmallsOnDif(double[] v, double eps) {
         double[] r = v.clone();
         int prevChange = 0;
         double sum = 0;
         for (int i = 1; i < v.length - 1; i++) {
             if (v[i] * v[i - 1] <= 0) {
-                if (Math.abs(sum) < longMa[i]*eps) {
+                if (Math.abs(sum) < eps) {
                     Arrays.fill(r, prevChange, i, 0);
                 }
                 prevChange = i;
                 sum = 0;
             }
-            sum += v[i];
+            sum += v[i]*v[i];
         }
         return r;
     }
@@ -673,10 +689,10 @@ public class VecUtils {
     }
 
 
-    public static double[] smallToZero(double[] v, double[] longMa, double eps) {
+    public static double[] smallToZero(double[] v, double eps) {
         double[] r = v.clone();
         for (int i = 0;i<v.length;i++)
-            if (Math.abs(v[i])<longMa[i]*eps)
+            if (Math.abs(v[i])<eps)
                 r[i] = 0;
         return r;
     }
@@ -685,33 +701,48 @@ public class VecUtils {
         return Arrays.stream(v).map(Math::abs).toArray();
     }
 
-    public static double[] makeDifForLevels(double[] data, double k) {
-        double[] d = VecUtils.ma(VecUtils.hairFilter(VecUtils.hairFilter(data)),4);
+    public static double[] makeDifForLevels(double[] data, double k, double k2) {
+        double[] d = VecUtils.ma(VecUtils.hairFilter(VecUtils.hairFilter(data)),(int)(2*k2));
         double[] dif = VecUtils.dif(d);
-        dif = VecUtils.ma(dif,2);
+        dif = VecUtils.ma(dif,(int)k2);
         dif = VecUtils.hairFilter(VecUtils.hairFilter(dif));
         dif = VecUtils.negativeHairFilter(VecUtils.negativeHairFilter(dif));
         double[] difLongMa = VecUtils.ma(VecUtils.abs(dif), 100);
-        double maxdif = Arrays.stream(dif).map(Math::abs).max().getAsDouble();
-        dif = VecUtils.pitsToZero(dif,2);
-        dif = VecUtils.smallToZero(dif,difLongMa,0.4);
-        dif = VecUtils.removeSmallsOnDif(dif,difLongMa,3*k);
+//        double maxdif = Arrays.stream(dif).map(Math::abs).max().getAsDouble();
+        dif = VecUtils.div(dif,difLongMa);
+//        dif = VecUtils.pitsToZero(dif,2);
+//        dif = VecUtils.smallToZero(dif,0.4);
+        dif = VecUtils.removeSmallsOnDif(dif,2*k);
         return dif;
     }
 
-    public static int findBaseInLevels(List<Integer> levels, int current){
-        for (int i = 0;i<levels.size();i++)
-            if (levels.get(i)>current)
+    public static double[] div(double[] v, double[] v2) {
+        double[] r = v.clone();
+        for (int i = 0;i<r.length;i++)
+            r[i] = v2[i]==0?0:v[i]/v2[i];
+        return r;
+    }
+
+    public static int findBaseInLevels(int[] levels, int current){
+        for (int i = 0;i<levels.length;i++)
+            if (levels[i]>current)
                 return i==0?0:i-1;
-        return levels.size()-1;
+        return levels.length-1;
     }
 
-    public static int nextLevel(List<Integer> levels, int fromIndex, int move){
+    public static int nextLevel(int[] levels, int fromIndex, int move, int steps){
         fromIndex += move;
-        if (fromIndex<0) return Math.max(0,levels.get(0)+fromIndex*10);
-        if (fromIndex>=levels.size()) return Math.min(Volumes.steps,levels.get(levels.size()-1)+(fromIndex-levels.size()+1)*10);
-        return levels.get(fromIndex);
+        if (fromIndex<0) return Math.max(0,levels[0]+fromIndex*10);
+        if (fromIndex>=levels.length) return Math.min(steps,levels[levels.length-1]+(fromIndex-levels.length+1)*10);
+        return levels[fromIndex];
 
     }
 
+    public static double[] norm(double[] v) {
+        Pair<Double, Double> mm = VecUtils.minMax(v);
+        double[] res = v.clone();
+        for (int i = 0;i<res.length;i++)
+            res[i] = (res[i]-mm.getFirst())/(mm.getSecond()-mm.getFirst());
+        return res;
+    }
 }

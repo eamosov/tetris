@@ -12,8 +12,8 @@ import java.util.Arrays;
 public class VisExperiments {
     public static void main(String[] args) throws Exception {
         Visualizator vis = new Visualizator(TestUtils.makeSheet("indicators_simple.json",new Instrument("BTC", "USDT")));
-        Pair<double[], double[]> vv = vis.getSheet().volumes().getVolumes();
-        double[] sum = VecUtils.add(vv.getFirst(), vv.getSecond(), 1);
+//        Pair<double[], double[]> vv = vis.getSheet().volumes().get();
+//        double[] sum = VecUtils.add(vv.getFirst(), vv.getSecond(), 1);
 //        Exporter.string2file("d:\\delme\\sum", Arrays.toString(sum));
 
 //        vis.updateSelectedIndicator(12);

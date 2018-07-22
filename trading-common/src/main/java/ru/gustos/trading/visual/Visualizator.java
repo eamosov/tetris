@@ -1,6 +1,8 @@
 package ru.gustos.trading.visual;
 
+import kotlin.Pair;
 import ru.efreet.trading.bot.TradeHistory;
+import ru.gustos.trading.book.Extrapolation;
 import ru.gustos.trading.book.PlayIndicator;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
@@ -29,10 +31,17 @@ public class Visualizator {
     double param = 0;
     int averageWindow = 50;
     String averageType = "None";
-    private boolean fixedVolumes = true;
+    private boolean fixedVolumes = false;
     private boolean gustosVolumes = false;
     private int selectedIndex;
     private boolean fullZoom = false;
+    private boolean priceLineByClick = false;
+    private boolean localModelByClick = false;
+    private double lineAtPrice = 0;
+    private double selectedPrice1 = 0;
+    private double selectedPrice2 = 0;
+
+    Extrapolation extrapolation = null;
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -151,26 +160,33 @@ public class Visualizator {
 
     private Point startDrag;
     private int startDragIndex;
-    public void mousePressed(Point point) {
+    private double startDragPrice;
+    public void mousePressed(Point point, int button) {
         startDrag = point;
         startDragIndex = from;
+        startDragPrice = frame.form.getCandlesPane().screen2price(point.y);
+        Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMousePressed(point, button));
     }
 
-    public void mouseReleased(Point point) {
+    public void mouseReleased(Point point, int button) {
         startDrag = null;
+        Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMousePressed(point, button));
+
     }
     public void mouseExited(Point point) {
         startDrag = null;
     }
-    public void mouseDrag(Point point) {
-        if (startDrag!=null){
+    public void mouseDrag(Point point, int button, int modifiers) {
+        if ((modifiers & Event.SHIFT_MASK)!=0){
+            setSelectedPrice(startDragPrice,frame.form.getCandlesPane().screen2price(point.y));
+        } else if (startDrag!=null){
             int dif = getIndexAt(point)-getIndexAt(startDrag);
             setIndex(startDragIndex-dif);
         }
     }
 
-    public void mouseClicked(Point point) {
-        Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMouseClicked(point));
+    public void mouseClicked(Point point, int button) {
+        Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMouseClicked(point, button));
     }
 
     public static void main(String[] args) {
@@ -296,6 +312,29 @@ public class Visualizator {
         Arrays.stream(viewListeners.getListeners(VisualizatorBarAtMouseListener.class)).forEach(i->i.visualizatorBarAtMouseChanged(selectedIndex));
     }
 
+    public double getLineAtPrice(){
+        return lineAtPrice;
+    }
+
+    public Pair<Double,Double> getSelectedPrice(){
+        if (selectedPrice2==0) return null;
+        return new Pair<>(selectedPrice1, selectedPrice2);
+    }
+
+    public void setLineAtPrice(double price) {
+        lineAtPrice = price;
+        selectedPrice1 = 0;
+        selectedPrice2 = 0;
+        fireViewUpdated();
+    }
+
+    private void setSelectedPrice(double price1, double price2) {
+        lineAtPrice = 0;
+        selectedPrice1 = Math.min(price1,price2);
+        selectedPrice2 = Math.max(price1,price2);
+        fireViewUpdated();
+    }
+
     public int getSelectedIndex(){
         return selectedIndex;
     }
@@ -325,6 +364,29 @@ public class Visualizator {
 
     public boolean getFullZoom() {
         return fullZoom;
+    }
+
+    public void setPriceLineByClick(boolean state) {
+        priceLineByClick = state;
+        fireViewUpdated();
+    }
+
+    public boolean getPriceLineByClick() {
+        return priceLineByClick;
+    }
+
+    public void setLocalModelByClick(boolean state) {
+        localModelByClick = state;
+        fireViewUpdated();
+    }
+
+    public boolean getLocalModelByClick() {
+        return localModelByClick;
+    }
+
+    public void setExtrapolation(Extrapolation e){
+        extrapolation = e;
+        fireViewUpdated();
     }
 }
 

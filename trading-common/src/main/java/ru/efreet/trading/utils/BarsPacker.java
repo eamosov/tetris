@@ -2,6 +2,7 @@ package ru.efreet.trading.utils;
 
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
+import ru.gustos.trading.book.indicators.EmaRecurrent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,8 @@ public class BarsPacker {
         double[] dd = list.stream().mapToDouble(XBar::getVolume).toArray();
         Arrays.sort(dd);
         double avg = dd[dd.length/2];
+//        System.out.println(avg);
+//        avg = 1.6;
         return packBarsVolume(list,minutes*avg);
     }
     public static ArrayList<XBaseBar> packBarsVolume(List<? extends XBar> list, double volume){
@@ -19,6 +22,23 @@ public class BarsPacker {
         XBaseBar last = null;
         for (XBar b : list){
             if (last==null || last.getVolume()>=volume){
+                last = new XBaseBar(b);
+                result.add(last);
+            } else {
+                last.addBar(b);
+            }
+        }
+        return result;
+
+    }
+
+    public static ArrayList<XBaseBar> packBarsVolumeEma(List<? extends XBar> list, int window, double k){
+        ArrayList<XBaseBar> result = new ArrayList<XBaseBar>();
+        XBaseBar last = null;
+        EmaRecurrent ema = new EmaRecurrent(window);
+        for (XBar b : list){
+            double avg = ema.feed(b.getVolume());
+            if (last==null || last.getVolume()>=avg*k){
                 last = new XBaseBar(b);
                 result.add(last);
             } else {

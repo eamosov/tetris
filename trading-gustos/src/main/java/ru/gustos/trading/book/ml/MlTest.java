@@ -38,6 +38,7 @@ public class MlTest {
                 rf.setNumFeatures(i);
                 rf.setNumIterations(500*j);
                 rf.buildClassifier(trainData);
+                rf.setComputeAttributeImportance(true);
                 CostMatrix m = new CostMatrix(2);
 
                 CostSensitiveClassifier cc = new CostSensitiveClassifier();

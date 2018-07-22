@@ -6,6 +6,8 @@ import ru.efreet.trading.Decision;
 import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.IndicatorResultType;
 
+import java.util.ArrayList;
+
 public class SheetUtils {
 
     public static void FillDecisions(Sheet sheet){
@@ -164,7 +166,7 @@ public class SheetUtils {
         return new Pair<>(min,max);
     }
 
-    public static double sellPrice(Sheet sheet, int index, boolean optimist){
+    public static double sellPrice(BarsSource sheet, int index, boolean optimist){
         XBar bar = sheet.bar(index);
         if (optimist)
             return bar.getMinPrice()*0.8 + bar.getMaxPrice()*0.2;
@@ -172,7 +174,7 @@ public class SheetUtils {
             return bar.getMinPrice()*0.2 + bar.getMaxPrice()*0.8;
     }
 
-    public static double[] sellValues(Sheet sheet, boolean optimist){
+    public static double[] sellValues(BarsSource sheet, boolean optimist){
         double[] sellValues = new double[sheet.size()];
         for (int i = 0;i<sellValues.length;i++){
             double v = sellPrice(sheet,i,optimist);
@@ -203,6 +205,97 @@ public class SheetUtils {
         while (minPrice*mul>10000)
             mul/=10;
         return Integer.toString((int)(price*mul));
+    }
+
+    public static double upCandles(BarsSource sheet,  int from, int bars){
+        double upper = 0;
+        double total = 0;
+        for (int i = 0;i<bars;i++)if (from-i>=0){
+            XBar bar = sheet.bar(from - i);
+            upper+=bar.getMaxPrice()-Math.max(bar.getOpenPrice(),bar.getClosePrice());
+            total+=bar.getMaxPrice()-bar.getMinPrice();
+        }
+        return upper/Math.max(1,total);
+    }
+
+    public static double downCandles(BarsSource sheet,  int from, int bars){
+        double lower = 0;
+        double total = 0;
+        for (int i = 0;i<bars;i++)if (from-i>=0){
+            XBar bar = sheet.bar(from - i);
+            lower+=Math.min(bar.getOpenPrice(),bar.getClosePrice())-bar.getMinPrice();
+            total+=bar.getMaxPrice()-bar.getMinPrice();
+        }
+        return lower/Math.max(1,total);
+    }
+
+    public static double volumesAroundLevel(BarsSource sheet, double price, int from, int bars){
+        double upper = 0;
+        double lower = 0;
+        for (int i = 0;i<bars;i++)if (from-i>=0){
+            XBar bar = sheet.bar(from - i);
+            if (bar.getMaxPrice()<=price)
+                lower+=bar.getVolume();
+            else if (bar.getMinPrice()>=price)
+                upper+=bar.getVolume();
+            else {
+                double k = (price-bar.getMinPrice())/bar.deltaMaxMin();
+                lower+=bar.getVolume()*k;
+                upper+=bar.getVolume()*(1-k);
+            }
+        }
+        if (upper+lower==0) return 0;
+        return upper/(upper+lower);
+    }
+
+    public static int findMinimum(BarsSource sheet, int from, int to){
+        double p = sheet.bar(from).getMinPrice();
+        int res = from;
+        for (int i = from+1;i<to;i++) {
+            double v = sheet.bar(i).getMinPrice();
+            if (v<p) {
+                p = v;
+                res = i;
+            }
+        }
+        return res;
+    }
+
+    public static int findMaximum(BarsSource sheet, int from, int to){
+        double p = sheet.bar(from).getMaxPrice();
+        int res = from;
+        for (int i = from+1;i<to;i++) {
+            double v = sheet.bar(i).getMaxPrice();
+            if (v>p) {
+                p = v;
+                res = i;
+            }
+        }
+        return res;
+    }
+
+
+    public static ArrayList<Integer> findPrevMinimums(BarsSource sheet, int index, int r, int cnt){
+        return findPrevPoints(sheet, index, r, cnt, SheetUtils::findMinimum);
+    }
+
+    public static ArrayList<Integer> findPrevMaximums(BarsSource sheet, int index, int r, int cnt){
+        return findPrevPoints(sheet, index, r, cnt, SheetUtils::findMaximum);
+    }
+
+    public static ArrayList<Integer> findPrevPoints(BarsSource sheet, int index, int r, int cnt, FindHelper find){
+        ArrayList<Integer> result = new ArrayList<>();
+        int m = find.find(sheet, index - r / 2, index + 1);
+        result.add(m);
+        while (result.size()<cnt){
+            m = find.find(sheet, m - r, m);
+            result.add(m);
+        }
+        return result;
+    }
+
+    interface FindHelper {
+        int find(BarsSource sheet, int from, int to);
     }
 }
 

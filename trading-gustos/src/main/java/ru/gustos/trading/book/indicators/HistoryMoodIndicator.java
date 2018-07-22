@@ -27,7 +27,7 @@ public class HistoryMoodIndicator extends NumberIndicator {
 
         double[] sellValues = SheetUtils.sellValues(sheet,data.positive);
         for (int i = Math.max(from,bars);i<to;i++){
-            double result = run(sheet,i-bars,i-5,sellValues);
+            double result = run(sheet,i-bars,i-5,sellValues, data.positive);
             if (data.positive)
                 values[0][i] = result/1000-1;
             else
@@ -40,7 +40,7 @@ public class HistoryMoodIndicator extends NumberIndicator {
 
     public static final double fee = 0.9995;
 
-    public double run(Sheet sheet, int from, int to,double[] sellValues){
+    public static double run(Sheet sheet, int from, int to,double[] sellValues, boolean positive){
         double money = startMoney;
         int offset = 30;
         double percent = 1.015;
@@ -48,11 +48,11 @@ public class HistoryMoodIndicator extends NumberIndicator {
             XBar bar = sheet.bar(i);
             XBar nextbar = sheet.moments.get(i+1).bar;
             double val, nextval;
-            if (data.positive)
+            if (positive)
                 val = sellValues[i+offset]/bar.getClosePrice();
             else
                 val = bar.getClosePrice()/sellValues[i+offset];
-            if (data.positive)
+            if (positive)
                 nextval = sellValues[i+1+offset]/nextbar.getClosePrice();
             else
                 nextval = nextbar.getClosePrice()/sellValues[i+1+offset];

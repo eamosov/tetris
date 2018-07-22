@@ -78,6 +78,7 @@ public class TestUtils {
         return cache.getInstruments(exch.getName(),interval);
     }
 
+    public static double barsPack = 0;
     public static Sheet makeSheet(String libfile, Instrument instr, ZonedDateTime from, ZonedDateTime to) throws Exception {
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
@@ -88,7 +89,8 @@ public class TestUtils {
         IndicatorsLib lib = libfile==null?new IndicatorsLib():new IndicatorsLib(libfile);
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
-        bars = BarsPacker.packBarsVolumeAvg(bars,30);
+//        bars = BarsPacker.packBarsVolumeEma(bars,1000,8.1);
+//        bars = BarsPacker.packBarsVolumeAvg(bars,30);
         sheet.fromBars(bars);
         return sheet;
     }
@@ -107,4 +109,25 @@ public class TestUtils {
         vis.setPlayHistory(history);
         return vis;
     }
+
+    public static void main(String[] args) {
+        Exchange exch = new Binance();
+        BarInterval interval = BarInterval.ONE_MIN;
+        ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
+        Instrument instr = new Instrument("BCC", "USDT");
+        BarsCache cache1 = new BarsCache("cache.sqlite3");
+        BarsCache cache2 = new BarsCache("cache2.sqlite3");
+        List<XBaseBar> bars1 = cache1.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        List<XBaseBar> bars2 = cache2.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        for (int i = 0;i<bars1.size();i++){
+            XBaseBar b1 = bars1.get(i);
+            XBaseBar b2 = bars2.get(i);
+            if (!b1.equals(b2)){
+                System.out.println("not equal "+ b1+" "+b2);
+            }
+        }
+
+    }
 }
+
+

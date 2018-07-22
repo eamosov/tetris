@@ -63,7 +63,26 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
         drawIndicatorLines(g);
         g.setColor(Color.blue);
         drawProfitLine(g);
+        paintPriceAtLine(g);
     }
+
+    private void paintPriceAtLine(Graphics g) {
+        double price = vis.getLineAtPrice();
+        if (price !=0){
+            int y = price2y(price);
+            g.setColor(CandlesPane.SELECTEDLINECOLOR);
+            g.drawLine(0,y,getWidth(),y);
+        }
+        Pair<Double, Double> selectedPrice = vis.getSelectedPrice();
+        if (selectedPrice!=null){
+            int y1 = price2y(selectedPrice.getFirst());
+            int y2 = price2y(selectedPrice.getSecond());
+            g.setColor(CandlesPane.SELECTEDINTERVALCOLOR);
+            g.fillRect(0,y2,getWidth(),y1-y2+1);
+        }
+
+    }
+
 
     private void drawProfitLine(Graphics g) {
         if (vis.playResult!=null) {

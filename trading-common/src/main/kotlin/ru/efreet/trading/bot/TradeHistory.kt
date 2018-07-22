@@ -65,6 +65,25 @@ data class TradeHistory(val startUsd: Double,
         return end / start
     }
 
+    fun profitString() : String {
+        val sb = StringBuilder()
+        for (i in 0 until trades.size step 2)
+            sb.append(when {
+                trades[i+1].after()>trades[i].before()*1.03 -> "\u2795"
+                trades[i+1].after()>trades[i].before() -> "+"
+                trades[i+1].after()<trades[i].before()*.97 -> "\u2796"
+                else -> "-"
+                })
+//            sb.append(when {
+//                trades[i+1].after()>trades[i].before()*1.03 -> "+"//"\u2795"
+//                trades[i+1].after()>trades[i].before()*1.004 -> "+"
+//                trades[i+1].after()<trades[i].before()*.97 -> "\u2796"
+//                trades[i+1].after()<trades[i].before()*0.997 -> "-"
+//                else -> " "
+//                })
+        return sb.toString()
+    }
+
     fun worstInterval(len: Int): Double {
         return when {
             trades.size > len -> return (len until trades.size).map { trades[it].after() / trades[it - len].before() }.min()!!

@@ -84,7 +84,7 @@ public class VisualizatorForm {
         });
         panelWithLine.addMouseMotionListener(new MouseMotionListener() {
             @Override
-            public void mouseDragged(MouseEvent e) { vis.mouseDrag(e.getPoint());  }
+            public void mouseDragged(MouseEvent e) { vis.mouseDrag(e.getPoint(),e.getButton(),e.getModifiers());  }
 
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -95,17 +95,17 @@ public class VisualizatorForm {
         panelWithLine.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                vis.mouseClicked(e.getPoint());
+                vis.mouseClicked(e.getPoint(),e.getButton());
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
-                vis.mousePressed(e.getPoint());
+                vis.mousePressed(e.getPoint(),e.getButton());
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                vis.mouseReleased(e.getPoint());
+                vis.mouseReleased(e.getPoint(),e.getButton());
             }
 
             @Override
@@ -131,7 +131,7 @@ public class VisualizatorForm {
             }
 
             @Override
-            public void visualizatorMouseClicked(Point p) {
+            public void visualizatorMouseClicked(Point p, int button) {
                 mouseClick(p);
             }
         });

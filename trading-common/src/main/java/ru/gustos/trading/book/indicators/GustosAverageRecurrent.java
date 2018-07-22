@@ -7,9 +7,11 @@ import static ru.gustos.trading.book.indicators.VecUtils.ema;
 
 public class GustosAverageRecurrent {
 
-    private final int window;
+    private int window;
     private final EmaRecurrent volumeEma;
     private final EmaRecurrent volumeEmaShort;
+    private double pvalue;
+    private double pdisp;
     private double value;
     private double disp;
     private double pow1;// = 2.4;
@@ -20,25 +22,51 @@ public class GustosAverageRecurrent {
         this(window,volumeWindow,shortVolumeWindow,2.4,1.4);
     }
     public GustosAverageRecurrent(int window, int volumeWindow, int shortVolumeWindow, double pow1, double pow2){
-        this.window = window;
-        volumeEma = new EmaRecurrent(volumeWindow);
-        volumeEmaShort = new EmaRecurrent(shortVolumeWindow < 1 ? 1 : shortVolumeWindow);
+        volumeEma = new EmaRecurrent(1);
+        volumeEmaShort = new EmaRecurrent(1);
+        changeParams(window,volumeWindow,shortVolumeWindow,pow1,pow2);
+    }
+
+    private GustosAverageRecurrent(GustosAverageRecurrent g){
+        window = g.window;
+        pvalue = g.pvalue;
+        pdisp = g.pdisp;
+        value = g.value;
+        disp = g.disp;
+        pow1 = g.pow1;
+        pow2 = g.pow2;
+        volumeEma = new EmaRecurrent(g.volumeEma);
+        volumeEmaShort = new EmaRecurrent(g.volumeEmaShort);
+    }
+
+    public GustosAverageRecurrent clone(){
+        return new GustosAverageRecurrent(this);
+
+    }
+
+    public void changeParams(int window, int volumeWindow, int shortVolumeWindow, double pow1, double pow2){
         if (pow1<0) pow1 = 0;
         if (pow2<0) pow2 = 0;
         if (pow1>4) pow1 = 4;
         if (pow2>4) pow2 = 4;
         this.pow1 = pow1;
         this.pow2 = pow2;
+        this.window = window;
+        volumeEma.changeW(volumeWindow);
+        volumeEmaShort.changeW(shortVolumeWindow < 1 ? 1 : shortVolumeWindow);
+
     }
 
-    public Pair<Double,Double> feed(double price, double volume){
+    public void feedNoReturn(double price, double volume){
         if (!volumeEma.started()){
             volumeEma.feed(volume);
             volumeEmaShort.feed(volume);
-            value = price;
-            disp = 0;
-            return new Pair<>(value,disp);
+            pvalue = value = price;
+            pdisp = disp = 0;
+            return;
         }
+        pvalue = value;
+        pdisp = disp;
         double oldValue = value;
         double avgVolume = volumeEma.feed(volume);
         double shortVolume = volumeEmaShort.feed(volume);
@@ -47,18 +75,21 @@ public class GustosAverageRecurrent {
         a*=a*=a;
         double next = oldValue+(price-oldValue)/(0.6*window*a);
         if (volumek<=1){
-            double vk = Math.pow(volumek, 5);
+//            double vk = Math.pow(volumek, 5);
+            double vk = volumek*volumek;
+            vk = vk*vk*volumek;
             volumek = vk;
             value = oldValue * (1 - vk) + next * vk;
         } else {
             double vk = Math.pow(volumek,pow1);
             double pn = 0;
+            a = price/next;
             while (vk>1) {
                 pn = next;
-                a = price/next;
                 a*=a*=a;
                 next = next + (price - next) / (0.6 * window * a);
-                if (Math.abs(next/price-1)<0.0001) {
+                a = price/next;
+                if (a<1.0001 && a>0.9999) {
                     vk = 0;
                     break;
                 }
@@ -73,8 +104,26 @@ public class GustosAverageRecurrent {
         double d = price-value;
         d*=d;
         disp = (d- disp)* 2.0/(window/ volumek +1) + disp;
-
+    }
+    public Pair<Double,Double> feed(double price, double volume){
+        feedNoReturn(price,volume);
         return new Pair<>(value,Math.sqrt(disp));
+    }
+
+    public double pvalue(){
+        return pvalue;
+    }
+
+    public double value(){
+        return value;
+    }
+
+    public double sd(){
+        return Math.sqrt(disp);
+    }
+
+    public double psd(){
+        return Math.sqrt(pdisp);
     }
 
 

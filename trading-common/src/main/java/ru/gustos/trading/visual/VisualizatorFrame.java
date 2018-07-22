@@ -44,6 +44,8 @@ public class VisualizatorFrame extends JFrame{
     private void initMenu() {
         JMenu mm = new JMenu("Menu");
         menu.add(mm);
+        JMenu mm2 = new JMenu("Right");
+        menu.add(mm2);
 
         JMenuItem indicators = new JMenuItem("Indicators");
         indicators.addActionListener(a->vis.onShowIndicators());
@@ -58,15 +60,25 @@ public class VisualizatorFrame extends JFrame{
         fullZoom.addActionListener(a->vis.setFullZoom(fullZoom.getState()));
         mm.add(fullZoom);
 
+        JCheckBoxMenuItem priceLine = new JCheckBoxMenuItem("Price line");
+        priceLine.setState(vis.getPriceLineByClick());
+        priceLine.addActionListener(a->vis.setPriceLineByClick(priceLine.getState()));
+        mm.add(priceLine);
+
+        JCheckBoxMenuItem localModel = new JCheckBoxMenuItem("Local model");
+        localModel.setState(vis.getLocalModelByClick());
+        localModel.addActionListener(a->vis.setLocalModelByClick(localModel.getState()));
+        mm.add(localModel);
+
         JCheckBoxMenuItem fixedVolume = new JCheckBoxMenuItem("Fixed volumes");
         fixedVolume.setState(vis.getFixedVolumes());
         fixedVolume.addActionListener(a->vis.setFixedVolumes(fixedVolume.getState()));
-        mm.add(fixedVolume);
+        mm2.add(fixedVolume);
 
         JCheckBoxMenuItem gustosVolume = new JCheckBoxMenuItem("Gustos volumes");
         gustosVolume.setState(vis.getGustosVolumes());
         gustosVolume.addActionListener(a->vis.setGustosVolumes(gustosVolume.getState()));
-        mm.add(gustosVolume);
+        mm2.add(gustosVolume);
     }
 
 }

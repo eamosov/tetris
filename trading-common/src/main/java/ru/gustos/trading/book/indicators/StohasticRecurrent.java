@@ -33,14 +33,16 @@ public class StohasticRecurrent {
         }
         pos = (pos+1)%maxprices.length;
         maxprices[pos] = bar.getMaxPrice();
+        minprices[pos] = bar.getMinPrice();
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
         for (int i = 0;i<maxprices.length;i++) if (i!=pos){
             double v = maxprices[i];
-            if (v<min) min = v;
             if (v>max) max = v;
+            v = minprices[i];
+            if (v<min) min = v;
         }
-        double percent = (bar.getClosePrice()-min)/(max-min);
+        double percent = max==min?0:(bar.getClosePrice()-min)/(max-min);
         Decision result = Decision.NONE;
         if (prevPercent>topPercent && percent<topPercent && percent>topPercentLimit)
             result = Decision.SELL;
@@ -51,4 +53,9 @@ public class StohasticRecurrent {
         return result;
     }
 
+    public double percent(){
+        return prevPercent;
+    }
+
 }
+

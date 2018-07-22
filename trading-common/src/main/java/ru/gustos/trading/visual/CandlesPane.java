@@ -1,6 +1,7 @@
 package ru.gustos.trading.visual;
 
 import kotlin.Pair;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Sheet;
@@ -24,6 +25,8 @@ public class CandlesPane extends JPanel {
     public static final Color darkerColor = new Color(37, 45, 45);
 
     public static final double gridStep = 1.005;
+    public static final Color SELECTEDLINECOLOR = new Color(255, 0, 0, 128);
+    public static final Color SELECTEDINTERVALCOLOR = new Color(255, 0, 0, 64);
 
 
     private Visualizator vis;
@@ -59,6 +62,14 @@ public class CandlesPane extends JPanel {
             minMax = sheet.totalBar();
         else
             minMax = sheet.getSumBar(from, bars);
+        double price = vis.getLineAtPrice();
+        if (price!=0)
+            minMax = VecUtils.expandMinMax(new XBaseBar(minMax),price);
+        Pair<Double, Double> pp = vis.getSelectedPrice();
+        if (pp!=null) {
+            minMax = VecUtils.expandMinMax(new XBaseBar(minMax), pp.getFirst());
+            minMax = VecUtils.expandMinMax(minMax, pp.getSecond());
+        }
     }
 
     public void paint(Graphics g) {
@@ -84,16 +95,69 @@ public class CandlesPane extends JPanel {
             XBar bar = getBar(i);
             paintBar(g, i, bar);
         }
-        if (vis.param > 0)
-            paintVolumeLine(g);
+//        if (vis.param > 0)
+//            paintVolumeLine(g);
         paintGrid(g, true);
         if (hasAverage)
             paintAverage(g);
         for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
             for (int i = 0; i < ii.getNumberOfLines(); i++)
                 paintPriceLine(g, ii, i);
+        paintPriceAtLine(g);
+        paintRegression(g);
+        paintExtrapolation(g);
         minMax = null;
+
         super.paint(g);
+    }
+
+    private void paintExtrapolation(Graphics g) {
+        if (vis.extrapolation!=null){
+            int realFrom = vis.extrapolation.from();
+            int efrom = realFrom -15;
+            int realTo = vis.extrapolation.to();
+            int eto = realTo +15;
+            if (eto<= this.from) return;
+            if (efrom>= this.to) return;
+            if (this.from >efrom) efrom = this.from;
+            if (this.to <eto) eto = this.to;
+            for (int i = efrom;i<eto;i++){
+                double v1 = vis.extrapolation.value(i);
+                double v2 = vis.extrapolation.value(i+1);
+                if (i<realFrom || i>=realTo)
+                    g.setColor(Color.orange);
+                else
+                    g.setColor(Color.black);
+                g.drawLine(ind2screen(i),price2screen(v1),ind2screen(i+1),price2screen(v2));
+            }
+        }
+    }
+
+    private void paintRegression(Graphics g) {
+//        SimpleRegression r = new SimpleRegression();
+//        for (int i = 0;i<(to-from)*2/3;i++)
+//            r.addData(i,vis.getSheet().bar(i+from).getClosePrice());
+//
+//        g.drawLine(0,price2screen(r.predict(0)),getWidth(),price2screen(r.predict(to-from)));
+//        g.drawString(String.format("%.3g %.3g",r.getSlopeConfidenceInterval(), r.getSlopeStdErr()),getWidth()-100,price2screen(r.predict(to-from)));
+
+    }
+
+    private void paintPriceAtLine(Graphics g) {
+        double price = vis.getLineAtPrice();
+        if (price !=0){
+            int y = price2screen(price);
+            g.setColor(CandlesPane.SELECTEDLINECOLOR);
+            g.drawLine(0,y,getWidth(),y);
+        }
+        Pair<Double, Double> selectedPrice = vis.getSelectedPrice();
+        if (selectedPrice!=null){
+            int y1 = price2screen(selectedPrice.getFirst());
+            int y2 = price2screen(selectedPrice.getSecond());
+            g.setColor(CandlesPane.SELECTEDINTERVALCOLOR);
+            g.fillRect(0,y2,getWidth(),y1-y2+1);
+        }
+
     }
 
     private void paintBackIndicators(Graphics g) {
@@ -172,7 +236,7 @@ public class CandlesPane extends JPanel {
             if (vis.averageType.equalsIgnoreCase("gustos"))
                 rr = GustosAverageRecurrent.calc(v, window, vols, window * 4);
             else if (vis.averageType.equalsIgnoreCase("gustos2"))
-                rr = GustosAverageRecurrent2.calc(v, window, vols, window * 4);
+                rr = GustosAverageBlackSwanRecurrent.calc(v, vols,window,5);
             else if (vis.averageType.equalsIgnoreCase("Real avg"))
                 rr = VecUtils.futureMaAndDisp(v, window);
             else if (vis.averageType.equalsIgnoreCase("gustos ema"))
@@ -196,9 +260,16 @@ public class CandlesPane extends JPanel {
     private void paintAverage(Graphics g) {
         int scale = vis.zoomScale();
         paintPriceLine(g, this.avg, BLUE, 2f);
-//        paintPriceLine(g, VecUtils.add(this.avg, disp, 1), darkColor, 1f);
-//        paintPriceLine(g, VecUtils.add(this.avg, disp, -1), darkColor, 1f);
+        paintPriceLine(g, VecUtils.add(this.avg, disp, 1), darkColor, 1f);
+        paintPriceLine(g, VecUtils.add(this.avg, disp, -1), darkColor, 1f);
+    }
 
+    private int ind2screen(int index){
+        int from = vis.getIndex();
+        int scale = vis.zoomScale();
+        int bars = getSize().width * scale / vis.candleWidth();
+        int w = vis.candleWidth();
+        return (index-from)/scale*w+w/2;
     }
 
     private void paintPriceLine(Graphics g, double[] values, Color color, float stroke) {
