@@ -124,7 +124,7 @@ public class PLHistory {
         }
     }
 
-    public void sellMoment(double cost, long timeSell){
+    public double sellMoment(double cost, long timeSell){
         if (buyCost!=0) {
             double profit = cost * 0.998 / buyCost;
             if (testedBuy)
@@ -134,7 +134,9 @@ public class PLHistory {
             buyCost = 0;
             if (analyzer!=null)
                 analyzer.newHistoryEvent(this);
+            return profit;
         }
+        return 0;
     }
 
     public String toPlusMinusString() {

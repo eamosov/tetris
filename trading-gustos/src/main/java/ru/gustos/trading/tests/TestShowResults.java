@@ -29,7 +29,7 @@ public class TestShowResults {
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/t2.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
@@ -40,8 +40,8 @@ public class TestShowResults {
 
         ArrayList<PLHistory> hh = planalyzer1.histories;
         global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).toArray(Instrument[]::new));
-
-
+//        System.out.println(planalyzer3.histories.get(0).profitHistory.size());
+//        System.out.println(planalyzer3.histories.get(1).profitHistory.size());
 
         ApplicationFrame frame = graph.getFrame();
         JPanel options = new JPanel();

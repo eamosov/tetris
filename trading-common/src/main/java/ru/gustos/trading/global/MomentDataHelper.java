@@ -152,8 +152,8 @@ public class MomentDataHelper {
             return v>0.5;
         } catch (Exception e) {
             e.printStackTrace();
+            throw new NullPointerException("error classifying");
         }
-        return false;
     }
 
     public void printImpurity(Instances set1, double[] impurity, String prefix) {

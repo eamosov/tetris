@@ -34,7 +34,7 @@ public class TimeSeries<T>{
     }
 
     public int findIndex(long time){
-        int i = Arrays.binarySearch(times, time);
+        int i = Arrays.binarySearch(times, 0,size(),time);
         if (i==-1) return -1;
         if (i<0) {
             i = -i-1;

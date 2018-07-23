@@ -21,7 +21,7 @@ public class InstrumentData implements BarsSource{
 
     XBaseBar totalBar;
 
-    public InstrumentData(Exchange exch, Instrument instr, List<XBaseBar> bars, Global global){
+    public InstrumentData(Exchange exch, Instrument instr, List<? extends XBar> bars, Global global){
         exchange = exch;
         instrument = instr;
         this.global = global;
@@ -37,11 +37,11 @@ public class InstrumentData implements BarsSource{
         this(data.exchange,data.instrument, data.getBars(count),data.global);
     }
 
-    private List<XBaseBar> getBars(int count) {
+    private List<XBar> getBars(int count) {
         return bars.data.stream().limit(count).map(d->d.bar).collect(Collectors.toList());
     }
 
-    public void addBar(XBaseBar bar){
+    public void addBar(XBar bar){
         if (totalBar==null)
             totalBar = new XBaseBar(bar);
         else
@@ -102,10 +102,10 @@ interface MomentDataProvider {
     MomentData getMomentData();
 }
 class InstrumentMoment implements  MomentDataProvider{
-    XBaseBar bar;
+    XBar bar;
     MomentData mldata;
 
-    public InstrumentMoment(XBaseBar bar) {
+    public InstrumentMoment(XBar bar) {
         this.bar = bar;
         mldata = new MomentData(90);
     }

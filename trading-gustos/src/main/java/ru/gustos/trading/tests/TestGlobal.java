@@ -99,35 +99,40 @@ public class TestGlobal{
 
         StandardInstrumentCalc[] calcs = new StandardInstrumentCalc[instruments.length];
         for (int i = 0;i<calcs.length;i++) {
-            InstrumentData instrument = global.getInstrument(instruments[i].toString());
-            calcs[i] = new StandardInstrumentCalc(instrument);
-            calcs[i].precalc();
-        }
-        long toTime = ZonedDateTime.now().toEpochSecond();
-        long time = global.minTime;
-        int cc = 0;
-        while (time<toTime && !new File("stop").exists()) {
-            cc++;
-            System.out.println("go next 12h ("+cc+")");
-            global.planalyzer1.validateModel();
-            global.planalyzer2.validateModel();
-            global.planalyzer3.validateModel();
-            for (int i = 0; i < calcs.length; i++) {
-                InstrumentData instrument = global.getInstrument(instruments[i].toString());
-                calcs[i].calcTo(time + calcPeriod);
+            InstrumentData data = global.getInstrument(instruments[i].toString());
+            int bars = StandardInstrumentCalc.calcAllFrom;
+            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars));
+            calcs[i] = c;
+            for (;bars<data.size();bars++){
+                if ((bars-StandardInstrumentCalc.calcAllFrom)%(60*12)==0)
+                    c.checkNeedRenew(false);
+                c.addBar((XBaseBar) data.bar(bars));
             }
-            time+=calcPeriod;
+
         }
+//        long toTime = ZonedDateTime.now().toEpochSecond();
+//        long time = global.minTime;
+//        int cc = 0;
+//        while (time<toTime && !new File("stop").exists()) {
+//            cc++;
+//            System.out.println("go next 12h ("+cc+")");
+//            for (int i = 0; i < calcs.length; i++) {
+//                InstrumentData instrument = global.getInstrument(instruments[i].toString());
+//                calcs[i].calcTo(time + calcPeriod);
+//            }
+//            time+=calcPeriod;
+//        }
+
         for (int i = 0;i<calcs.length;i++)
             System.out.println(instruments[i]+" "+calcs[i].plhistory1.toPlusMinusString());
         double moneyPart = 0.1;
         ArrayList<ArrayList<Pair<Long,Double>>>  graphs = new ArrayList<>();
         ArrayList<Pair<Long, Double>> h1 = global.planalyzer1.makeHistory(false, moneyPart,null);
         graphs.add(h1);
-        graphs.add(global.planalyzer1.makeHistoryNormalized(true, moneyPart,h1,null));
-        graphs.add(global.planalyzer2.makeHistoryNormalized(false, moneyPart,h1,null));
+//        graphs.add(global.planalyzer1.makeHistoryNormalized(true, moneyPart,h1,null));
+        graphs.add(global.planalyzer2.makeHistory(false, moneyPart,null));
 //        graphs.add(global.planalyzer2.makeHistoryNormalized(true, moneyPart,h1));
-        graphs.add(global.planalyzer3.makeHistoryNormalized(false, moneyPart,h1,null));
+        graphs.add(global.planalyzer3.makeHistory(false, moneyPart,null));
 //        graphs.add(global.planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
         new SimpleProfitGraph().drawHistory(makeMarketAveragePrice(global,global.planalyzer1,h1, null),graphs);
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream("d:/tetrislibs/pl/pl.out"))) {

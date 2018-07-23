@@ -11,6 +11,7 @@ import weka.core.stopwords.Null;
 import java.util.ArrayList;
 
 public class GustosLogicsOptimizedHistory{
+    public static final int COUNT = 10;
 
     ArrayList<GustosLogicOptimizator.Params> params = new ArrayList<>();
     ArrayList<Pair<GustosAverageRecurrent,GustosAverageRecurrent>> gars = new ArrayList<>();
@@ -47,7 +48,7 @@ public class GustosLogicsOptimizedHistory{
             sell.feedNoReturn(bar.getClosePrice(),bar.getVolume());
         }
         needIndex = index;
-        while (params.size()>10){
+        while (params.size()>COUNT){
             params.remove(0);
             gars.remove(0);
         }

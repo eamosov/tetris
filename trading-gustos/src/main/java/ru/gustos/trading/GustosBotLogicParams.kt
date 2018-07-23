@@ -77,7 +77,6 @@ data class GustosBotLogicParams2(
                                 override var tTakeProfit: Double = 0.1
 
 ) : AbstractBotLogicParams {
-
 }
 
 data class LevelsLogicParams(
@@ -105,3 +104,16 @@ data class LevelsLogicParams(
 ) : AbstractBotLogicParams {
 
 }
+
+data class GustosBotLogicParams3(
+
+        override var stopLoss: Double = 2.5,
+        override var tStopLoss: Double = 50.0,
+
+        override var takeProfit: Double = 100.0,
+        override var tTakeProfit: Double = 0.1
+
+) : AbstractBotLogicParams {
+
+}
+
