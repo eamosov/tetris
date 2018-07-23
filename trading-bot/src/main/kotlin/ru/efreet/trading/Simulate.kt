@@ -35,6 +35,7 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-03-01T
                  val trainPeriod: Duration = Duration.ofHours(24),
                  var startPopulation: Int = 500,
                  var population: Int = 20,
+                 var feeFactor: Double = 3.0,
                  var historyPath: String = "simulate_history.json",
                  var properties: String = "simulate.properties",
                  var initOptimisation: Boolean = true,
@@ -51,8 +52,6 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
     lateinit var state: State
     var trainer = cmd.makeTrainer<Any, TradesStats, Metrica>()
 
-    fun fee(): Double = (1.0 - (exchange.getFee() / 100.0) / 2.0)
-
     fun run(state: State) {
 
         this.state = state
@@ -60,7 +59,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         cache = BarsCache(cmd.cachePath)
 
         val realExchange = Exchange.getExchange(cmd.exchange)
-        exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, cache)
+        exchange = CachedExchange(realExchange.getName(), realExchange.getFee() * state.feeFactor, cmd.barInterval, cache)
 
         state.interval = cmd.barInterval
 
