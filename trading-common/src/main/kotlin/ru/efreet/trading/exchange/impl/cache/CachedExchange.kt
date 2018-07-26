@@ -17,11 +17,11 @@ class CachedExchange(val _name:String, val _fee:Double, val interval: BarInterva
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -55,5 +55,13 @@ class CachedExchange(val _name:String, val _fee:Double, val interval: BarInterva
 
     override fun getPricesMap(): Map<Instrument, Double> {
         throw NotImplementedError()
+    }
+
+    override fun getOpenOrders(instrument: Instrument): List<Order> {
+        return listOf()
+    }
+
+    override fun cancelOrder(order: Order) {
+
     }
 }

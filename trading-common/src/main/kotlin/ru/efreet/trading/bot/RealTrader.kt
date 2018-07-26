@@ -1,5 +1,6 @@
 package ru.efreet.trading.bot
 
+import com.sun.tools.corba.se.idl.constExpr.Or
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
@@ -16,7 +17,7 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
                  override val instruments: List<Instrument>
 ) : AbstractTrader(exchangeName) {
 
-    var balanceResult: Exchange.CalBalanceResult
+    lateinit var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
 
     override val startUsd: Double
@@ -34,13 +35,13 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
     init {
 
         //Balances in USD
-        balanceResult = exchange.calcBalance(baseName)
+        updateBalance()
 
         startUsd = usd
         startFunds = funds
     }
 
-    fun updateBalance(force: Boolean = false) {
+    override fun updateBalance(force: Boolean) {
         balanceUpdatedTimer.invoke({
             balanceResult = exchange.calcBalance(baseName)
         }, force)
@@ -82,12 +83,12 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
 
                 val usdBefore = balanceResult.balances[baseName]!!
                 val assetBefore = balanceResult.balances[advice.instrument.asset]!!
-                val order = exchange.buy(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.MARKET)
+                val order = exchange.buy(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
 
-                updateBalance(true)
+                updateBalance()
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
-                        advice.decision, advice.decisionArgs, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.asset,
                         exchange.getFee() / 100.0 / 2.0,
                         usdBefore,
                         assetBefore,
@@ -100,16 +101,17 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
                 return lastTrade
             }
         } else if (advice.decision == Decision.SELL && advice.amount > 0) {
+
             if (advice.amount * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]
                 val assetBefore = balanceResult.balances[advice.instrument.asset]
-                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.MARKET)
+                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
 
-                updateBalance(true)
+                updateBalance()
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
-                        advice.decision, advice.decisionArgs, order.type, order.amount,
+                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.asset,
                         exchange.getFee() / 100.0 / 2.0,
                         usdBefore!!,
                         assetBefore!!,
@@ -121,6 +123,8 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
                 tradeRecordDao.create(lastTrade!!)
                 return lastTrade
             }
+        } else {
+            updateBalance(false)
         }
 
         return null
@@ -128,5 +132,13 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
 
     override fun price(instrument: Instrument): Double {
         return ticker[instrument]?.highestBid ?: Double.NaN;
+    }
+
+    override fun getOpenOrders(instrument: Instrument): List<Order> {
+        return exchange.getOpenOrders(instrument)
+    }
+
+    override fun cancelAllOrders(instrument: Instrument){
+        exchange.getOpenOrders(instrument).forEach {exchange.cancelOrder(it)}
     }
 }

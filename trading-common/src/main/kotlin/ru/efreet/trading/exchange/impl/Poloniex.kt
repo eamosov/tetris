@@ -42,7 +42,7 @@ class Poloniex() : Exchange {
 
     override fun getBalancesMap(): Map<String, Double> = service.returnBalance(true).mapValues { it.value.available!!.toDouble() }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
         } else {
@@ -52,17 +52,16 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(result.orderNumber.toString(),
-                ZonedDateTime.now(),
-                getName(),
-                instrument.toString(),
+        return Order(result.orderNumber.toString(),
+                instrument,
                 _price.toDouble(),
+                _amount.toDouble(),
+                type,
                 Decision.BUY,
-                type = type,
-                amount = _amount.toDouble())
+                ZonedDateTime.now())
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
 
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
@@ -73,14 +72,13 @@ class Poloniex() : Exchange {
         val _amount = BigDecimal.valueOf(asset).round()
         println("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
-        return TradeRecord(result.orderNumber.toString(),
-                ZonedDateTime.now(),
-                getName(),
-                instrument.toString(),
+        return Order(result.orderNumber.toString(),
+                instrument,
                 _price.toDouble(),
+                _amount.toDouble(),
+                type,
                 Decision.SELL,
-                type = type,
-                amount = _amount.toDouble())
+                ZonedDateTime.now())
 
     }
 
@@ -177,6 +175,14 @@ class Poloniex() : Exchange {
     }
 
     override fun getPricesMap(): Map<Instrument, Double> {
+        throw NotImplementedError()
+    }
+
+    override fun getOpenOrders(instrument: Instrument): List<Order> {
+        throw NotImplementedError()
+    }
+
+    override fun cancelOrder(order: Order) {
         throw NotImplementedError()
     }
 }

@@ -167,7 +167,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     }
 
                     if (Duration.between(sd.everyDay, bar.endTime).toHours() >= 24) {
-                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${(trader.funds()).toInt()}")
+                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${trader.availableAsset(sd.instrument)},${(trader.funds()).toInt()}")
                         trader.history().storeAsJson(state.historyPath)
                         sd.everyDay = bar.endTime
                     }

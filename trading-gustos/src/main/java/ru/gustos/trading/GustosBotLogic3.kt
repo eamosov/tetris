@@ -10,7 +10,6 @@ import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
@@ -95,7 +94,11 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
+                        trader?.let {
+                            trader.cancelAllOrders(instrument)
+                            trader.updateBalance(true)
+                            trader.availableAsset(instrument)
+                        } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -108,6 +111,9 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         instrument,
                         bar.closePrice,
                         trader?.let {
+
+                            trader.cancelAllOrders(instrument)
+                            trader.updateBalance(true)
 
                             //сколько всего USD свободно и вложено в монеты, которыми торгует бот
                             val usd = trader.instruments.map { trader.price(it) * trader.availableAsset(it) }.sum() + trader.usd

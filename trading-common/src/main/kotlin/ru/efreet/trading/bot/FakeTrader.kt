@@ -2,6 +2,7 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.exchange.Order
 import ru.efreet.trading.exchange.OrderType
 import ru.efreet.trading.exchange.TradeRecord
 import java.util.*
@@ -55,6 +56,7 @@ class FakeTrader(override val startUsd: Double = 1000.0,
                 return trade
             }
         } else if (advice.decision == Decision.SELL && advice.amount > 0) {
+
             if (advice.amount * advice.price >= 10) {
                 val fee = advice.amount * feeRatio()
                 val usdBefore = usd
@@ -90,5 +92,17 @@ class FakeTrader(override val startUsd: Double = 1000.0,
 
     override fun price(instrument: Instrument): Double {
         return tradeData(instrument).endPrice
+    }
+
+    override fun getOpenOrders(instrument: Instrument): List<Order> {
+        return listOf()
+    }
+
+    override fun updateBalance(force: Boolean) {
+
+    }
+
+    override fun cancelAllOrders(instrument: Instrument) {
+
     }
 }

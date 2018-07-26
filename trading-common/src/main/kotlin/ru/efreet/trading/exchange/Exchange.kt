@@ -18,9 +18,9 @@ interface Exchange {
 
     fun getPricesMap(): Map<Instrument, Double>
 
-    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord
+    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order
 
-    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord
+    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order
 
     fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar>
 
@@ -35,6 +35,10 @@ interface Exchange {
     fun getIntervals(): List<BarInterval>
 
     fun getTicker(): Map<Instrument, Ticker>
+
+    fun getOpenOrders(instrument: Instrument): List<Order>
+
+    fun cancelOrder(order: Order)
 
     data class CalBalanceResult(val toBase: Map<String, Double>, val balances: Map<String, Double>, val ticker: Map<Instrument, Ticker>)
 

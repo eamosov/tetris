@@ -1,8 +1,8 @@
 package ru.efreet.trading.bot
 
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.exchange.Order
 import ru.efreet.trading.exchange.TradeRecord
-import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
@@ -20,4 +20,10 @@ interface Trader {
     fun executeAdvice(advice: BotAdvice): TradeRecord?
 
     fun history(): TradeHistory
+
+    fun getOpenOrders(instrument: Instrument): List<Order>
+
+    fun cancelAllOrders(instrument: Instrument)
+
+    fun updateBalance(force: Boolean = true)
 }
