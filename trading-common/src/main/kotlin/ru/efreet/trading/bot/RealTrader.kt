@@ -88,7 +88,7 @@ class RealTrader(val tradeRecordDao: TradeRecordDao?,
 
             val asset = minOf(maxBet - myBet, usd) / advice.price
 
-            if (asset * advice.price >= 10) {
+            if (availableAsset(advice.instrument) < 10 && asset * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]!!
                 val assetBefore = balanceResult.balances[advice.instrument.asset]!!
