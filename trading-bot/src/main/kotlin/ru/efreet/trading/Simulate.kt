@@ -24,7 +24,7 @@ import java.time.ZonedDateTime
 
 data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T00:00Z[GMT]"),
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
-                 var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT),
+                 var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT, Instrument.BCC_USDT, Instrument.LTC_USDT),
                  var usd: Double = 1000.0,
                  var trainDays: Long = 60,
                  var interval: BarInterval = BarInterval.ONE_MIN,
@@ -74,7 +74,9 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         for (instrument in state.instruments) {
             val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
-            logic.loadState(state.properties)
+            if (!logic.loadState(state.properties)){
+                logic.saveState(state.properties, "initial properties")
+            }
 
             if (state.initOptimisation) {
 
@@ -92,7 +94,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
             }
 
             println("Logic state for $instrument:")
-            logic.logState()
+            println(logic.logState())
 
             val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(logic.historyBars))
             val history = cache.getBars(exchange.getName(), logic.instrument, state.interval, historyStart, state.startTime)

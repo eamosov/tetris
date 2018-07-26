@@ -222,7 +222,7 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
+                        trader?.let { it.usd / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }

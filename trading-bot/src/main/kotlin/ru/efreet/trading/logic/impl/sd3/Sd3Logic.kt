@@ -293,7 +293,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
+                        trader?.let { it.usd / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }

@@ -16,6 +16,8 @@ class FakeTrader(override val startUsd: Double = 1000.0,
 
     override var usd = startUsd
 
+    override val instruments: Collection<Instrument> get() = tradeData.keys
+
     fun feeRatio(): Double {
         return feeP / 100.0 / 2.0
     }
@@ -27,6 +29,7 @@ class FakeTrader(override val startUsd: Double = 1000.0,
         val td = tradeData(advice.instrument)
 
         if (advice.decision == Decision.BUY && advice.amount > 0) {
+
             if (advice.amount * advice.price >= 10) {
                 val fee = advice.amount * feeRatio()
                 val usdBefore = usd
@@ -81,12 +84,11 @@ class FakeTrader(override val startUsd: Double = 1000.0,
         return null
     }
 
-    override fun availableUsd(instrument: Instrument): Double {
-        return usd
-    }
-
     override fun availableAsset(instrument: Instrument): Double {
         return tradeData(instrument).asset
     }
 
+    override fun price(instrument: Instrument): Double {
+        return tradeData(instrument).endPrice
+    }
 }

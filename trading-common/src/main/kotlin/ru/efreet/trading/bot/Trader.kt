@@ -9,7 +9,11 @@ import java.time.ZonedDateTime
  */
 interface Trader {
 
-    fun availableUsd(instrument: Instrument): Double
+    val usd: Double
+
+    val instruments: Collection<Instrument>
+
+    fun price(instrument: Instrument): Double
 
     fun availableAsset(instrument: Instrument): Double
 

@@ -22,6 +22,7 @@ data class TraderInstrumentData(
         return this::start.isInitialized
     }
 
+    val usd:Double get() = asset * endPrice
 }
 
 
@@ -38,8 +39,6 @@ abstract class AbstractTrader(val exchangeName: String) : Trader {
     protected fun tradeData(instrument: Instrument): TraderInstrumentData {
         return tradeData.computeIfAbsent(instrument) { TraderInstrumentData() }
     }
-
-    abstract var usd: Double
 
     abstract val startUsd: Double
 

@@ -51,15 +51,15 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
                     resetBars()
             }
 
-            if (!barsIsPrepared) {
-                prepareBars()
-            }
+//            if (!barsIsPrepared) {
+//                prepareBars()
+//            }
         }
     }
 
     override fun getParams(): P = _params
 
-    private var barsIsPrepared = false
+    protected var barsIsPrepared = false
 
     abstract fun prepareBarsImpl()
 

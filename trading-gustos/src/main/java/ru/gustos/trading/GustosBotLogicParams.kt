@@ -111,7 +111,10 @@ data class GustosBotLogicParams3(
         override var tStopLoss: Double = 50.0,
 
         override var takeProfit: Double = 100.0,
-        override var tTakeProfit: Double = 0.1
+        override var tTakeProfit: Double = 0.1,
+
+        //Максимальная доля ставки
+        var bet:Double = 1.0
 
 ) : AbstractBotLogicParams {
 

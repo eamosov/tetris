@@ -9,7 +9,12 @@ import java.time.Duration
 /**
  * Created by fluder on 23/02/2018.
  */
-class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val limit: Double, exchangeName: String) : AbstractTrader(exchangeName) {
+class RealTrader(val tradeRecordDao: TradeRecordDao,
+                 val exchange: Exchange,
+                 val limit: Double,
+                 exchangeName: String,
+                 override val instruments: List<Instrument>
+) : AbstractTrader(exchangeName) {
 
     var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
@@ -18,10 +23,11 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
     val startFunds: Double
     val baseName = "USDT"
 
-    override var usd: Double = 0.0
-    var funds: Double
+    override val usd: Double get() = balanceResult.balances[baseName]!!
 
-    var ticker: Map<Instrument, Ticker>
+    val funds: Double get() = balanceResult.toBase["total"]!!
+
+    val ticker: Map<Instrument, Ticker> get() = balanceResult.ticker
 
     private var lastTrade: TradeRecord? = null
 
@@ -30,13 +36,8 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
         //Balances in USD
         balanceResult = exchange.calcBalance(baseName)
 
-        startUsd = balanceResult.balances[baseName]!!
-        startFunds = balanceResult.toBase["total"]!!
-
-        usd = startUsd
-        funds = startFunds
-
-        ticker = balanceResult.ticker
+        startUsd = usd
+        startFunds = funds
     }
 
     fun updateBalance(force: Boolean = false) {
@@ -45,29 +46,26 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
         }, force)
     }
 
-    override fun availableUsd(instrument: Instrument): Double {
-
-        updateBalance()
-
-        //на сколько куплено валюты
-        val entered = balanceResult.toBase[instrument.asset]!!
-
-        //полный размер депозита
-        val total = balanceResult.toBase["total"]!!
-
-        //осталось USD
-        val free = balanceResult.balances[baseName]!!
-
-        return minOf(total * limit - entered, free)
-    }
+//    override fun availableUsd(instrument: Instrument): Double {
+//
+//        updateBalance()
+//
+//        //на сколько куплено валюты
+//        val entered = balanceResult.toBase[instrument.asset]!!
+//
+//        //полный размер депозита
+//        val total = balanceResult.toBase["total"]!!
+//
+//        //осталось USD
+//        val free = balanceResult.balances[baseName]!!
+//
+//        return minOf(total * limit - entered, free)
+//    }
 
     override fun availableAsset(instrument: Instrument): Double {
 
-        updateBalance()
-
-        balanceUpdatedTimer.invoke({
-            balanceResult = exchange.calcBalance(baseName)
-        })
+        //TODO надо периодически обновлять баланс??
+        //updateBalance()
 
         return balanceResult.balances[instrument.asset]!!
     }
@@ -77,9 +75,6 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
 
         if (lastTrade != null)
             tradeRecordDao.update(lastTrade!!)
-
-        usd = balanceResult.balances[baseName]!!
-        funds = balanceResult.toBase["total"]!!
 
         if (advice.decision == Decision.BUY && advice.amount > 0) {
 
@@ -129,5 +124,9 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
         }
 
         return null
+    }
+
+    override fun price(instrument: Instrument): Double {
+        return ticker[instrument]?.highestBid ?: Double.NaN;
     }
 }
