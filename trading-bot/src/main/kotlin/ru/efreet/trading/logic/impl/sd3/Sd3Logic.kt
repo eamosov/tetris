@@ -250,7 +250,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -266,7 +266,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                         mapOf(Pair("sl", "true")),
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -282,7 +281,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -293,7 +291,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.usd / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -303,7 +300,6 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

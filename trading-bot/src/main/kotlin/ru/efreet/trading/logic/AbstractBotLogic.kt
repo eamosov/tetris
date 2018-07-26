@@ -79,13 +79,13 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         barsIsPrepared = false
     }
 
-    protected abstract fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
+    protected abstract fun getBotAdviceImpl(index: Int, fillIndicators: Boolean = false): BotAdvice
 
-    final override fun getBotAdvice(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    final override fun getBotAdvice(index: Int, fillIndicators: Boolean): BotAdvice {
         if (!barsIsPrepared)
             prepareBars()
 
-        return getBotAdviceImpl(index, trader, fillIndicators);
+        return getBotAdviceImpl(index, fillIndicators);
     }
 
     override var historyBars = 3000L

@@ -25,7 +25,7 @@ public class GustosIndicator extends Indicator implements IIndicatorWithProperti
 
     @Override
     public Map<String,String> getMarks(int ind) {
-        final BotAdvice ose = botLogic.getBotAdvice(ind, null, true);
+        final BotAdvice ose = botLogic.getBotAdvice(ind, true);
         return ose.getDecisionArgs();
     }
 
@@ -45,7 +45,7 @@ public class GustosIndicator extends Indicator implements IIndicatorWithProperti
 
         for (int i = from; i < to; i++) {
 
-            final BotAdvice ose = botLogic.getBotAdvice(i, null, true);
+            final BotAdvice ose = botLogic.getBotAdvice(i, true);
             values[0][i] = ose.getDecision() == Decision.BUY ? Indicator.YES : Indicator.NO;
 
         }

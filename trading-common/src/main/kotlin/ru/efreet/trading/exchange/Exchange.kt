@@ -18,9 +18,9 @@ interface Exchange {
 
     fun getPricesMap(): Map<Instrument, Double>
 
-    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order
+    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?
 
-    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order
+    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?
 
     fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar>
 

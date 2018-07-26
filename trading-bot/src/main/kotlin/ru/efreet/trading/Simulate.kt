@@ -2,7 +2,7 @@ package ru.efreet.trading
 
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.checkBars
-import ru.efreet.trading.bot.FakeTrader
+import ru.efreet.trading.bot.RealTrader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.bot.TradesStatsShort
@@ -26,6 +26,7 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
                  var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT, Instrument.BCC_USDT, Instrument.LTC_USDT),
                  var usd: Double = 1000.0,
+                 var bet: Double = 0.5,
                  var trainDays: Long = 60,
                  var interval: BarInterval = BarInterval.ONE_MIN,
                  var startMaxParamsDeviation: Double = 50.0,
@@ -54,7 +55,7 @@ data class SimulateData(val instrument: Instrument,
 class Simulate(val cmd: CmdArgs, val statePath: String) {
 
     //lateinit var lastBar: Bar
-    lateinit var exchange: Exchange
+    lateinit var exchange: CachedExchange
     lateinit var cache: BarsCache
     lateinit var state: State
     var trainer = cmd.makeTrainer<Any, TradesStats, Metrica>()
@@ -68,11 +69,16 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
         val realExchange = Exchange.getExchange(cmd.exchange)
         exchange = CachedExchange(realExchange.getName(), realExchange.getFee() * state.feeFactor, state.interval, cache)
 
-        val trader = FakeTrader(state.usd, exchange.getFee(), exchange.getName())
+        exchange.setBalance("USDT", state.usd)
+
+        val trader = RealTrader(null, exchange, 1.0, state.bet, state.instruments)
 
         val simulateData = arrayListOf<SimulateData>()
 
         for (instrument in state.instruments) {
+
+            exchange.setBalance(instrument.asset!!, 0.0)
+
             val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
             if (!logic.loadState(state.properties)){
                 logic.saveState(state.properties, "initial properties")
@@ -149,7 +155,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     }
 
                     sd.logic.insertBar(bar)
-                    val advice = sd.logic.getAdvice(trader, true)
+                    val advice = sd.logic.getAdvice(true)
 
                     if (sd.skipBuy) {
                         if (advice.decision == Decision.BUY) {
@@ -167,7 +173,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     }
 
                     if (Duration.between(sd.everyDay, bar.endTime).toHours() >= 24) {
-                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${trader.availableAsset(sd.instrument)},${(trader.funds()).toInt()}")
+                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${trader.availableAsset(sd.instrument).round2()},${(trader.funds()).toInt()}")
                         trader.history().storeAsJson(state.historyPath)
                         sd.everyDay = bar.endTime
                     }

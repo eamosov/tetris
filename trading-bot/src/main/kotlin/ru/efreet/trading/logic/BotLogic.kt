@@ -77,10 +77,10 @@ interface BotLogic<P> {
 
     fun prepareBars()
 
-    fun getBotAdvice(index: Int, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
+    fun getBotAdvice(index: Int, fillIndicators: Boolean = false): BotAdvice
 
-    fun getAdvice(trader: Trader?, fillIndicators: Boolean = false): BotAdvice {
-        return getBotAdvice(barsCount() - 1, trader, fillIndicators)
+    fun getAdvice(fillIndicators: Boolean = false): BotAdvice {
+        return getBotAdvice(barsCount() - 1, fillIndicators)
     }
 
     fun metrica(params: P, stats: TradesStats): Metrica

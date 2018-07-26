@@ -2,6 +2,7 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.*
+import ru.efreet.trading.exchange.impl.cache.FakeExchange
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
 import java.time.Duration
@@ -9,12 +10,12 @@ import java.time.Duration
 /**
  * Created by fluder on 23/02/2018.
  */
-class RealTrader(val tradeRecordDao: TradeRecordDao,
+class RealTrader(val tradeRecordDao: TradeRecordDao?,
                  val exchange: Exchange,
                  val limit: Double,
-                 exchangeName: String,
+                 val bet: Double,
                  override val instruments: List<Instrument>
-) : AbstractTrader(exchangeName) {
+) : AbstractTrader(exchange.getName()) {
 
     lateinit var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
@@ -29,8 +30,6 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
 
     val ticker: Map<Instrument, Ticker> get() = balanceResult.ticker
 
-    private var lastTrade: TradeRecord? = null
-
     init {
 
         //Balances in USD
@@ -40,7 +39,7 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
         startFunds = funds
     }
 
-    override fun updateBalance(force: Boolean) {
+    private fun updateBalance(force: Boolean = true) {
         balanceUpdatedTimer.invoke({
             balanceResult = exchange.calcBalance(baseName)
         }, force)
@@ -63,64 +62,82 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
 //    }
 
     override fun availableAsset(instrument: Instrument): Double {
-
-        //TODO надо периодически обновлять баланс??
-        //updateBalance()
-
         return balanceResult.balances[instrument.asset]!!
     }
 
     override fun executeAdvice(advice: BotAdvice): TradeRecord? {
+
+        if (exchange is FakeExchange){
+            exchange.setTicker(advice.instrument, advice.bar.closePrice)
+        }
+
         super.executeAdvice(advice)
 
-        if (lastTrade != null)
-            tradeRecordDao.update(lastTrade!!)
+        if (advice.decision == Decision.BUY) {
 
-        if (advice.decision == Decision.BUY && advice.amount > 0) {
+            cancelAllOrders(advice.instrument)
+            updateBalance(true)
 
-            if (advice.amount * advice.price >= 10) {
+            //сколько всего USD свободно и вложено в монеты, которыми торгует бот
+            val deposit = (instruments.map { price(it) * availableAsset(it) }.sum() + usd) * limit
+
+            //размер ставки
+            val maxBet = deposit * bet
+
+            val myBet = availableAsset(advice.instrument) * price(advice.instrument)
+
+            val asset = minOf(maxBet - myBet, usd) / advice.price
+
+            if (asset * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]!!
                 val assetBefore = balanceResult.balances[advice.instrument.asset]!!
-                val order = exchange.buy(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
 
                 updateBalance()
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
-                        advice.decision, advice.decisionArgs, order.type, order.asset,
-                        exchange.getFee() / 100.0 / 2.0,
-                        usdBefore,
-                        assetBefore,
-                        balanceResult.balances[baseName]!!,
-                        balanceResult.balances[advice.instrument.asset]!!
-                )
+                if (order != null) {
+                    val trade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
+                            advice.decision, advice.decisionArgs, order.type, order.asset,
+                            exchange.getFee() / 200.0,
+                            usdBefore,
+                            assetBefore,
+                            balanceResult.balances[baseName]!!,
+                            balanceResult.balances[advice.instrument.asset]!!)
 
-                tradeData(advice.instrument).trades.add(lastTrade!!)
-                tradeRecordDao.create(lastTrade!!)
-                return lastTrade
+                    tradeData(advice.instrument).trades.add(trade)
+                    tradeRecordDao?.create(trade)
+                    return trade
+                }
             }
-        } else if (advice.decision == Decision.SELL && advice.amount > 0) {
+        } else if (advice.decision == Decision.SELL) {
 
-            if (advice.amount * advice.price >= 10) {
+            cancelAllOrders(advice.instrument)
+            updateBalance(true)
+            val asset = availableAsset(advice.instrument)
+
+            if (asset * advice.price >= 10) {
 
                 val usdBefore = balanceResult.balances[baseName]
                 val assetBefore = balanceResult.balances[advice.instrument.asset]
-                val order = exchange.sell(advice.instrument, roundAmount(advice.amount, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.sell(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
 
                 updateBalance()
 
-                lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
-                        advice.decision, advice.decisionArgs, order.type, order.asset,
-                        exchange.getFee() / 100.0 / 2.0,
-                        usdBefore!!,
-                        assetBefore!!,
-                        balanceResult.balances[baseName]!!,
-                        balanceResult.balances[advice.instrument.asset]!!
-                )
+                if (order != null) {
+                    val trade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument.toString(), order.price,
+                            advice.decision, advice.decisionArgs, order.type, order.asset,
+                            exchange.getFee() / 200.0,
+                            usdBefore!!,
+                            assetBefore!!,
+                            balanceResult.balances[baseName]!!,
+                            balanceResult.balances[advice.instrument.asset]!!
+                    )
 
-                tradeData(advice.instrument).trades.add(lastTrade!!)
-                tradeRecordDao.create(lastTrade!!)
-                return lastTrade
+                    tradeData(advice.instrument).trades.add(trade)
+                    tradeRecordDao?.create(trade)
+                    return trade
+                }
             }
         } else {
             updateBalance(false)
@@ -130,14 +147,20 @@ class RealTrader(val tradeRecordDao: TradeRecordDao,
     }
 
     override fun price(instrument: Instrument): Double {
-        return ticker[instrument]?.highestBid ?: Double.NaN;
+        return ticker[instrument]!!.highestBid
     }
 
     override fun getOpenOrders(instrument: Instrument): List<Order> {
         return exchange.getOpenOrders(instrument)
     }
 
-    override fun cancelAllOrders(instrument: Instrument){
-        exchange.getOpenOrders(instrument).forEach {exchange.cancelOrder(it)}
+    override fun cancelAllOrders(instrument: Instrument) {
+        exchange.getOpenOrders(instrument).forEach { exchange.cancelOrder(it) }
+    }
+
+    companion object {
+        fun fakeTrader(feeP: Double, interval: BarInterval, instrument: Instrument): RealTrader {
+            return RealTrader(null, FakeExchange("fake", feeP, interval), 1.0, 1.0, listOf(instrument))
+        }
     }
 }

@@ -2,10 +2,8 @@ package ru.gustos.trading
 
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -15,8 +13,6 @@ import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.ta.indicators.XLastDecisionIndicator
 import ru.efreet.trading.trainer.Metrica
-import ru.gustos.trading.book.indicators.GustosAverageRecurrent
-import ru.gustos.trading.book.indicators.GustosVolumeLevel
 import ru.gustos.trading.book.indicators.GustosVolumeLevel2
 import ru.gustos.trading.book.indicators.LevelsTrader
 import java.time.Duration
@@ -27,7 +23,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
 
     var prepared: Boolean = false
     lateinit var levels: GustosVolumeLevel2
-    lateinit var levelsTrade : LevelsTrader
+    lateinit var levelsTrade: LevelsTrader
     lateinit var lastDecisionIndicator: XLastDecisionIndicator<XExtBar>
 
     override fun newInitParams(): LevelsLogicParams = LevelsLogicParams()
@@ -55,8 +51,8 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
 
 
     override fun prepareBarsImpl() {
-        levels = GustosVolumeLevel2(1-getParams().descendK!!*0.00001,1-getParams().substK!!*0.001,getParams().fPow!!*0.1)
-        levelsTrade = LevelsTrader(getParams().fixTime!!,getParams().sellSdTimeFrame!!,getParams().fixAmp!!*0.0001)
+        levels = GustosVolumeLevel2(1 - getParams().descendK!! * 0.00001, 1 - getParams().substK!! * 0.001, getParams().fPow!! * 0.1)
+        levelsTrade = LevelsTrader(getParams().fixTime!!, getParams().sellSdTimeFrame!!, getParams().fixAmp!! * 0.0001)
 
 
         bars.forEach { doBar(it) }
@@ -82,7 +78,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
     private fun shouldBuy(i: Int): Boolean {
         val bar = getBar(i)
         val sma = bar.sma//*1.0005
-        return bar.sd2>0 && bar.minPrice< sma && bar.closePrice> sma && bar.closePrice<sma+bar.sd/3// && bar.avrVolume2>bar.avrVolume*getParams().lowVolumeK!!*0.1
+        return bar.sd2 > 0 && bar.minPrice < sma && bar.closePrice > sma && bar.closePrice < sma + bar.sd / 3// && bar.avrVolume2>bar.avrVolume*getParams().lowVolumeK!!*0.1
 //        return !falling(i)
     }
 
@@ -90,7 +86,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
         val bar = getBar(i)
 //        return (bar.closePrice>bar.sma+bar.sd*getParams().diviation!!*0.1 || bar.sd2<0 || (bar.closePrice<bar.sma && bar.isBearish() && bar.volume>bar.avrVolume*getParams().highVolumeK!!*0.1))&& !rising(i)
 
-        return ((bar.closePrice>bar.sma+bar.sd) || bar.sd2<0)&& !rising(i)
+        return ((bar.closePrice > bar.sma + bar.sd) || bar.sd2 < 0) && !rising(i)
 
     }
 
@@ -106,11 +102,11 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
         return pbar.closePrice >= bar.maxPrice
     }
 
-    private fun doBar(b : XExtBar){
+    private fun doBar(b: XExtBar) {
         b.sma = levels.feed(b)
-        levelsTrade.feed(b,b.sma);
+        levelsTrade.feed(b, b.sma);
         b.sd = levelsTrade.sd();
-        b.sd2 = if (levelsTrade.high())  1.0 else -1.0;
+        b.sd2 = if (levelsTrade.high()) 1.0 else -1.0;
         b.avrVolume = levelsTrade.longVolume()
         b.avrVolume2 = levelsTrade.shortVolume()
         b.stohastic = levelsTrade.stohastic()
@@ -136,7 +132,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -156,7 +152,6 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -167,7 +162,6 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.usd / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -177,7 +171,6 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

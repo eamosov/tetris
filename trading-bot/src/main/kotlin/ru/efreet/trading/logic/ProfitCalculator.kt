@@ -2,7 +2,7 @@ package ru.efreet.trading.logic
 
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.bot.FakeTrader
+import ru.efreet.trading.bot.RealTrader
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -26,14 +26,14 @@ class ProfitCalculator {
         val logic: BotLogic<P> = LogicFactory.getLogic(logicName, instrument, interval, XExtBar.of(bars))
         logic.setParams(params)
 
-        val trader = FakeTrader(feeP = feeP, exchangeName = "")
+        val trader = RealTrader.fakeTrader(feeP, interval, instrument)
 
         for (ti in times) {
 
             val startIndex = logic.getBarIndex(ti.first)
 
             for (index in startIndex until logic.barsCount()) {
-                val advice = logic.getBotAdvice(index, trader, fillIndicators)
+                val advice = logic.getBotAdvice(index, fillIndicators)
 
                 if (!advice.time.isBefore(ti.second)) {
 

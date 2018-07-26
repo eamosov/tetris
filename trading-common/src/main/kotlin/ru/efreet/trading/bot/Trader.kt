@@ -24,6 +24,4 @@ interface Trader {
     fun getOpenOrders(instrument: Instrument): List<Order>
 
     fun cancelAllOrders(instrument: Instrument)
-
-    fun updateBalance(force: Boolean = true)
 }

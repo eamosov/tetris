@@ -13,14 +13,15 @@ import java.time.ZonedDateTime
  */
 class TradeBot(val exchange: Exchange,
                var barsCache: BarsCache,
-               var baseLimit: Double,
+               var limit: Double,
+               bet: Double,
                val testOnly: Boolean,
                val instrument: Instrument,
                val logicName: String,
                val logic: BotLogic<Any>,
-               val settings:String,
+               val settings: String,
                val barInterval: BarInterval,
-               val trainStart:ZonedDateTime,
+               val trainStart: ZonedDateTime,
                var orderListener: ((TradeBot, TradeRecord) -> Unit)? = null,
                val training: Boolean) {
 
@@ -32,10 +33,7 @@ class TradeBot(val exchange: Exchange,
 
     private val tradeRecordDao = TradeRecordDao(barsCache.getConnection())
 
-    private val trader = when {
-        testOnly -> FakeTrader(1000.0, 0.02, exchange.getName())
-        else -> RealTrader(tradeRecordDao, exchange, baseLimit, exchange.getName(), arrayListOf(instrument))
-    }
+    private val trader = RealTrader(tradeRecordDao, exchange, limit, bet, arrayListOf(instrument))
 
 
     init {
@@ -46,12 +44,12 @@ class TradeBot(val exchange: Exchange,
         println("instrument: $instrument")
         println("interval: $barInterval")
         println("testOnly: $testOnly")
-        println("baseLimit: $baseLimit")
+        println("baseLimit: $limit")
     }
 
     fun checkStrategy() {
 
-        val advice = logic.getAdvice(trader, true)
+        val advice = logic.getAdvice(true)
 
         println("advice: ${advice}")
 

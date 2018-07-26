@@ -191,7 +191,7 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     }
 
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -211,7 +211,6 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -222,7 +221,6 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.usd / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -232,7 +230,6 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

@@ -4,7 +4,6 @@ import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -28,7 +27,6 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
 
     override fun onInit() {
 
-        of(GustosBotLogicParams3::bet, "bet", 0.1, 1.0, 0.05, true)
     }
 
     override var historyBars: Long
@@ -72,7 +70,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
         return mapOf(Pair("price", closePrice))
     }
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -94,11 +92,6 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let {
-                            trader.cancelAllOrders(instrument)
-                            trader.updateBalance(true)
-                            trader.availableAsset(instrument)
-                        } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -110,20 +103,6 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let {
-
-                            trader.cancelAllOrders(instrument)
-                            trader.updateBalance(true)
-
-                            //сколько всего USD свободно и вложено в монеты, которыми торгует бот
-                            val usd = trader.instruments.map { trader.price(it) * trader.availableAsset(it) }.sum() + trader.usd
-
-                            //размер ставки
-                            val sum = minOf(trader.usd, usd * getParams().bet)
-
-                            //сколько купить
-                            sum / bar.closePrice
-                        } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -133,7 +112,6 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

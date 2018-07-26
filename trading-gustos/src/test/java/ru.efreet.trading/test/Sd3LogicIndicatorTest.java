@@ -34,7 +34,7 @@ public class Sd3LogicIndicatorTest {
         double btc = 0;
         Decision prev = Decision.SELL;
         for (int i = 0; i < logic.barsCount(); i++) {
-            Decision side = logic.getBotAdvice(i, null, false).getDecision();
+            Decision side = logic.getBotAdvice(i, false).getDecision();
             if (side != prev) {
                 if (side == Decision.BUY) {
                     btc += money / logic.getBar(i).getClosePrice() * 0.9995;
