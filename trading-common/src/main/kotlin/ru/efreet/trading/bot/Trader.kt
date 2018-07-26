@@ -191,7 +191,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     fun price(instrument: Instrument): Double {
-        return ticker[instrument]!!.highestBid
+        return ticker[instrument]?.highestBid ?: 0.0
     }
 
     fun getOpenOrders(instrument: Instrument): List<Order> {
