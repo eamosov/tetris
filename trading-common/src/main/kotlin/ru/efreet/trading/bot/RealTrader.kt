@@ -1,6 +1,5 @@
 package ru.efreet.trading.bot
 
-import com.sun.tools.corba.se.idl.constExpr.Or
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
