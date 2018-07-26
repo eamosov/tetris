@@ -33,7 +33,7 @@ class TradeBot(val exchange: Exchange,
 
     private val tradeRecordDao = TradeRecordDao(barsCache.getConnection())
 
-    private val trader = RealTrader(tradeRecordDao, exchange, limit, bet, arrayListOf(instrument))
+    private val trader = Trader(tradeRecordDao, exchange, limit, bet, arrayListOf(instrument))
 
 
     init {

@@ -2,7 +2,7 @@ package ru.efreet.trading
 
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.checkBars
-import ru.efreet.trading.bot.RealTrader
+import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.bot.TradesStatsShort
@@ -71,7 +71,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         exchange.setBalance("USDT", state.usd)
 
-        val trader = RealTrader(null, exchange, 1.0, state.bet, state.instruments)
+        val trader = Trader(null, exchange, 1.0, state.bet, state.instruments)
 
         val simulateData = arrayListOf<SimulateData>()
 
@@ -132,7 +132,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
                     if (state.periodicalTrain &&
                             Duration.between(sd.lastTrainTime, bar.endTime).toMillis() >= state.trainPeriod.toMillis()
-                            && trader.availableAsset(sd.instrument) == 0.0) { //если мы в баксах
+                            && trader.balance(sd.instrument) == 0.0) { //если мы в баксах
                         sd.logic.loadState(state.properties)
                         val (params, _stats) = tuneParams(sd.instrument, bar.endTime, sd.logic.getParams(), state.maxParamsDeviation, state.population)
 
@@ -173,7 +173,7 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
                     }
 
                     if (Duration.between(sd.everyDay, bar.endTime).toHours() >= 24) {
-                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${trader.availableAsset(sd.instrument).round2()},${(trader.funds()).toInt()}")
+                        println("\"EOD(${sd.instrument})\",\"${LocalDate.from(bar.endTime)}\",${trader.usd.round2()},${bar.closePrice.round2()},${trader.balance(sd.instrument).round2()},${trader.deposit().toInt()}")
                         trader.history().storeAsJson(state.historyPath)
                         sd.everyDay = bar.endTime
                     }

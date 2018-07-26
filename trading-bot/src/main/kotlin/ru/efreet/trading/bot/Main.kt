@@ -30,7 +30,7 @@ class Main {
             val cache = BarsCache(cmd.cachePath)
             val baseName = "USDT"
 
-            exchange.logBalance(baseName)
+            //exchange.logBalance(baseName)
 
 //            if (cmd.resetStrategy)
 //                botSettings.params.clear()
@@ -157,7 +157,7 @@ class Main {
                     })
 
                     balanceTimer.invoke({
-                        exchange.logBalance(baseName)
+                        //exchange.logBalance(baseName)
                     })
 
 

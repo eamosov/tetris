@@ -5,8 +5,7 @@ import java.io.Serializable
 /**
  * Created by fluder on 08/02/2018.
  */
-data class Instrument(var asset: String?, var base: String?) : Serializable {
-    constructor() : this(null, null)
+data class Instrument(var asset: String, var base: String) : Serializable {
 
     override fun toString(): String {
         return "${asset}_${base}"

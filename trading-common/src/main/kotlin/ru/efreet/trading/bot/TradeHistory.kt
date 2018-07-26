@@ -15,7 +15,7 @@ data class TradeHistory(val startUsd: Double,
                         val startFunds: Double,
                         val endUsd: Double,
                         val endFunds: Double,
-                        val instruments: Map<Instrument, TraderInstrumentData>,
+                        val instruments: Map<Instrument, ITradeHistory>,
                         val cash: List<Pair<ZonedDateTime, Double>>,
                         val start: ZonedDateTime,
                         val end: ZonedDateTime) : Serializable {
@@ -33,7 +33,7 @@ data class TradeHistory(val startUsd: Double,
     val profitPerDayToGrow: Double get() = profitPerDayToGrow(instruments.keys.first())
 
     fun profitPerDayToGrow(instrument: Instrument): Double {
-        return pow((endFunds / startFunds) / (instruments[instrument]!!.endPrice / instruments[instrument]!!.startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
+        return pow((endFunds / startFunds) / (instruments[instrument]!!.closePrice / instruments[instrument]!!.startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
     }
 
     fun profitBeforeExtended(time: ZonedDateTime): Double {
