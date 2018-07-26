@@ -14,7 +14,7 @@ import ru.efreet.trading.logic.impl.sd5.Sd5Logic
 class LogicFactory {
     companion object {
         @Suppress("UNCHECKED_CAST")
-        fun <P> getLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar> = mutableListOf()): BotLogic<P> =
+        fun <P> getLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar> = mutableListOf(), simulate: Boolean = false): BotLogic<P> =
                 when (name) {
                     "sd3" -> Sd3Logic("sd3", instrument, barInterval, bars) as BotLogic<P>
                     "sd4" -> Sd4Logic("sd4", instrument, barInterval, bars) as BotLogic<P>
@@ -22,6 +22,7 @@ class LogicFactory {
                     "gustos2" -> Class.forName("ru.gustos.trading.GustosBotLogic2").constructors[0].newInstance("gustos2", instrument, barInterval, bars) as BotLogic<P>
                     "gustostest" -> Class.forName("ru.gustos.trading.GustosBotLogicTest2").constructors[0].newInstance("gustostest2", instrument, barInterval, bars) as BotLogic<P>
                     "levels" -> Class.forName("ru.gustos.trading.LevelsBotLogic").constructors[0].newInstance("levels", instrument, barInterval, bars) as BotLogic<P>
+                    "ml" -> Class.forName("ru.gustos.trading.GustosBotLogic3").constructors[0].newInstance("ml", instrument, barInterval, bars, simulate) as BotLogic<P>
                     else -> throw RuntimeException("Unknown logic ${name}")
                 }
     }

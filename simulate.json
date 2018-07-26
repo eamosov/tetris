@@ -1,24 +1,29 @@
 {
-  "startTime": "2018-03-01T00:00Z[GMT]",
-  "endTime": "2018-05-15T00:00Z[GMT]",
+  "startTime": "2018-02-01T00:00Z[GMT]",
+  "endTime": "2018-06-01T00:00Z[GMT]",
+  "instruments": [
+    "ETH_USDT",
+    "BNB_USDT",
+    "BTC_USDT"
+  ],
   "usd": 1000.0,
-  "asset": 0.0,
-  "trainDays": 90,
+  "trainDays": 60,
   "interval": "ONE_MIN",
   "startMaxParamsDeviation": 50.0,
-  "maxParamsDeviation": 30.0,
+  "maxParamsDeviation": 10.0,
   "hardBounds": false,
+  "noSaveState": false,
+  "saveDaysData": false,
   "trainPeriod": {
     "seconds": 86400,
     "nanos": 0
   },
   "startPopulation": 500,
-  "population": 200,
+  "population": 20,
+  "feeFactor": 1.0,
   "historyPath": "simulate_history.json",
   "properties": "simulate.properties",
-  "initOptimisation": true,
-  "graph": false,
-  "feeFactor": 3.0,
-  "noSaveState": false,
-  "saveDaysData": false
+  "initOptimisation": false,
+  "periodicalTrain": false,
+  "graph": true
 }

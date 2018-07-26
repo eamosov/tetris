@@ -1,9 +1,7 @@
 package ru.efreet.trading.logic
 
-import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
-import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.FakeTrader
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.exchange.BarInterval
@@ -17,18 +15,18 @@ import java.time.ZonedDateTime
 class ProfitCalculator {
 
     fun <P : Any> tradeHistory(logicName: String,
-                                                  params: P,
-                                                  instrument: Instrument,
-                                                  interval: BarInterval,
-                                                  feeP: Double,
-                                                  bars: List<XBar>,
-                                                  times: List<Pair<ZonedDateTime, ZonedDateTime>>,
-                                                  fillIndicators: Boolean): TradeHistory {
+                               params: P,
+                               instrument: Instrument,
+                               interval: BarInterval,
+                               feeP: Double,
+                               bars: List<XBar>,
+                               times: List<Pair<ZonedDateTime, ZonedDateTime>>,
+                               fillIndicators: Boolean): TradeHistory {
 
         val logic: BotLogic<P> = LogicFactory.getLogic(logicName, instrument, interval, XExtBar.of(bars))
         logic.setParams(params)
 
-        val trader = FakeTrader(feeP = feeP, fillCash = fillIndicators, exchangeName = "", instrument = instrument);
+        val trader = FakeTrader(feeP = feeP, exchangeName = "")
 
         for (ti in times) {
 
@@ -38,20 +36,20 @@ class ProfitCalculator {
                 val advice = logic.getBotAdvice(index, trader, fillIndicators)
 
                 if (!advice.time.isBefore(ti.second)) {
-                    //В конце всегда всё продать
-                    if (trader.lastTrade()?.decision == Decision.BUY) {
-                        trader.executeAdvice(BotAdvice(ti.second.minusSeconds(1), Decision.SELL, mapOf(Pair("end", "true")), instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
-                    }
+
+//                    //В конце всегда всё продать
+//                    if (trader.lastTrade()?.decision == Decision.BUY) {
+//                        trader.executeAdvice(BotAdvice(ti.second.minusSeconds(1), Decision.SELL, mapOf(Pair("end", "true")), instrument, advice.price, trader.availableAsset(instrument), advice.bar, advice.indicators))
+//                    }
                     break
                 }
 
                 trader.executeAdvice(advice)
-
             }
 
         }
 
-        return trader.history(times.first().first, times.last().second)
+        return trader.history()
     }
 
 }

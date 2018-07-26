@@ -2,6 +2,7 @@ package ru.efreet.trading.utils
 
 import com.google.common.io.Files
 import com.google.gson.GsonBuilder
+import ru.efreet.trading.exchange.Instrument
 import java.io.File
 import java.math.BigDecimal
 import java.time.ZonedDateTime
@@ -45,15 +46,18 @@ fun Double.round2(): Double = (this * 100).toLong() / 100.0
 
 fun Double.round5(): Double = (this * 100000).toLong() / 100000.0
 
-inline fun <reified T> loadFromJson(path: String): T =
-        GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).create().fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
+val gson = GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType())
+        .registerTypeAdapter(Instrument::class.java, InstrumentType())
+        .setPrettyPrinting()
+        .create()
+
+inline fun <reified T> loadFromJson(path: String): T = gson.fromJson(Files.toString(File(path), Charsets.UTF_8), T::class.java)
 
 fun Any.storeAsJson(path: String) {
     Files.write(toJson(), File(path), Charsets.UTF_8)
 }
 
-fun Any.toJson(): String =
-        GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType()).setPrettyPrinting().create().toJson(this)
+fun Any.toJson(): String = gson.toJson(this)
 
 fun List<Pair<ZonedDateTime, Double>>.sma(timeFrame: Int): List<Pair<ZonedDateTime, Double>> {
     val out = mutableListOf<Pair<ZonedDateTime, Double>>()

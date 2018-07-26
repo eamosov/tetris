@@ -33,8 +33,8 @@ class TradeBot(val exchange: Exchange,
     private val tradeRecordDao = TradeRecordDao(barsCache.getConnection())
 
     private val trader = when {
-        testOnly -> FakeTrader(1000.0, 0.0, 0.02, true, exchange.getName(), instrument)
-        else -> RealTrader(tradeRecordDao, exchange, baseLimit, exchange.getName(), instrument)
+        testOnly -> FakeTrader(1000.0, 0.02, exchange.getName())
+        else -> RealTrader(tradeRecordDao, exchange, baseLimit, exchange.getName())
     }
 
 

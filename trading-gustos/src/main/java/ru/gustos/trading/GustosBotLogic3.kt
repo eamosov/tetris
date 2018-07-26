@@ -10,17 +10,20 @@ import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.global.InstrumentData
 import ru.gustos.trading.global.StandardInstrumentCalc
 import java.time.Duration
 
-open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
+open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
 
     var prepared: Boolean = false
 
-    lateinit var calc : StandardInstrumentCalc
+    val closePrice = XClosePriceIndicator(bars)
+
+    lateinit var calc: StandardInstrumentCalc
 
     override fun newInitParams(): GustosBotLogicParams3 = GustosBotLogicParams3()
 
@@ -52,8 +55,10 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
         synchronized(this) {
             val b = XExtBar(bar)
             bars.add(b)
-            calc.addBar(b)
-            calc.checkNeedRenew(true)
+            if (prepared) {
+                calc.addBar(b)
+                calc.checkNeedRenew(!simulate)
+            }
         }
     }
 
@@ -65,16 +70,18 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
-        return emptyMap()
+        return mapOf(Pair("price", closePrice))
     }
 
     override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
+            val indicators = if (fillIndicators) getIndicators(index) else null
+
             val bar = getBar(index)
             val decision = calc.decision()
-            val decisionArgs = emptyMap<String,String>()
+            val decisionArgs = emptyMap<String, String>()
 
 
             //Если SELL, то безусловно продаем
@@ -89,7 +96,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         bar.closePrice,
                         trader?.availableAsset(instrument) ?: 0.0,
                         bar,
-                        null)
+                        indicators)
             }
 
             if (decision == Decision.BUY) {
@@ -100,7 +107,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                         bar.closePrice,
                         trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
                         bar,
-                        null)
+                        indicators)
             }
 
             return BotAdvice(bar.endTime,
@@ -110,7 +117,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                     bar.closePrice,
                     0.0,
                     bar,
-                    null)
+                    indicators)
         }
 
     }

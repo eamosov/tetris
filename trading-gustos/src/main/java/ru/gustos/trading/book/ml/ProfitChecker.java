@@ -6,7 +6,6 @@ import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.TradeRecord;
-import ru.efreet.trading.exchange.impl.cache.BarsCache;
 import ru.efreet.trading.logic.AbstractBotLogic;
 import ru.efreet.trading.logic.ProfitCalculator;
 import ru.efreet.trading.logic.impl.LogicFactory;
@@ -69,7 +68,7 @@ public class ProfitChecker {
                     barInterval,
                 sheet.moments.stream()
                         .map(m -> new XExtBar(m.bar))
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()), false);
 
         botLogic.loadState(properties);
         ArrayList<Pair<ZonedDateTime,ZonedDateTime>> aa = new ArrayList<>();

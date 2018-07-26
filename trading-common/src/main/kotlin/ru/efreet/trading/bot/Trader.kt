@@ -15,7 +15,5 @@ interface Trader {
 
     fun executeAdvice(advice: BotAdvice): TradeRecord?
 
-    fun lastTrade(): TradeRecord?
-
-    fun history(start:ZonedDateTime, end:ZonedDateTime): TradeHistory
+    fun history(): TradeHistory
 }

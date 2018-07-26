@@ -38,7 +38,7 @@ public class GustosIndicator extends Indicator implements IIndicatorWithProperti
                     BarInterval.ONE_MIN,
                     sheet.moments.stream()
                             .map(m -> new XExtBar(m.bar))
-                            .collect(Collectors.toList()));
+                            .collect(Collectors.toList()), false);
 
             botLogic.loadState(data.state);
         }

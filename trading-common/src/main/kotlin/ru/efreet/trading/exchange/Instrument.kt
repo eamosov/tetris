@@ -24,6 +24,8 @@ data class Instrument(var asset: String?, var base: String?) : Serializable {
         val BCC_USDT = Instrument("BCC", "USDT")
         val BNB_USDT = Instrument("BNB", "USDT")
 
+        val ETH_USDT = Instrument("ETH", "USDT")
+
         fun parse(name: String): Instrument {
             val n = name.split("_")
             return Instrument(n[0], n[1])

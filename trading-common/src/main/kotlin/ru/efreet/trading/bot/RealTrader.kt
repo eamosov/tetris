@@ -5,25 +5,23 @@ import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.roundAmount
 import java.time.Duration
-import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 23/02/2018.
  */
-class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val limit: Double, exchangeName: String, instrument: Instrument) : AbstractTrader(exchangeName, instrument) {
+class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val limit: Double, exchangeName: String) : AbstractTrader(exchangeName) {
 
     var balanceResult: Exchange.CalBalanceResult
     var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
 
-    val startUsd: Double
-    val startAsset: Double
+    override val startUsd: Double
     val startFunds: Double
-    val baseName = instrument.base!!
-    val assetName = instrument.asset!!
+    val baseName = "USDT"
 
-    var usd: Double
-    var asset: Double
+    override var usd: Double = 0.0
     var funds: Double
+
+    var ticker: Map<Instrument, Ticker>
 
     private var lastTrade: TradeRecord? = null
 
@@ -34,15 +32,11 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
 
         startUsd = balanceResult.balances[baseName]!!
         startFunds = balanceResult.toBase["total"]!!
-        startAsset = balanceResult.balances[assetName]!!
 
         usd = startUsd
         funds = startFunds
-        asset = startAsset
 
-        lastPrice = balanceResult.ticker[Instrument(assetName, baseName)]!!.highestBid
-        minPrice = lastPrice
-        maxPrice = lastPrice
+        ticker = balanceResult.ticker
     }
 
     fun updateBalance(force: Boolean = false) {
@@ -86,7 +80,6 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
 
         usd = balanceResult.balances[baseName]!!
         funds = balanceResult.toBase["total"]!!
-        asset = balanceResult.balances[assetName]!!
 
         if (advice.decision == Decision.BUY && advice.amount > 0) {
 
@@ -100,14 +93,14 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
 
                 lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
                         advice.decision, advice.decisionArgs, order.type, order.amount,
-                        0.0,
+                        exchange.getFee() / 100.0 / 2.0,
                         usdBefore,
                         assetBefore,
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!
                 )
 
-                trades.add(lastTrade!!)
+                tradeData(advice.instrument).trades.add(lastTrade!!)
                 tradeRecordDao.create(lastTrade!!)
                 return lastTrade
             }
@@ -122,36 +115,19 @@ class RealTrader(val tradeRecordDao: TradeRecordDao, val exchange: Exchange, val
 
                 lastTrade = TradeRecord(order.orderId, order.time, exchangeName, order.instrument, order.price,
                         advice.decision, advice.decisionArgs, order.type, order.amount,
-                        0.0,
+                        exchange.getFee() / 100.0 / 2.0,
                         usdBefore!!,
                         assetBefore!!,
                         balanceResult.balances[baseName]!!,
                         balanceResult.balances[advice.instrument.asset]!!
                 )
 
-                trades.add(lastTrade!!)
+                tradeData(advice.instrument).trades.add(lastTrade!!)
                 tradeRecordDao.create(lastTrade!!)
                 return lastTrade
             }
         }
 
         return null
-    }
-
-    override fun history(start: ZonedDateTime, end: ZonedDateTime): TradeHistory {
-        return TradeHistory(startUsd, startAsset, startFunds, usd, asset, funds, trades, indicators, arrayListOf(),
-                startPrice,
-                lastPrice,
-                minPrice,
-                maxPrice,
-                start,
-                end)
-    }
-
-    override fun lastTrade(): TradeRecord? {
-        if (lastTrade == null) {
-            lastTrade = tradeRecordDao.lastTrade(instrument, exchangeName)
-        }
-        return lastTrade
     }
 }

@@ -2,6 +2,7 @@ package ru.efreet.trading.exchange.impl.cache
 
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.utils.CmdArgs
+import java.time.ZonedDateTime
 
 /**
  * Created by fluder on 01/06/2018.
@@ -18,9 +19,12 @@ class UpdateOne {
 
             cache.createTable(exchange.getName(), cmd.instrument, cmd.barInterval)
 
-            println("Fetching ${cmd.instrument}/${cmd.barInterval.duration} from ${exchange.getName()} between ${cmd.start} and ${cmd.end} ")
+            val start = (cmd.start ?: cache.getLast(exchange.getName(), cmd.instrument, cmd.barInterval)?.endTime?.minus(cmd.barInterval.duration)) ?: ZonedDateTime.parse("2017-01-01T00:00Z[GMT]")
+            val end = cmd.end ?: ZonedDateTime.now()
 
-            val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, cmd.start!!, cmd.end!!)
+            println("Fetching ${cmd.instrument}/${cmd.barInterval.duration} from ${exchange.getName()} between ${start} and ${end} ")
+
+            val bars = exchange.loadBars(cmd.instrument, cmd.barInterval, start!!, end!!)
 
             println("Saving ${bars.size} bars from ${bars.first().endTime} to ${bars.last().endTime}")
 
