@@ -45,9 +45,9 @@ class SimpleCharts(name: String, columns : Int = 5) {
 
 
         var panel = ChartPanel(chart)
-        panel!!.fillZoomRectangle = true
-        panel!!.isMouseWheelEnabled = true
-        panel!!.preferredSize = java.awt.Dimension(300, 200)
+        panel.fillZoomRectangle = true
+        panel.isMouseWheelEnabled = true
+        panel.preferredSize = java.awt.Dimension(300, 200)
         frame.contentPane.add(panel)
         frame.contentPane.repaint();
     }

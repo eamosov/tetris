@@ -4,6 +4,7 @@ import com.webcerebrium.binance.api.BinanceApi
 import com.webcerebrium.binance.datatype.*
 import com.webcerebrium.binance.websocket.BinanceWebSocketAdapterKline
 import org.eclipse.jetty.websocket.api.Session
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
@@ -21,6 +22,8 @@ import java.util.stream.Collectors
  */
 class Binance() : Exchange {
 
+    private val log = LoggerFactory.getLogger(Binance::class.java)
+
     private var session: Session? = null
 
     private val api = BinanceApi()
@@ -35,10 +38,6 @@ class Binance() : Exchange {
 
     override fun getBalancesMap(): Map<String, Double> {
         return api.balancesMap().mapValues { it.value.free.toDouble() }
-    }
-
-    override fun getPricesMap(): Map<Instrument, Double> {
-        return api.pricesMap().mapKeys { asInstrument(it.key) }.mapValues { it.value.toDouble() }
     }
 
     fun symbol(instrument: Instrument): BinanceSymbol {
@@ -64,40 +63,38 @@ class Binance() : Exchange {
         }
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
         placement.setPrice(BigDecimal.valueOf(price).round())
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return TradeRecord(
+        return Order(
                 order.orderId.toString(),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
-                getName(),
-                instrument.toString(),
+                instrument,
                 order.price.toDouble(),
-                decision = Decision.BUY,
-                type = type,
-                amount = order.origQty.toDouble())
+                asset,
+                type,
+                Decision.BUY,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): TradeRecord {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))
         placement.setPrice(BigDecimal.valueOf(price).round())
         placement.setQuantity(BigDecimal.valueOf(asset).round())
         val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return TradeRecord(
+        return Order(
                 order.orderId.toString(),
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")),
-                getName(),
-                instrument.toString(),
+                instrument,
                 order.price.toDouble(),
-                decision = Decision.SELL,
-                type = type,
-                amount = order.origQty.toDouble())
+                asset,
+                type,
+                Decision.SELL,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
     }
 
     override fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar> {
@@ -129,7 +126,7 @@ class Binance() : Exchange {
 
         } while (candles.size == 500)
 
-        println("loaded series for ${symbol(instrument)} / $interval from ${bars.first().endTime} to ${bars.last().endTime} (${bars.size} bars)")
+        log.info("loaded series for ${symbol(instrument)} / $interval from ${bars.first().endTime} to ${bars.last().endTime} (${bars.size} bars)")
         return bars
     }
 
@@ -185,5 +182,24 @@ class Binance() : Exchange {
         return api.allBookTickersMap().values
                 .stream()
                 .collect(Collectors.toMap({ asInstrument(it.symbol) }, { Ticker(asInstrument(it.symbol), it.bidPrice.toDouble(), it.askPrice.toDouble()) }))
+    }
+
+    override fun getOpenOrders(instrument: Instrument): List<Order> {
+        return api.openOrders(symbol(instrument)).map {
+            Order(it.orderId.toString(),
+                    instrument,
+                    it.price.toDouble(),
+                    it.origQty.toDouble() - it.executedQty.toDouble(),
+                    OrderType.LIMIT,
+                    when (it.side) {
+                        BinanceOrderSide.BUY -> Decision.BUY
+                        BinanceOrderSide.SELL -> Decision.SELL
+                    },
+                    ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.time), ZoneId.of("GMT")))
+        }
+    }
+
+    override fun cancelOrder(order:Order) {
+        api.deleteOrderById(symbol(order.instrument), order.orderId.toLong())
     }
 }

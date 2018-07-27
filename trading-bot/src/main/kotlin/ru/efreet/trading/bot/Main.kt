@@ -30,7 +30,7 @@ class Main {
             val cache = BarsCache(cmd.cachePath)
             val baseName = "USDT"
 
-            exchange.logBalance(baseName)
+            //exchange.logBalance(baseName)
 
 //            if (cmd.resetStrategy)
 //                botSettings.params.clear()
@@ -65,10 +65,10 @@ class Main {
                             true)
 
                     val tradesStats = StatsCalculator().stats(tradeHistory)
-                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}, last=${tradeHistory.trades.last().time}")
+                    println("Stats ${bot.logic}/${bot.instrument}/${bot.settings} for last ${days} days: trades=${tradesStats.trades}, profit=${tradesStats.profit.round2()} sma10=${tradesStats.sma10.round2()}, last=${tradeHistory.instruments.values.first().trades.last().time}")
                 }
 
-                bots.put(instrument, TradeBot(exchange, cache, bot.limit, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
+                bots.put(instrument, TradeBot(exchange, cache, bot.limit, 1.0, cmd.testOnly, instrument, bot.logic, logic, bot.settings, interval, ZonedDateTime.parse(bot.trainStart), { _, _ ->
                     //                    botSettings.addTrade(bot.instrument, order)
 //                    BotSettings.save(botSettingsPath, botSettings)
                 }, bot.training))
@@ -157,7 +157,7 @@ class Main {
                     })
 
                     balanceTimer.invoke({
-                        exchange.logBalance(baseName)
+                        //exchange.logBalance(baseName)
                     })
 
 

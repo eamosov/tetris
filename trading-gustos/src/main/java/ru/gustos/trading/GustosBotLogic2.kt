@@ -133,7 +133,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -153,7 +153,6 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -164,7 +163,6 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -174,7 +172,6 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

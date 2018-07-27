@@ -4,7 +4,6 @@ import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -13,7 +12,6 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.ta.indicators.*
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent
-import ru.gustos.trading.book.indicators.GustosVolumeLevel
 import ru.gustos.trading.book.indicators.GustosVolumeLevel2
 import ru.gustos.trading.book.indicators.LevelsTrader
 import java.time.Duration
@@ -32,7 +30,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
     lateinit var macd: XMACDIndicator<XExtBar>
     lateinit var signalEma: XCachedIndicator<XExtBar>
     lateinit var levels: GustosVolumeLevel2
-    lateinit var levelsTrade : LevelsTrader
+    lateinit var levelsTrade: LevelsTrader
 
 
     override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
@@ -75,8 +73,8 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
 //        longEma.prepare()
 //        signalEma.prepare()
 
-        levels = GustosVolumeLevel2(0.9998,0.9,1.2)
-        levelsTrade = LevelsTrader(80,250,0.0025)
+        levels = GustosVolumeLevel2(0.9998, 0.9, 1.2)
+        levelsTrade = LevelsTrader(80, 250, 0.0025)
 
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
@@ -134,7 +132,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
         return pbar.closePrice >= bar.maxPrice
     }
 
-    fun doBar(b : XExtBar){
+    fun doBar(b: XExtBar) {
         val (sma, sd) = garBuy.feed(b.closePrice, b.volume)
         b.sma = sma
         b.sd = sd
@@ -143,9 +141,9 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
         b.sdSell = sd2
 
         b.sma2 = levels.feed(b)
-        levelsTrade.feed(b,b.sma2)
+        levelsTrade.feed(b, b.sma2)
         b.sdSell2 = levelsTrade.sd()
-        b.sd2 = if (levelsTrade.high())  1.0 else -1.0
+        b.sd2 = if (levelsTrade.high()) 1.0 else -1.0
         b.avrVolume = levelsTrade.longVolume()
         b.avrVolume2 = levelsTrade.shortVolume()
 
@@ -170,7 +168,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
@@ -190,7 +188,6 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
                         indicators)
             }
@@ -201,7 +198,6 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
                         bar,
                         indicators)
             }
@@ -211,7 +207,6 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
                     indicators)
         }

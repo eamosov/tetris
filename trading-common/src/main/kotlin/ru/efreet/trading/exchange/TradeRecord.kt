@@ -43,7 +43,7 @@ data class TradeRecord(
         val amount: Double? = null, /*of asset*/
 
         @DatabaseField
-        val fee: Double? = null, /*of asset*/
+        val fee: Double? = null, /* feeRatio */
 
         @DatabaseField
         val usdBefore: Double? = null,
@@ -65,6 +65,10 @@ data class TradeRecord(
 
     fun after(): Double {
         return usdAfter!! + assetAfter!! * price!!
+    }
+
+    fun profit(buy:TradeRecord): Double {
+        return price!! / buy.price!! * (1.0 - fee!!) * (1.0 - buy.fee!!)
     }
 
 }

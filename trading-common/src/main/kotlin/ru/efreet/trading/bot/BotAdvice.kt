@@ -13,6 +13,5 @@ data class BotAdvice(val time: ZonedDateTime,
                      val decisionArgs: Map<String, String>,
                      val instrument: Instrument,
                      val price: Double,
-                     val amount: Double,
                      val bar: XBar,
                      val indicators: Map<String, Double>?)

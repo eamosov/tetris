@@ -1,5 +1,6 @@
 package ru.efreet.trading.logic
 
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.bars.XExtBar
@@ -60,7 +61,7 @@ interface BotLogic<P> {
 
     fun loadState(configPath: String): Boolean {
         return try {
-            println("Loading config from $configPath")
+            log.info("Loading config from $configPath")
 
             Files.newInputStream(Paths.get(configPath)).use {
                 val p = Properties()
@@ -70,17 +71,17 @@ interface BotLogic<P> {
             }
             true
         } catch (e: java.nio.file.NoSuchFileException) {
-            println("WARN: $configPath not found")
+            log.warn("$configPath not found")
             false
         }
     }
 
     fun prepareBars()
 
-    fun getBotAdvice(index: Int, trader: Trader?, fillIndicators: Boolean = false): BotAdvice
+    fun getBotAdvice(index: Int, fillIndicators: Boolean = false): BotAdvice
 
-    fun getAdvice(trader: Trader?, fillIndicators: Boolean = false): BotAdvice {
-        return getBotAdvice(barsCount() - 1, trader, fillIndicators)
+    fun getAdvice(fillIndicators: Boolean = false): BotAdvice {
+        return getBotAdvice(barsCount() - 1, fillIndicators)
     }
 
     fun metrica(params: P, stats: TradesStats): Metrica
@@ -102,6 +103,9 @@ interface BotLogic<P> {
     fun logState(): String
 
     companion object {
+
+        private val log = LoggerFactory.getLogger(BotLogic::class.java)
+
         fun fine(x: Double, min: Double, base: Double = 2.0): Double {
             return -Math.pow(base, -(x - min)) + 1.0
         }

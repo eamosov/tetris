@@ -4,25 +4,26 @@ import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
+import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.global.InstrumentData
 import ru.gustos.trading.global.StandardInstrumentCalc
 import java.time.Duration
 
-open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
+open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
 
-    var prepared: Boolean = false
+    val closePrice = XClosePriceIndicator(bars)
 
-    lateinit var calc : StandardInstrumentCalc
+    lateinit var calc: StandardInstrumentCalc
 
     override fun newInitParams(): GustosBotLogicParams3 = GustosBotLogicParams3()
+
 
     override fun onInit() {
 
@@ -43,7 +44,6 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-            prepared = true
         }
 
     }
@@ -52,8 +52,10 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
         synchronized(this) {
             val b = XExtBar(bar)
             bars.add(b)
-            calc.addBar(b)
-            calc.checkNeedRenew(true)
+            if (barsIsPrepared) {
+                calc.addBar(b)
+                calc.checkNeedRenew(!simulate)
+            }
         }
     }
 
@@ -65,16 +67,18 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     }
 
     override fun indicators(): Map<String, XIndicator<XExtBar>> {
-        return emptyMap()
+        return mapOf(Pair("price", closePrice))
     }
 
-    override fun getBotAdviceImpl(index: Int, trader: Trader?, fillIndicators: Boolean): BotAdvice {
+    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 
+            val indicators = if (fillIndicators) getIndicators(index) else null
+
             val bar = getBar(index)
             val decision = calc.decision()
-            val decisionArgs = emptyMap<String,String>()
+            val decisionArgs = emptyMap<String, String>()
 
 
             //Если SELL, то безусловно продаем
@@ -82,25 +86,25 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
 
                 //println("${bar.endTime} SELL ${bar.closePrice}")
 
+
                 return BotAdvice(bar.endTime,
                         decision,
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.availableAsset(instrument) ?: 0.0,
                         bar,
-                        null)
+                        indicators)
             }
 
             if (decision == Decision.BUY) {
+
                 return BotAdvice(bar.endTime,
                         decision,
                         decisionArgs,
                         instrument,
                         bar.closePrice,
-                        trader?.let { it.availableUsd(instrument) / bar.closePrice } ?: 0.0,
                         bar,
-                        null)
+                        indicators)
             }
 
             return BotAdvice(bar.endTime,
@@ -108,9 +112,8 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                     decisionArgs,
                     instrument,
                     bar.closePrice,
-                    0.0,
                     bar,
-                    null)
+                    indicators)
         }
 
     }

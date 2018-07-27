@@ -1,10 +1,8 @@
 package ru.efreet.trading.bot
 
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation
 import ru.efreet.trading.Decision
 import ru.efreet.trading.utils.pow2
 import ru.efreet.trading.utils.sma
-import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
@@ -24,45 +22,45 @@ class StatsCalculator {
         var tradesWithProfit = 0
 
         val profits = mutableListOf<Pair<ZonedDateTime, Double>>()
-        val funds = mutableListOf<Pair<ZonedDateTime, Double>>()
 
-        for (i in 0 until history.trades.size) {
-            val trade = history.trades[i]
+        for (itrades in history.instruments.values){
+            for (i in 0 until itrades.trades.size) {
+                val trade = itrades.trades[i]
 
-            if (trade.decision == Decision.SELL) {
-                trades++
+                if (trade.decision == Decision.SELL) {
+                    trades++
 
-                if (i > 0 && history.trades[i - 1].decision == Decision.BUY) {
-                    if (trade.after() != 0.0 && history.trades[i - 1].after() != 0.0) {
-                        val tradeProfit = trade.after()!! / history.trades[i - 1].usdBefore!!
+                    if (i > 0 && itrades.trades[i - 1].decision == Decision.BUY) {
+                        val tradeProfit = trade.profit(itrades.trades[i - 1])
                         if (tradeProfit > 1)
-                            tradesWithProfit++
+                                tradesWithProfit++
 
                         profits.add(Pair(trade.time!!, tradeProfit))
-                        funds.add(Pair(trade.time, trade.after()))
                     }
                 }
             }
+
         }
 
-        val pearson: Double;
 
-        if (funds.size > 2) {
-            val (startTime, startFunds) = funds.first()
+//        val pearson: Double;
 
-            //время в часах
-            val t = Duration.between(startTime, funds.last().first).toHours()
-
-            //профит в час
-            val k = Math.pow(funds.last().second / startFunds, 1.0 / t)
-
-            //Идеальный график распределения профита
-            val ideal = funds.map { startFunds * Math.pow(k, Duration.between(startTime, it.first).toHours().toDouble()) }.toDoubleArray()
-
-            pearson = PearsonsCorrelation().correlation(funds.map { it.second }.toDoubleArray(), ideal)
-        } else {
-            pearson = 0.0
-        }
+//        if (funds.size > 2) {
+//            val (startTime, startFunds) = funds.first()
+//
+//            //время в часах
+//            val t = Duration.between(startTime, funds.last().first).toHours()
+//
+//            //профит в час
+//            val k = Math.pow(funds.last().second / startFunds, 1.0 / t)
+//
+//            //Идеальный график распределения профита
+//            val ideal = funds.map { startFunds * Math.pow(k, Duration.between(startTime, it.first).toHours().toDouble()) }.toDoubleArray()
+//
+//            pearson = PearsonsCorrelation().correlation(funds.map { it.second }.toDoubleArray(), ideal)
+//        } else {
+//            pearson = 0.0
+//        }
 
         val profitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
         val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - profitPerTrade).pow2() }.sum() / profits.size) else 0.0
@@ -101,7 +99,7 @@ class StatsCalculator {
                 sdProfitPerTrade,
                 if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
                 if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                if (pearson.isNaN()) 0.0 else pearson,
+                1.0, //if (pearson.isNaN()) 0.0 else pearson,
                 history.start,
                 history.end,
                 history.profitPerDay,
