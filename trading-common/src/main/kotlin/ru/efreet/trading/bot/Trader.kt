@@ -82,7 +82,11 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     private fun balance(currency: String): Double {
-        return balances[currency] ?: 0.0
+        val value =  balances[currency] ?: 0.0
+        return if (currency == "BNB")
+            maxOf(0.0, value - 1.0)
+        else
+            value
     }
 
     fun executeAdvice(advice: BotAdvice): TradeRecord? {
@@ -161,10 +165,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             if (cancelAllOrders(advice.instrument))
                 updateBalance()
 
-            var asset = balance(advice.instrument)
-
-            //keep 2 BNB
-            if (advice.instrument == Instrument.BNB_BTC) asset -= 2.0
+            val asset = balance(advice.instrument)
 
             if (asset * advice.price >= 10) {
 
