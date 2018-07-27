@@ -1,10 +1,8 @@
 package ru.gustos.trading.global;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
+import kotlin.Pair;
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
@@ -13,6 +11,9 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 public class MomentDataHelper {
+
+    public static HashSet<String> ignore = new HashSet<>();
+
     Hashtable<String,Integer> map = new Hashtable<>();
     ArrayList<MetaData> metas = new ArrayList<>();
 
@@ -21,6 +22,7 @@ public class MomentDataHelper {
         register(key,false);
     }
     public void register(String key, boolean bool){
+        if (ignore.contains(key)) return;
         if (map.contains(key))
             throw new NullPointerException();
         MetaData md = new MetaData();
@@ -71,6 +73,7 @@ public class MomentDataHelper {
         put(m,key,value,false);
     }
     public void put(MomentData m, String key, double value, boolean bool){
+        if (ignore.contains(key)) return;
         if (!map.containsKey(key))
             register(key,bool);
         if (value==Double.NaN)
@@ -82,10 +85,12 @@ public class MomentDataHelper {
         m.values[map.get(key)] = value;
     }
 
-    public void putResult(MomentData m, int futureAttribute, boolean result) {
+    public void putResult(MomentData m, int futureAttribute, String logic, boolean result) {
         int pos = futureAttributePos(futureAttribute);
         MetaData data = metas.get(pos);
         String key = "@"+data.key.substring(1);
+        if (logic!=null)
+            key+="|"+logic;
         put(m,key,result?1.0:0,true);
     }
 
@@ -157,11 +162,40 @@ public class MomentDataHelper {
     }
 
     public void printImpurity(Instances set1, double[] impurity, String prefix) {
-        StringBuilder sb = new StringBuilder(prefix);
-        for (int i = 0;i<impurity.length;i++) {
-            if (i!=0)
+        ArrayList<Pair<Integer,Double>> temp = new ArrayList<>(impurity.length);
+        for (int i = 0;i<impurity.length;i++)
+            temp.add(new Pair<>(i,impurity[i]));
+        temp.sort(Comparator.comparing(Pair::getSecond));
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Integer,Double> p : temp) {
+            if (sb.length()==0)
+                sb.append(prefix);
+            else
                 sb.append(",");
-            sb.append(set1.attribute(i).name()).append("=").append(String.format("%.3g", impurity[i]));
+            sb.append(set1.attribute(p.getFirst()).name()).append("=").append(String.format("%.3g", p.getSecond()));
+        }
+        System.out.println(sb.toString());
+    }
+
+    public void printPizdunstvo(Instances set, double[][] pizdunstvoSum, String prefix) {
+        double[] p = new double[pizdunstvoSum[0].length];
+        for (int i = 0;i<p.length;i++){
+            if (pizdunstvoSum[1][i]>0)
+                p[i] = pizdunstvoSum[0][i]/pizdunstvoSum[1][i];
+            else
+                p[i] = 0;
+        }
+        ArrayList<Pair<Integer,Double>> temp = new ArrayList<>(p.length);
+        for (int i = 0;i<p.length;i++)
+            temp.add(new Pair<>(i,p[i]));
+        temp.sort(Comparator.comparing(Pair::getSecond));
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Integer,Double> pp : temp) {
+            if (sb.length()==0)
+                sb.append(prefix);
+            else
+                sb.append(",");
+            sb.append(set.attribute(pp.getFirst()).name()).append("=").append(String.format("%.3g (%d)", pp.getSecond(),(int)pizdunstvoSum[1][pp.getFirst()]));
         }
         System.out.println(sb.toString());
     }

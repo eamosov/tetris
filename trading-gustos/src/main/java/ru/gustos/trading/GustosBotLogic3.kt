@@ -39,7 +39,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun prepareBarsImpl() {
 
         synchronized(this) {
-            calc = StandardInstrumentCalc(InstrumentData(null, instrument, bars, null))
+            calc = StandardInstrumentCalc(InstrumentData(null, instrument, bars, null),0, false)
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")

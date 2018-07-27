@@ -3,6 +3,7 @@ package ru.gustos.trading.tests;
 import kotlin.Pair;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.*;
+import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import ru.gustos.trading.visual.SimpleCharts;
 import ru.gustos.trading.visual.SimpleProfitGraph;
 
@@ -55,10 +56,10 @@ public class TestLogicParamsImprover {
             System.out.println();
 
             SimpleProfitGraph graph = new SimpleProfitGraph();
-            ArrayList<ArrayList<Pair<Long,Double>>>  graphs = new ArrayList<>();
-            ArrayList<Pair<Long, Double>> h1 = anal1.makeHistory(false, 1, null);
+            ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
+            TimeSeriesDouble h1 = anal1.makeHistory(false, 1, null);
             graphs.add(h1);
-            ArrayList<Pair<Long, Double>> h2 = anal2.makeHistory(false, 1, null);
+            TimeSeriesDouble h2 = anal2.makeHistory(false, 1, null);
             graphs.add(h2);
             graph.drawHistory(TestGlobal.makeMarketAveragePrice(global, anal1, h1, null), graphs);
 //            GustosLogicOptimizator.Params p = new GustosLogicOptimizator.Params();

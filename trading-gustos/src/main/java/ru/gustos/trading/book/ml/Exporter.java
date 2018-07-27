@@ -163,7 +163,7 @@ public class Exporter {
             sb.append(String.format("%.4f", v).replace(',','.'));
     }
 
-    private static void addAttribute(StringBuilder sb, Indicator ii) {
+    public static void addAttribute(StringBuilder sb, Indicator ii) {
         sb.append("@attribute ").append(ii.getName());
         if (ii.getResultType()== IndicatorResultType.NUMBER)
             sb.append(" numeric");

@@ -6,6 +6,7 @@ import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.book.BarsSource;
+import ru.gustos.trading.global.timeseries.TimeSeries;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class InstrumentData implements BarsSource{
-    TimeSeries<InstrumentMoment> bars;
+    public TimeSeries<InstrumentMoment> bars;
     public Instrument instrument;
     public Exchange exchange;
     MomentDataHelper helper;
@@ -38,7 +39,7 @@ public class InstrumentData implements BarsSource{
     }
 
     private List<XBar> getBars(int count) {
-        return bars.data.stream().limit(count).map(d->d.bar).collect(Collectors.toList());
+        return bars.direct().stream().limit(count).map(d->d.bar).collect(Collectors.toList());
     }
 
     public void addBar(XBar bar){
@@ -75,7 +76,7 @@ public class InstrumentData implements BarsSource{
         return bars.get(index).bar;
     }
 
-    public ArrayList<InstrumentMoment> moments(){return bars.data;}
+    public List<InstrumentMoment> moments(){return bars.direct();}
 
     @Override
     public XBar totalBar() {
