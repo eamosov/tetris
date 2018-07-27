@@ -33,7 +33,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     private val startUsd: Double
     private val startDeposit: Double
 
-    val usd: Double get() = balances["USDT"]!!
+    val usd: Double get() = balance("USDT")
 
     private lateinit var ticker: Map<Instrument, Ticker>
     private lateinit var balances: Map<String, Double>
@@ -41,6 +41,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     init {
 
         //Balances in USD
+        updateTicker()
         updateBalance()
 
         startUsd = usd
@@ -52,11 +53,12 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         }
     }
 
-    private fun updateBalance(force: Boolean = true) {
-        balanceUpdatedTimer.invoke({
-            ticker = exchange.getTicker()
-            balances = exchange.getBalancesMap()
-        }, force)
+    private fun updateTicker() {
+        ticker = exchange.getTicker()
+    }
+
+    private fun updateBalance() {
+        balances = exchange.getBalancesMap()
     }
 
 //    override fun availableUsd(instrument: Instrument): Double {
@@ -89,6 +91,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             exchange.setTicker(advice.instrument, advice.bar)
         }
 
+        updateTicker()
+        updateBalance()
+
         val td = iTradeHistory(advice.instrument)
 
         if (!td.isStartInitialized())
@@ -118,8 +123,8 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
         if (advice.decision == Decision.BUY) {
 
-            cancelAllOrders(advice.instrument)
-            updateBalance(true)
+            if (cancelAllOrders(advice.instrument))
+                updateBalance()
 
             //максимальный размер ставки
             val maxBet = deposit() * limit * bet
@@ -153,8 +158,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             }
         } else if (advice.decision == Decision.SELL) {
 
-            cancelAllOrders(advice.instrument)
-            updateBalance(true)
+            if (cancelAllOrders(advice.instrument))
+                updateBalance()
+
             val asset = balance(advice.instrument)
 
             if (asset * advice.price >= 10) {
@@ -179,17 +185,14 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                     return trade
                 }
             }
-        } else {
-            updateBalance(false)
         }
 
         return null
     }
 
     fun deposit(): Double {
-        return instruments.map {
-            price(it) * (balance(it) + getOpenOrders(it).filter { it.side == Decision.SELL }.map { it.asset }.sum())
-            +getOpenOrders(it).filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+        return instruments.map { instrument ->
+            price(instrument) * (balance(instrument) + getOpenOrders(instrument).filter { it.side == Decision.SELL }.map { it.asset }.sum()) + getOpenOrders(instrument).filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
         }.sum() + usd
     }
 
@@ -201,11 +204,14 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         return exchange.getOpenOrders(instrument)
     }
 
-    fun cancelAllOrders(instrument: Instrument) {
+    fun cancelAllOrders(instrument: Instrument): Boolean {
+        var isCancelled = false
         exchange.getOpenOrders(instrument).forEach {
+            isCancelled = true
             log.warn("Cancel order: {}", it)
             exchange.cancelOrder(it)
         }
+        return isCancelled
     }
 
     fun history(): TradeHistory {
@@ -219,10 +225,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                 iTradeHistory.values.first().endTime)
     }
 
-    fun logBalance(baseName: String) {
+    fun logBalance() {
 
         for (i in instruments) {
-            log.info("{}: {} ({} USDT)", i.asset, balance(i), (balance(i) * price(i)).round2())
+            log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), getOpenOrders(i))
         }
 
         log.info("total: {}", deposit().round2())

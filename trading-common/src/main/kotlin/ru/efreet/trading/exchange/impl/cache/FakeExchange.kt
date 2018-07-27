@@ -121,7 +121,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
     }
 
     override fun getOpenOrders(instrument: Instrument): List<Order> {
-        return orders.values.toList()
+        return orders.values.filter { it.instrument == instrument } .toList()
     }
 
     override fun cancelOrder(order: Order) {
