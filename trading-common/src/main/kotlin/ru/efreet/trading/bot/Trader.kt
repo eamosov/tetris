@@ -187,7 +187,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     fun deposit(): Double {
-        return instruments.map { price(it) * balance(it) }.sum() + usd
+        return instruments.map {
+            price(it) * (balance(it) + getOpenOrders(it).filter { it.side == Decision.SELL }.map { it.asset }.sum())
+            +getOpenOrders(it).filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+        }.sum() + usd
     }
 
     fun price(instrument: Instrument): Double {
