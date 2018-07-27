@@ -5,7 +5,11 @@
             <pattern>[%date] %highlight([%level]) [%logger{10} %file:%line] %msg%n</pattern>
         </encoder>
     </appender>
-    <root level="debug">
+    <root level="INFO">
         <appender-ref ref="COLOR"/>
     </root>
+
+    <logger name="ru.efreet.trading" level="DEBUG" />
+    <logger name="ru.gustos.trading" level="DEBUG" />
+    <logger name="com.webcerebrium.binance.datatype.BinanceEventKline" level="WARN" />
 </configuration>

@@ -247,10 +247,10 @@ public class StandardInstrumentCalc {
                 else {
                     if (set1.numDistinctValues(set1.classIndex()) == 1) System.out.println("no distinct values!");
                     RandomForest rf = new RandomForest();
-                    rf.setNumExecutionSlots(6);
+                    rf.setNumExecutionSlots(0);
                     rf.setNumIterations(100); // 300
                     rf.setSeed(calcIndex);
-                    rf.setOptions(new String[]{"-U"});
+                    //rf.setOptions(new String[]{"-U"});
                     rf.setComputeAttributeImportance(true);
 
                     //                    CostSensitiveClassifier costSensitiveClassifier = new CostSensitiveClassifier();

@@ -161,7 +161,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             if (cancelAllOrders(advice.instrument))
                 updateBalance()
 
-            val asset = balance(advice.instrument)
+            var asset = balance(advice.instrument)
+
+            //keep 2 BNB
+            if (advice.instrument == Instrument.BNB_BTC) asset -= 2.0
 
             if (asset * advice.price >= 10) {
 

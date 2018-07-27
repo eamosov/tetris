@@ -3,7 +3,6 @@ package ru.efreet.trading.logic.impl.sd3
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument

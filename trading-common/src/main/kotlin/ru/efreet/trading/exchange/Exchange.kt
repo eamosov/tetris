@@ -24,9 +24,9 @@ interface Exchange {
 
     fun getLastTrades(instrument: Instrument): List<AggTrade>
 
-    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit)
-
-    fun stopTrade()
+//    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit)
+//
+//    fun stopTrade()
 
     fun getFee(): Double
 

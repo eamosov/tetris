@@ -100,14 +100,6 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return arrayListOf()
     }
 
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopTrade() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun getFee(): Double {
         return _fee
     }

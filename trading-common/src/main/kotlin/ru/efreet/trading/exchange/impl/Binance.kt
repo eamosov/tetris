@@ -134,9 +134,9 @@ class Binance() : Exchange {
             api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
 
 
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
+    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) : Session {
 
-        session = api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
+        return api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
             override fun onMessage(message: BinanceEventKline) {
 
                 val bar = XBaseBar(Duration.ofMillis(message.endTime - message.startTime + 1),
@@ -155,12 +155,12 @@ class Binance() : Exchange {
         })
     }
 
-    override fun stopTrade() {
-        if (session != null) {
-            session!!.close()
-            session = null
-        }
-    }
+//    override fun stopTrade() {
+//        if (session != null) {
+//            session!!.close()
+//            session = null
+//        }
+//    }
 
     override fun getFee(): Double {
         return 0.1

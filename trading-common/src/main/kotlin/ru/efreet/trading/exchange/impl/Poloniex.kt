@@ -37,7 +37,7 @@ class Poloniex() : Exchange {
 
     private val service = PoloniexExchangeService(apiKey, apiSecret)
 
-    private var webSocketClient: WebSocketClient? = null
+    //private var webSocketClient: WebSocketClient? = null
 
     override fun getName(): String = "poloniex"
 
@@ -147,16 +147,16 @@ class Poloniex() : Exchange {
 //        webSocketClient!!.connect()
 //    }
 
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopTrade() {
-
-        if (webSocketClient != null)
-            webSocketClient!!.close()
-        webSocketClient = null
-    }
+//    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//
+//    override fun stopTrade() {
+//
+//        if (webSocketClient != null)
+//            webSocketClient!!.close()
+//        webSocketClient = null
+//    }
 
     override fun getFee(): Double {
         return 0.4
