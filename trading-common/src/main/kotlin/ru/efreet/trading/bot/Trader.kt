@@ -86,7 +86,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     fun executeAdvice(advice: BotAdvice): TradeRecord? {
 
         if (exchange is FakeExchange) {
-            exchange.setTicker(advice.instrument, advice.bar.closePrice)
+            exchange.setTicker(advice.instrument, advice.bar)
         }
 
         val td = iTradeHistory(advice.instrument)
@@ -199,7 +199,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     fun cancelAllOrders(instrument: Instrument) {
-        exchange.getOpenOrders(instrument).forEach { exchange.cancelOrder(it) }
+        exchange.getOpenOrders(instrument).forEach {
+            log.warn("Cancel order: {}", it)
+            exchange.cancelOrder(it)
+        }
     }
 
     fun history(): TradeHistory {

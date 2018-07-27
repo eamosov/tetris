@@ -40,10 +40,6 @@ class Binance() : Exchange {
         return api.balancesMap().mapValues { it.value.free.toDouble() }
     }
 
-    override fun getPricesMap(): Map<Instrument, Double> {
-        return api.pricesMap().mapKeys { asInstrument(it.key) }.mapValues { it.value.toDouble() }
-    }
-
     fun symbol(instrument: Instrument): BinanceSymbol {
         return BinanceSymbol(instrument.asset + instrument.base)
     }
@@ -130,7 +126,7 @@ class Binance() : Exchange {
 
         } while (candles.size == 500)
 
-        println("loaded series for ${symbol(instrument)} / $interval from ${bars.first().endTime} to ${bars.last().endTime} (${bars.size} bars)")
+        log.info("loaded series for ${symbol(instrument)} / $interval from ${bars.first().endTime} to ${bars.last().endTime} (${bars.size} bars)")
         return bars
     }
 

@@ -16,6 +16,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
 
     private val balances = mutableMapOf<String, Double>()
     private val ticker = mutableMapOf<Instrument, Ticker>()
+    private val orders = mutableMapOf<String, Order>()
 
     init {
         setBalance("USDT", 1000.0)
@@ -25,8 +26,21 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         balances[currency] = value
     }
 
-    fun setTicker(instrument: Instrument, value: Double) {
-        ticker[instrument] = Ticker(instrument, value, value)
+    fun setTicker(instrument: Instrument, bar: XBar) {
+        ticker[instrument] = Ticker(instrument, bar.closePrice, bar.closePrice)
+
+        val it = orders.iterator()
+        while (it.hasNext()) {
+            val order = it.next().value
+
+            if (order.side == Decision.BUY && order.price > bar.minPrice) {
+                execOrder(order)
+                it.remove()
+            } else if (order.side == Decision.SELL && order.price < bar.maxPrice) {
+                execOrder(order)
+                it.remove()
+            }
+        }
     }
 
     override fun getName(): String {
@@ -41,28 +55,41 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
 
         val base = balances[instrument.base] ?: 0.0
         val cost = price * asset
-        if (cost > base){
+        if (cost > base || asset <= 0.0 || price <= 0.0) {
             log.error("Couldn't buy {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.base, base)
             return null
         }
 
-        setBalance(instrument.base!!, base - cost)
-        setBalance(instrument.asset!!, (balances[instrument.asset!!] ?: 0.0) + asset * (1.0 - getFee() / 200.0))
-        return Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.BUY, ZonedDateTime.now())
+        setBalance(instrument.base, base - cost)
+        //setBalance(instrument.asset, (balances[instrument.asset] ?: 0.0) + asset * (1.0 - getFee() / 200.0))
+        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.BUY, ZonedDateTime.now())
+
+        if (type == OrderType.MARKET)
+            execOrder(order)
+        else
+            orders[order.orderId] = order
+
+        return order
     }
 
     override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order? {
 
         val myAsset = balances[instrument.asset] ?: 0.0
-        if (asset > myAsset){
+        if (asset > myAsset || asset <= 0.0 || price <= 0.0) {
             log.error("Couldn't sell {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.asset, myAsset)
             return null
         }
 
-        setBalance(instrument.base!!, (balances[instrument.base!!] ?: 0.0) + price * asset * (1.0 - getFee() / 200.0))
-        setBalance(instrument.asset!!, myAsset - asset)
-        return Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.SELL, ZonedDateTime.now())
+        //setBalance(instrument.base, (balances[instrument.base] ?: 0.0) + price * asset * (1.0 - getFee() / 200.0))
+        setBalance(instrument.asset, myAsset - asset)
+        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.SELL, ZonedDateTime.now())
 
+        if (type == OrderType.MARKET)
+            execOrder(order)
+        else
+            orders[order.orderId] = order
+
+        return order
     }
 
     override fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar> {
@@ -93,15 +120,26 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return ticker
     }
 
-    override fun getPricesMap(): Map<Instrument, Double> {
-        return ticker.mapValues { it.value.highestBid }
-    }
-
     override fun getOpenOrders(instrument: Instrument): List<Order> {
-        return listOf()
+        return orders.values.toList()
     }
 
     override fun cancelOrder(order: Order) {
+        val order = orders.remove(order.orderId) ?: return
+        if (order.side == Decision.BUY) {
+            setBalance(order.instrument.base, balances[order.instrument.base]!! + order.price * order.asset)
+        } else if (order.side == Decision.SELL) {
+            setBalance(order.instrument.asset, balances[order.instrument.asset]!! + order.asset)
+        }
+    }
 
+    private fun execOrder(order: Order) {
+        if (order.side == Decision.BUY) {
+            setBalance(order.instrument.asset,
+                    (balances[order.instrument.asset] ?: 0.0) + order.asset * (1.0 - getFee() / 200.0))
+        } else if (order.side == Decision.SELL) {
+            setBalance(order.instrument.base,
+                    (balances[order.instrument.base] ?: 0.0) + order.price * order.asset * (1.0 - getFee() / 200.0))
+        }
     }
 }

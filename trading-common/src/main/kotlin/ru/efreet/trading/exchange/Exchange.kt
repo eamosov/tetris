@@ -16,8 +16,6 @@ interface Exchange {
 
     fun getBalancesMap(): Map<String, Double>
 
-    fun getPricesMap(): Map<Instrument, Double>
-
     fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?
 
     fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?

@@ -2,6 +2,7 @@ package ru.efreet.trading.exchange.impl
 
 import com.cf.client.poloniex.PoloniexExchangeService
 import org.java_websocket.client.WebSocketClient
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
@@ -16,6 +17,8 @@ import java.util.stream.Collectors
  * Created by fluder on 08/02/2018.
  */
 class Poloniex() : Exchange {
+
+    private val log = LoggerFactory.getLogger(Poloniex::class.java)
 
     val apiKey: String
     val apiSecret: String
@@ -50,7 +53,7 @@ class Poloniex() : Exchange {
         }
 
         val _amount = BigDecimal.valueOf(asset).round()
-        println("TRY BUY ORDER: $instrument $_price $_amount $type")
+        log.info("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
                 instrument,
@@ -70,7 +73,7 @@ class Poloniex() : Exchange {
         }
 
         val _amount = BigDecimal.valueOf(asset).round()
-        println("TRY SELL ORDER: $instrument $_price $_amount $type")
+        log.info("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
                 instrument,
@@ -172,10 +175,6 @@ class Poloniex() : Exchange {
                         { Instrument(it.key.split("_")[1], it.key.split("_")[0]) },
                         { Ticker(Instrument(it.key.split("_")[1], it.key.split("_")[0]), it.value.highestBid.toDouble(), it.value.lowestAsk.toDouble()) }))
 
-    }
-
-    override fun getPricesMap(): Map<Instrument, Double> {
-        throw NotImplementedError()
     }
 
     override fun getOpenOrders(instrument: Instrument): List<Order> {

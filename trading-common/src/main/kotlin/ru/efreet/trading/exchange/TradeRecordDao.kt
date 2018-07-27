@@ -9,6 +9,7 @@ import com.j256.ormlite.support.ConnectionSource
 import com.j256.ormlite.support.DatabaseConnection
 import com.j256.ormlite.table.DatabaseTableConfig
 import com.j256.ormlite.table.TableUtils
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.SQLException
 
@@ -16,6 +17,8 @@ import java.sql.SQLException
  * Created by fluder on 20/04/2018.
  */
 class TradeRecordDao(jdbcConnection: Connection, val tableName:String = "trades") {
+
+    private val log = LoggerFactory.getLogger(TradeRecordDao::class.java)
 
     private val dao: Dao<TradeRecord, String>
 
@@ -83,7 +86,7 @@ class TradeRecordDao(jdbcConnection: Connection, val tableName:String = "trades"
             dao.queryForAll()
         } catch (e: SQLException) {
             val bk = tableName + "_backup_" + System.currentTimeMillis() / 1000
-            println("Recreating trades table, backup old as $bk")
+            log.info("Recreating trades table, backup old as $bk")
 
             try {
                 jc.update("ALTER TABLE $tableName RENAME TO $bk", arrayOf(), arrayOf())

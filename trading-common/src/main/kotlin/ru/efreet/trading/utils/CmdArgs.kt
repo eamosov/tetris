@@ -1,6 +1,7 @@
 package ru.efreet.trading.utils
 
 import org.apache.commons.cli.*
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.trainer.BotMetrica
@@ -33,6 +34,8 @@ data class CmdArgs(var start: ZonedDateTime? = null,
         get() = instruments.first()
 
     companion object {
+
+        val log = LoggerFactory.getLogger(CmdArgs::class.java)
 
         fun parseTime(time: String): ZonedDateTime {
             if (time.equals("now"))
@@ -74,7 +77,7 @@ data class CmdArgs(var start: ZonedDateTime? = null,
             try {
                 cmd = parser.parse(options, args)
             } catch (e: ParseException) {
-                System.err.println(e.message)
+                log.error("ParseException", e)
                 val formater = HelpFormatter()
                 formater.printHelp("Bot", options)
                 System.exit(-1)
