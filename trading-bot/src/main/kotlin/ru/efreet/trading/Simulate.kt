@@ -27,7 +27,8 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
                  var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT, Instrument.BCC_USDT, Instrument.LTC_USDT),
                  var usd: Double = 1000.0,
-                 var bet: Double = 0.5,
+                 val usdLimit:Double = 1.0,
+                 val betLimit:Double = 0.5,
                  var trainDays: Long = 60,
                  var interval: BarInterval = BarInterval.ONE_MIN,
                  var startMaxParamsDeviation: Double = 50.0,
@@ -74,13 +75,13 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
         exchange.setBalance("USDT", state.usd)
 
-        val trader = Trader(null, exchange, 1.0, state.bet, state.instruments)
+        val trader = Trader(null, exchange, state.usdLimit, state.betLimit, state.instruments)
 
         val simulateData = arrayListOf<SimulateData>()
 
         for (instrument in state.instruments) {
 
-            exchange.setBalance(instrument.asset!!, 0.0)
+            exchange.setBalance(instrument.asset, 0.0)
 
             val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
             if (!logic.loadState(state.properties)){
@@ -120,6 +121,8 @@ class Simulate(val cmd: CmdArgs, val statePath: String) {
 
             simulateData.add(SimulateData(instrument, logic, lastTrainTime, everyDay, false, bars.iterator()))
         }
+
+        exchange.setBalance("BNB", 1.0)
 
         var hasNext: Boolean = true
 

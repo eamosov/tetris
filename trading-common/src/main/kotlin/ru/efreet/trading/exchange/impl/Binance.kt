@@ -63,7 +63,7 @@ class Binance() : Exchange {
         }
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
@@ -80,7 +80,7 @@ class Binance() : Exchange {
                 ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))

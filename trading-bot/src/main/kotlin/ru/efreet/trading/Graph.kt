@@ -12,6 +12,7 @@ import org.jfree.data.time.Minute
 import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.ui.ApplicationFrame
 import org.jfree.ui.RefineryUtilities
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradeHistory
@@ -36,10 +37,10 @@ class Graph {
         val stats = StatsCalculator().stats(history)
 
         for (trade in history.instruments.values.stream().flatMap { it.trades.stream() }.sorted { o1, o2 -> o1.time!!.compareTo(o2.time)  }) {
-            println("TRADE: ${trade}")
+            log.info("TRADE: ${trade}")
         }
 
-        println("STATS:  ${stats}")
+        log.info("STATS:  ${stats}")
 
         var nextDatasetIndex = 0
 
@@ -111,7 +112,7 @@ class Graph {
                         try {
                             ts.add(Minute(Date.from(v.first.toInstant())), v.second)
                         } catch (e: SeriesException) {
-                            println("dup: $v")
+                            log.warn("dup: $v")
                         }
                     }
                 }
@@ -212,6 +213,9 @@ class Graph {
     }
 
     companion object {
+
+        private val log = LoggerFactory.getLogger(Graph.javaClass)
+
         @JvmStatic
         fun main(args: Array<String>) {
 
@@ -234,7 +238,7 @@ class Graph {
 
                 val sp = logic.getParams()
 
-                println(sp.toJson())
+                log.info(sp.toJson())
 
                 history = ProfitCalculator().tradeHistory(cmd.logicName,
                         sp, cmd.instrument, cmd.barInterval, exchange.getFee(), bars,

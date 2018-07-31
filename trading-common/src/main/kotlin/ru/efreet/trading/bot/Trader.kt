@@ -142,7 +142,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
-                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT, advice.time)
 
                 updateBalance()
 
@@ -171,7 +171,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
-                val order = exchange.sell(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.sell(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT, advice.time)
 
                 updateBalance()
 

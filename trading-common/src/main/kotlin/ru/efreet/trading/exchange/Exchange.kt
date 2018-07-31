@@ -16,9 +16,9 @@ interface Exchange {
 
     fun getBalancesMap(): Map<String, Double>
 
-    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?
+    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order?
 
-    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order?
+    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order?
 
     fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar>
 

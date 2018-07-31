@@ -52,7 +52,12 @@ class MlBot {
 
                 bot.logic.insertBar(bar)
                 val advice = bot.logic.getAdvice(true)
-                trader.executeAdvice(advice)
+                val trade = trader.executeAdvice(advice)
+
+                if (trade != null) {
+                    log.info("TRADE: $trade")
+                }
+
             }
 
             balanceTimer.invoke({

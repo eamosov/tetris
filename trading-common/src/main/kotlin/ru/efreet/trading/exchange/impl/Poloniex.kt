@@ -45,7 +45,7 @@ class Poloniex() : Exchange {
 
     override fun getBalancesMap(): Map<String, Double> = service.returnBalance(true).mapValues { it.value.available!!.toDouble() }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
         } else {
@@ -61,10 +61,10 @@ class Poloniex() : Exchange {
                 _amount.toDouble(),
                 type,
                 Decision.BUY,
-                ZonedDateTime.now())
+                now)
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
@@ -81,7 +81,7 @@ class Poloniex() : Exchange {
                 _amount.toDouble(),
                 type,
                 Decision.SELL,
-                ZonedDateTime.now())
+                now)
 
     }
 
