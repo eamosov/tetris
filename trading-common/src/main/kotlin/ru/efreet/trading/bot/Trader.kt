@@ -1,13 +1,12 @@
 package ru.efreet.trading.bot
 
 import org.slf4j.LoggerFactory
+import ru.efreet.telegram.Telegram
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.exchange.impl.cache.FakeExchange
-import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.round2
 import ru.efreet.trading.utils.roundAmount
-import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
@@ -17,10 +16,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
              val exchange: Exchange,
              val limit: Double,
              val bet: Double,
-             val instruments: List<Instrument>
+             val instruments: List<Instrument>,
+             val telegram: Telegram? = null
 ) {
-
-    var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
 
     private val iTradeHistory: MutableMap<Instrument, ITradeHistory> = mutableMapOf()
     private val cash: MutableList<Pair<ZonedDateTime, Double>> = arrayListOf()
@@ -61,28 +59,12 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         balances = exchange.getBalancesMap()
     }
 
-//    override fun availableUsd(instrument: Instrument): Double {
-//
-//        updateBalance()
-//
-//        //на сколько куплено валюты
-//        val entered = balanceResult.toBase[instrument.asset]!!
-//
-//        //полный размер депозита
-//        val total = balanceResult.toBase["total"]!!
-//
-//        //осталось USD
-//        val free = balanceResult.balances[baseName]!!
-//
-//        return minOf(total * limit - entered, free)
-//    }
-
     fun balance(instrument: Instrument): Double {
         return balance(instrument.asset)
     }
 
     private fun balance(currency: String): Double {
-        val value =  balances[currency] ?: 0.0
+        val value = balances[currency] ?: 0.0
         return if (currency == "BNB")
             maxOf(0.0, value - 1.0)
         else
@@ -133,7 +115,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             val deposit = deposit(false)
 
             //сколько боту осталось доступно USD
-            val availableUsd = usd  - deposit * (1.0 - limit)
+            val availableUsd = usd - deposit * (1.0 - limit)
 
             //максимальный размер ставки на одну валюту
             val maxBet = deposit * limit * bet
@@ -163,6 +145,12 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
+
+                    try {
+                        telegram?.sendMessage("BUY ${trade.amount} ${trade.instrument} for ${trade.price}")
+                    } catch (e: Exception) {
+                        log.error("Error sending message to telegram", e)
+                    }
                     return trade
                 }
             }
@@ -192,6 +180,11 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
+                    try {
+                        telegram?.sendMessage("SELL ${trade.amount} ${trade.instrument} for ${trade.price}")
+                    } catch (e: Exception) {
+                        log.error("Error sending message to telegram", e)
+                    }
                     return trade
                 }
             }

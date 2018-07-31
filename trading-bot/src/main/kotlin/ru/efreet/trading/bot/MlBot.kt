@@ -2,6 +2,7 @@ package ru.efreet.trading.bot
 
 import org.eclipse.jetty.websocket.api.Session
 import org.slf4j.LoggerFactory
+import ru.efreet.telegram.Telegram
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
@@ -122,13 +123,19 @@ class MlBot {
 
         val tradeRecordDao = TradeRecordDao(cache.getConnection())
 
-        trader = Trader(tradeRecordDao, exchange, botConfig.usdLimit, botConfig.betLimit, bots.keys.toList())
+        val telegram = if (botConfig.telegram) {
+            Telegram.create()
+        } else null
+
+        trader = Trader(tradeRecordDao, exchange, botConfig.usdLimit, botConfig.betLimit, bots.keys.toList(), telegram)
 
         trader.logBalance()
 
         bots.forEach { _, bot ->
             startTrade(bot)
         }
+
+        telegram?.sendMessage("Bot have been started")
 
         while (true) {
             Thread.sleep(1000)
