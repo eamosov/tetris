@@ -124,19 +124,25 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
         cash.add(Pair(advice.bar.endTime, deposit()))
 
-
         if (advice.decision == Decision.BUY) {
 
             if (cancelAllOrders(advice.instrument))
                 updateBalance()
 
-            //максимальный размер ставки
-            val maxBet = deposit() * limit * bet
+            //usd + все наблюдаемые валюты
+            val deposit = deposit(false)
 
-            //текущая ставка
+            //сколько боту осталось доступно USD
+            val availableUsd = usd  - deposit * (1.0 - limit)
+
+            //максимальный размер ставки на одну валюту
+            val maxBet = deposit * limit * bet
+
+            //сколько уже поставили на одну валюту
             val myBet = balance(advice.instrument) * price(advice.instrument)
 
-            val asset = minOf(maxBet - myBet, usd) / advice.price
+            //сколько ещё можем доставить?
+            val asset = minOf(maxBet - myBet, availableUsd) / advice.price
 
             if (balance(advice.instrument) < 10 && asset * advice.price >= 10) {
 
@@ -194,9 +200,14 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         return null
     }
 
-    fun deposit(): Double {
+    fun deposit(checkOrders: Boolean = true): Double {
         return instruments.map { instrument ->
-            price(instrument) * (balance(instrument) + getOpenOrders(instrument).filter { it.side == Decision.SELL }.map { it.asset }.sum()) + getOpenOrders(instrument).filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+            var i = price(instrument) * balance(instrument)
+            if (checkOrders) {
+                val openOrders = getOpenOrders(instrument)
+                i += price(instrument) * openOrders.filter { it.side == Decision.SELL }.map { it.asset }.sum() + openOrders.filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+            }
+            i
         }.sum() + usd
     }
 
