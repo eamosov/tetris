@@ -135,7 +135,7 @@ class MlBot {
             startTrade(bot)
         }
 
-        telegram?.sendMessage("Bot have been started")
+        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}")
 
         while (true) {
             Thread.sleep(1000)
