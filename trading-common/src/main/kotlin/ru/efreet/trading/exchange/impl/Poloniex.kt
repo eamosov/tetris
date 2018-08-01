@@ -37,7 +37,7 @@ class Poloniex() : Exchange {
 
     private val service = PoloniexExchangeService(apiKey, apiSecret)
 
-    private var webSocketClient: WebSocketClient? = null
+    //private var webSocketClient: WebSocketClient? = null
 
     override fun getName(): String = "poloniex"
 
@@ -45,7 +45,7 @@ class Poloniex() : Exchange {
 
     override fun getBalancesMap(): Map<String, Double> = service.returnBalance(true).mapValues { it.value.available!!.toDouble() }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
         } else {
@@ -61,10 +61,10 @@ class Poloniex() : Exchange {
                 _amount.toDouble(),
                 type,
                 Decision.BUY,
-                ZonedDateTime.now())
+                now)
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val _price = if (type == OrderType.LIMIT) {
             BigDecimal.valueOf(price).round()
@@ -81,7 +81,7 @@ class Poloniex() : Exchange {
                 _amount.toDouble(),
                 type,
                 Decision.SELL,
-                ZonedDateTime.now())
+                now)
 
     }
 
@@ -147,16 +147,16 @@ class Poloniex() : Exchange {
 //        webSocketClient!!.connect()
 //    }
 
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopTrade() {
-
-        if (webSocketClient != null)
-            webSocketClient!!.close()
-        webSocketClient = null
-    }
+//    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//
+//    override fun stopTrade() {
+//
+//        if (webSocketClient != null)
+//            webSocketClient!!.close()
+//        webSocketClient = null
+//    }
 
     override fun getFee(): Double {
         return 0.4

@@ -1,13 +1,12 @@
 package ru.efreet.trading.bot
 
 import org.slf4j.LoggerFactory
+import ru.efreet.telegram.Telegram
 import ru.efreet.trading.Decision
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.exchange.impl.cache.FakeExchange
-import ru.efreet.trading.utils.Periodical
 import ru.efreet.trading.utils.round2
 import ru.efreet.trading.utils.roundAmount
-import java.time.Duration
 import java.time.ZonedDateTime
 
 /**
@@ -17,10 +16,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
              val exchange: Exchange,
              val limit: Double,
              val bet: Double,
-             val instruments: List<Instrument>
+             val instruments: List<Instrument>,
+             val telegram: Telegram? = null
 ) {
-
-    var balanceUpdatedTimer = Periodical(Duration.ofMinutes(5))
 
     private val iTradeHistory: MutableMap<Instrument, ITradeHistory> = mutableMapOf()
     private val cash: MutableList<Pair<ZonedDateTime, Double>> = arrayListOf()
@@ -61,28 +59,16 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         balances = exchange.getBalancesMap()
     }
 
-//    override fun availableUsd(instrument: Instrument): Double {
-//
-//        updateBalance()
-//
-//        //на сколько куплено валюты
-//        val entered = balanceResult.toBase[instrument.asset]!!
-//
-//        //полный размер депозита
-//        val total = balanceResult.toBase["total"]!!
-//
-//        //осталось USD
-//        val free = balanceResult.balances[baseName]!!
-//
-//        return minOf(total * limit - entered, free)
-//    }
-
     fun balance(instrument: Instrument): Double {
         return balance(instrument.asset)
     }
 
     private fun balance(currency: String): Double {
-        return balances[currency] ?: 0.0
+        val value = balances[currency] ?: 0.0
+        return if (currency == "BNB")
+            maxOf(0.0, value - 1.0)
+        else
+            value
     }
 
     fun executeAdvice(advice: BotAdvice): TradeRecord? {
@@ -120,25 +106,31 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
         cash.add(Pair(advice.bar.endTime, deposit()))
 
-
         if (advice.decision == Decision.BUY) {
 
             if (cancelAllOrders(advice.instrument))
                 updateBalance()
 
-            //максимальный размер ставки
-            val maxBet = deposit() * limit * bet
+            //usd + все наблюдаемые валюты
+            val deposit = deposit(false)
 
-            //текущая ставка
+            //сколько боту осталось доступно USD
+            val availableUsd = usd - deposit * (1.0 - limit)
+
+            //максимальный размер ставки на одну валюту
+            val maxBet = deposit * limit * bet
+
+            //сколько уже поставили на одну валюту
             val myBet = balance(advice.instrument) * price(advice.instrument)
 
-            val asset = minOf(maxBet - myBet, usd) / advice.price
+            //сколько ещё можем доставить?
+            val asset = minOf(maxBet - myBet, availableUsd) / advice.price
 
             if (balance(advice.instrument) < 10 && asset * advice.price >= 10) {
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
-                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT, advice.time)
 
                 updateBalance()
 
@@ -153,6 +145,12 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
+
+                    try {
+                        telegram?.sendMessage("BUY ${trade.amount} ${trade.instrument} for ${trade.price}")
+                    } catch (e: Exception) {
+                        log.error("Error sending message to telegram", e)
+                    }
                     return trade
                 }
             }
@@ -167,7 +165,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
-                val order = exchange.sell(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT)
+                val order = exchange.sell(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT, advice.time)
 
                 updateBalance()
 
@@ -182,6 +180,11 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
+                    try {
+                        telegram?.sendMessage("SELL ${trade.amount} ${trade.instrument} for ${trade.price}")
+                    } catch (e: Exception) {
+                        log.error("Error sending message to telegram", e)
+                    }
                     return trade
                 }
             }
@@ -190,9 +193,14 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         return null
     }
 
-    fun deposit(): Double {
+    fun deposit(checkOrders: Boolean = true): Double {
         return instruments.map { instrument ->
-            price(instrument) * (balance(instrument) + getOpenOrders(instrument).filter { it.side == Decision.SELL }.map { it.asset }.sum()) + getOpenOrders(instrument).filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+            var i = price(instrument) * balance(instrument)
+            if (checkOrders) {
+                val openOrders = getOpenOrders(instrument)
+                i += price(instrument) * openOrders.filter { it.side == Decision.SELL }.map { it.asset }.sum() + openOrders.filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+            }
+            i
         }.sum() + usd
     }
 

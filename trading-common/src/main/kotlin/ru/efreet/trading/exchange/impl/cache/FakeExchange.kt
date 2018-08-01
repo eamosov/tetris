@@ -51,7 +51,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return balances
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order? {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order? {
 
         val base = balances[instrument.base] ?: 0.0
         val cost = price * asset
@@ -62,7 +62,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
 
         setBalance(instrument.base, base - cost)
         //setBalance(instrument.asset, (balances[instrument.asset] ?: 0.0) + asset * (1.0 - getFee() / 200.0))
-        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.BUY, ZonedDateTime.now())
+        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.BUY, now)
 
         if (type == OrderType.MARKET)
             execOrder(order)
@@ -72,7 +72,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return order
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order? {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order? {
 
         val myAsset = balances[instrument.asset] ?: 0.0
         if (asset > myAsset || asset <= 0.0 || price <= 0.0) {
@@ -82,7 +82,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
 
         //setBalance(instrument.base, (balances[instrument.base] ?: 0.0) + price * asset * (1.0 - getFee() / 200.0))
         setBalance(instrument.asset, myAsset - asset)
-        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.SELL, ZonedDateTime.now())
+        val order = Order(UUID.randomUUID().toString(), instrument, price, asset, type, Decision.SELL, now)
 
         if (type == OrderType.MARKET)
             execOrder(order)
@@ -98,14 +98,6 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
 
     override fun getLastTrades(instrument: Instrument): List<AggTrade> {
         return arrayListOf()
-    }
-
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun stopTrade() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun getFee(): Double {

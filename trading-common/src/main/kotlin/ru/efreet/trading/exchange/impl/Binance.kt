@@ -63,7 +63,7 @@ class Binance() : Exchange {
         }
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
@@ -80,7 +80,7 @@ class Binance() : Exchange {
                 ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType): Order {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))
@@ -134,9 +134,9 @@ class Binance() : Exchange {
             api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
 
 
-    override fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) {
+    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) : Session {
 
-        session = api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
+        return api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
             override fun onMessage(message: BinanceEventKline) {
 
                 val bar = XBaseBar(Duration.ofMillis(message.endTime - message.startTime + 1),
@@ -155,12 +155,12 @@ class Binance() : Exchange {
         })
     }
 
-    override fun stopTrade() {
-        if (session != null) {
-            session!!.close()
-            session = null
-        }
-    }
+//    override fun stopTrade() {
+//        if (session != null) {
+//            session!!.close()
+//            session = null
+//        }
+//    }
 
     override fun getFee(): Double {
         return 0.1

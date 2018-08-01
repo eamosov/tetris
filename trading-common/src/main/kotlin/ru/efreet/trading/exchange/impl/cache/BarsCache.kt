@@ -125,7 +125,7 @@ class BarsCache(val path: String) {
     }
 
     fun tableName(exchange: String, instrument: Instrument, interval: BarInterval): String {
-        return "${exchange}_${instrument.base!!.toLowerCase()}_${instrument.asset!!.toLowerCase()}_${interval.name.toLowerCase()}"
+        return "${exchange}_${instrument.base.toLowerCase()}_${instrument.asset.toLowerCase()}_${interval.name.toLowerCase()}"
     }
 
     fun createTable(exchange: String, instrument: Instrument, interval: BarInterval) {
