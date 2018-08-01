@@ -47,7 +47,7 @@ public class DataPlayer {
             }
         }
         System.out.println(String.format("profitable=%g", profit*1.0/count));
-        Instances set = helper.makeSet(data, 0, Integer.MAX_VALUE,0,9);
+        Instances set = helper.makeSet(data, null, 0, Integer.MAX_VALUE,0,9);
         Exporter.string2file("d:/weka/test.arff",set.toString());
     }
 
@@ -85,12 +85,12 @@ public class DataPlayer {
             if (start.plusDays(trainDays + 1).isBefore(sheet.bar(i).getBeginTime())) {
                 start = sheet.bar(i).getBeginTime().minusDays(trainDays);
                 learnFrom = sheet.getBarIndex(start);
-                Instances set = helper.makeSet(data, learnFrom, i,0,9);
+                Instances set = helper.makeSet(data, null, learnFrom, i,0,9);
                 improver = new LogisticImprover(set, null, 2);
                 classifier.buildClassifier(improver.prepare(set));
-                test = improver.prepare(helper.makeEmptySet(0,9));
+                test = improver.prepare(helper.makeEmptySet(null,0,9));
             }
-            Instance instance = improver.prepareInstance(helper.makeInstance(data[i],0,9).toDoubleArray());
+            Instance instance = improver.prepareInstance(helper.makeInstance(data[i],null,0,9).toDoubleArray());
             test.add(instance);
             instance.setDataset(test);
             boolean b = classifier.classifyInstance(instance) > 0.5;
@@ -122,8 +122,8 @@ public class DataPlayer {
             if (time.getYear()>=2018 && time.getDayOfYear()>=day-skip) break;
         }
 
-        Instances set = helper.makeSet(data, 0, i,0,9);
-        Instances testSet = helper.makeEmptySet(0,9);
+        Instances set = helper.makeSet(data, null,0, i,0,9);
+        Instances testSet = helper.makeEmptySet(null,0,9);
         double result = 0;
 
         try {
@@ -137,7 +137,7 @@ public class DataPlayer {
                     count++;
                     if (play(i))
                         profit++;
-                    testSet.add(helper.makeInstance(data[i],0,9));
+                    testSet.add(helper.makeInstance(data[i],null,0,9));
                 }
                 if (time.getYear()>=2018 && time.getDayOfYear()>day+exam) break;
             }
@@ -168,8 +168,8 @@ public class DataPlayer {
             if (time.getYear()>=2018 && time.getDayOfYear()>110) break;
         }
         System.out.println("will make classifier now...");
-        Instances set = helper.makeSet(data, 0, i,0,9);
-        Instances testSet = helper.makeEmptySet(0,9);
+        Instances set = helper.makeSet(data, null,0, i,0,9);
+        Instances testSet = helper.makeEmptySet(null,0,9);
 
         try {
             count = 0;profit = 0;
@@ -181,7 +181,7 @@ public class DataPlayer {
                     count++;
                     if (play(i))
                         profit++;
-                    testSet.add(helper.makeInstance(data[i],0,9));
+                    testSet.add(helper.makeInstance(data[i],null,0,9));
                 }
                 ZonedDateTime time = sheet.bar(i).getBeginTime();
                 if (time.getYear()>=2018 && time.getDayOfYear()>140) break;

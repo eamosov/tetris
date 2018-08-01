@@ -24,23 +24,23 @@ import java.util.stream.Collectors;
 public class TestGlobal{
 
     static Instrument[] instruments = new Instrument[]{
-//            new Instrument("EOS","BTC"),
-//            new Instrument("ONT","BTC"),
-//            new Instrument("XRP","BTC"),
             new Instrument("BTC","USDT"),
             new Instrument("ETH","USDT"),
             new Instrument("BCC","USDT"),
             new Instrument("BNB","USDT"),
+            new Instrument("LTC","USDT"),
             new Instrument("NEO","USDT"),
             new Instrument("QTUM","USDT"),
-            new Instrument("LTC","USDT"),
-//            new Instrument("TRX","BTC"),
-//            new Instrument("ADA","BTC"),
-//            new Instrument("VEN","BTC"),
-//            new Instrument("ZIL","BTC"),
-//            new Instrument("GTO","BTC"),
-//            new Instrument("GNT","BTC"),
-//            new Instrument("LOOM","BTC"),
+//            new Instrument("ETC","USDT"),
+//            new Instrument("TUSD","USDT"),
+//            new Instrument("XRP","USDT"),
+//            new Instrument("IOTA","USDT"),
+//            new Instrument("XLM","USDT"),
+//            new Instrument("ADA","USDT"),
+//            new Instrument("ICX","USDT"),
+//            new Instrument("EOS","USDT"),
+//            new Instrument("ONT","USDT"),
+//            new Instrument("TRX","USDT"),
     };
 
     public static TimeSeriesDouble makeMarketAveragePrice(Global global, PLHistoryAnalyzer pl, TimeSeriesDouble trades, HashSet<String> ignore) {
@@ -75,29 +75,33 @@ public class TestGlobal{
         Global global = new Global();
 
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,7,10,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,7,30,0,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
 
 
         for (Instrument ii : instruments) {
             System.gc();
-            System.out.println("Loading instrument: "+ii.toString());
+            if (StandardInstrumentCalc.LOGS)
+                System.out.println("Loading instrument: "+ii.toString());
             BarsCache cache = new BarsCache("cache.sqlite3");
             List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
 //            bars = BarsPacker.packBars(bars,5);
             global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
         }
-        System.out.println("Calc global data");
+        System.out.println("Calc global data "+Arrays.deepToString(instruments));
         global.calcData();
         return global;
     }
 
     public static void main(String[] args) throws IOException {
+        doIt(args);
+    }
 
+    private static void doIt(String[] args) throws IOException {
         int calcPeriod = 3600*12;
         Global global = init(instruments);
-        int cpus = args.length>0?Integer.parseInt(args[0]):0;
+        int cpus = args.length>0?Integer.parseInt(args[0]):4;
 
 
         File ignoreFile = new File("ignore.txt");
@@ -111,13 +115,13 @@ public class TestGlobal{
         for (int i = 0;i<instruments.length;i++) {
             InstrumentData data = global.getInstrument(instruments[i].toString());
             int bars = StandardInstrumentCalc.calcAllFrom;
-            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars), cpus, false);
+            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars), cpus, false,false);
 
-            new StandardInstrumentCalc(data, cpus, true); // calc future
+            data.global = null;
+            new StandardInstrumentCalc(data, cpus, true,false); // calc future
             c.futuredata = data;
             for (;bars<data.size();bars++){
-                if ((bars-StandardInstrumentCalc.calcAllFrom)%(60*12)==0)
-                    c.checkNeedRenew(false);
+                c.checkNeedRenew(false);
                 c.addBar(data.bar(bars));
             }
 
@@ -163,13 +167,21 @@ public class TestGlobal{
         } catch (Exception e){
             e.printStackTrace();
         }
+        moneyPart = 1.0/Math.max(1,global.planalyzer1.histories.size());
+        TimeSeriesDouble h2 = global.planalyzer2.makeHistory(false, moneyPart, null);
+        TimeSeriesDouble h3 = global.planalyzer3.makeHistory(false, moneyPart, null);
+        System.out.println(h2.lastOrZero());
+        System.out.println(h3.lastOrZero());
         String res = name+" ignores "+ignorestring+"\n";
         try (FileWriter f = new FileWriter("testres.txt",true)) {
+            f.write(""+ZonedDateTime.now().toLocalDateTime().toString()+"\n");
             f.write(res);
+            f.write(""+h2.lastOrZero()+"\n");
+            f.write(""+h3.lastOrZero()+"\n");
         }
 
-
 //        Exporter.string2file("d:/weka/prev.arff",global.planalyzer.trainset.toString());
+
     }
 
 

@@ -4,6 +4,7 @@ import kotlin.Pair;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.PLHistory;
 import ru.gustos.trading.global.PLHistoryAnalyzer;
+import ru.gustos.trading.global.PizdunstvoData;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -19,18 +20,26 @@ public class TestChooseBest {
     static PLHistoryAnalyzer planalyzer1 = null;
     static PLHistoryAnalyzer planalyzer2 = null;
     static PLHistoryAnalyzer planalyzer3 = null;
-    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[16];
+    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[4];
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl5.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetris/pl/pl33.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
             for (int i = 0;i<planalyzers.length;i++)
                 planalyzers[i] = new PLHistoryAnalyzer(in);
+            PizdunstvoData.pdbuy.load(in);
+            PizdunstvoData.pdsell.load(in);
+
         } catch (Exception e){
             e.printStackTrace();
         }
+        System.out.println("buy");
+        PizdunstvoData.pdbuy.analyze();
+        System.out.println("sell");
+        PizdunstvoData.pdsell.analyze();
+
 
         Instrument[] instruments = planalyzers[0].histories.stream().map(pl -> Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new);
         List<Long> times = new ArrayList<>();
@@ -38,8 +47,8 @@ public class TestChooseBest {
         double total = 1;
         for (Instrument instr : instruments) {
             System.out.println(instr);
-            PLHistory[] hh = new PLHistory[16];
-            for (int i = 0; i < 16; i++) {
+            PLHistory[] hh = new PLHistory[planalyzers.length];
+            for (int i = 0; i < planalyzers.length; i++) {
                 hh[i] = planalyzers[i].get(instr.toString());
                 times.addAll(hh[i].profitHistory.stream().map(p -> p.timeBuy).collect(Collectors.toList()));
                 System.out.println(i+":"+new PLHistory(hh[i],from,Long.MAX_VALUE).totalProfit());
@@ -84,8 +93,8 @@ public class TestChooseBest {
                         n = j;
                     }
                 }
-//                best = 1;
-//                n = 15;
+                best = 1;
+                n = 12;
                 if (best > 0) {
                     PLHistory.PLTrade tr = hh[n].findByBuyTime(t);
                     if (tr != null) {

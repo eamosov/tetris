@@ -17,8 +17,8 @@ public class InstrumentData implements BarsSource{
     public TimeSeries<InstrumentMoment> bars;
     public Instrument instrument;
     public Exchange exchange;
-    MomentDataHelper helper;
-    Global global;
+    public MomentDataHelper helper;
+    public Global global;
 
     XBaseBar totalBar;
 

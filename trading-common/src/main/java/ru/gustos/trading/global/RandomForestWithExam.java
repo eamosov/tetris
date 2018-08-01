@@ -13,7 +13,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
-public class RandomForestWithExam  extends Bagging {
+import static weka.core.Capabilities.*;
+
+public class RandomForestWithExam extends Bagging {
     static final long serialVersionUID = 1116839470751428698L;
     protected boolean m_computeAttributeImportance;
 
@@ -77,15 +79,15 @@ public class RandomForestWithExam  extends Bagging {
     }
 
     public String numFeaturesTipText() {
-        return ((RandomTreeWithExam)this.getClassifier()).KValueTipText();
+        return ((RandomTreeWithExam) this.getClassifier()).KValueTipText();
     }
 
     public int getNumFeatures() {
-        return ((RandomTreeWithExam)this.getClassifier()).getKValue();
+        return ((RandomTreeWithExam) this.getClassifier()).getKValue();
     }
 
     public void setNumFeatures(int newNumFeatures) {
-        ((RandomTreeWithExam)this.getClassifier()).setKValue(newNumFeatures);
+        ((RandomTreeWithExam) this.getClassifier()).setKValue(newNumFeatures);
     }
 
     public String computeAttributeImportanceTipText() {
@@ -94,7 +96,7 @@ public class RandomForestWithExam  extends Bagging {
 
     public void setComputeAttributeImportance(boolean computeAttributeImportance) {
         this.m_computeAttributeImportance = computeAttributeImportance;
-        ((RandomTreeWithExam)this.m_Classifier).setComputeImpurityDecreases(computeAttributeImportance);
+        ((RandomTreeWithExam) this.m_Classifier).setComputeImpurityDecreases(computeAttributeImportance);
     }
 
     public boolean getComputeAttributeImportance() {
@@ -102,47 +104,47 @@ public class RandomForestWithExam  extends Bagging {
     }
 
     public String maxDepthTipText() {
-        return ((RandomTreeWithExam)this.getClassifier()).maxDepthTipText();
+        return ((RandomTreeWithExam) this.getClassifier()).maxDepthTipText();
     }
 
     public int getMaxDepth() {
-        return ((RandomTreeWithExam)this.getClassifier()).getMaxDepth();
+        return ((RandomTreeWithExam) this.getClassifier()).getMaxDepth();
     }
 
     public void setMaxDepth(int value) {
-        ((RandomTreeWithExam)this.getClassifier()).setMaxDepth(value);
+        ((RandomTreeWithExam) this.getClassifier()).setMaxDepth(value);
     }
 
     public String breakTiesRandomlyTipText() {
-        return ((RandomTreeWithExam)this.getClassifier()).breakTiesRandomlyTipText();
+        return ((RandomTreeWithExam) this.getClassifier()).breakTiesRandomlyTipText();
     }
 
     public boolean getBreakTiesRandomly() {
-        return ((RandomTreeWithExam)this.getClassifier()).getBreakTiesRandomly();
+        return ((RandomTreeWithExam) this.getClassifier()).getBreakTiesRandomly();
     }
 
     public void setBreakTiesRandomly(boolean newBreakTiesRandomly) {
-        ((RandomTreeWithExam)this.getClassifier()).setBreakTiesRandomly(newBreakTiesRandomly);
+        ((RandomTreeWithExam) this.getClassifier()).setBreakTiesRandomly(newBreakTiesRandomly);
     }
 
     public void setDebug(boolean debug) {
         super.setDebug(debug);
-        ((RandomTreeWithExam)this.getClassifier()).setDebug(debug);
+        ((RandomTreeWithExam) this.getClassifier()).setDebug(debug);
     }
 
     public void setNumDecimalPlaces(int num) {
         super.setNumDecimalPlaces(num);
-        ((RandomTreeWithExam)this.getClassifier()).setNumDecimalPlaces(num);
+        ((RandomTreeWithExam) this.getClassifier()).setNumDecimalPlaces(num);
     }
 
     public void setBatchSize(String size) {
         super.setBatchSize(size);
-        ((RandomTreeWithExam)this.getClassifier()).setBatchSize(size);
+        ((RandomTreeWithExam) this.getClassifier()).setBatchSize(size);
     }
 
     public void setSeed(int s) {
         super.setSeed(s);
-        ((RandomTreeWithExam)this.getClassifier()).setSeed(s);
+        ((RandomTreeWithExam) this.getClassifier()).setSeed(s);
     }
 
     public String toString() {
@@ -158,7 +160,7 @@ public class RandomForestWithExam  extends Bagging {
                     int[] sortedIndices = Utils.sort(impurityScores);
                     buffer.append("\n\nAttribute importance based on average impurity decrease (and number of nodes using that attribute)\n\n");
 
-                    for(int i = sortedIndices.length - 1; i >= 0; --i) {
+                    for (int i = sortedIndices.length - 1; i >= 0; --i) {
                         int index = sortedIndices[i];
                         if (index != this.m_data.classIndex()) {
                             buffer.append(Utils.doubleToString(impurityScores[index], 10, this.getNumDecimalPlaces())).append(" (").append(Utils.doubleToString(nodeCounts[index], 6, 0)).append(")  ").append(this.m_data.attribute(index).name()).append("\n");
@@ -178,10 +180,10 @@ public class RandomForestWithExam  extends Bagging {
 
         Classifier[] classifiers = this.m_Classifiers;
 
-        for(int j = 0; j < classifiers.length; ++j) {
-            RandomTreeWithExam c = (RandomTreeWithExam)classifiers[j];
-            Pair<Integer,Boolean> pizd = c.computePizdunstvo(inst);
-            if (pizd!=null) {
+        for (int j = 0; j < classifiers.length; ++j) {
+            RandomTreeWithExam c = (RandomTreeWithExam) classifiers[j];
+            Pair<Integer, Boolean> pizd = c.computePizdunstvo(inst);
+            if (pizd != null) {
                 if (pizd.getSecond()) pizdunstvo[0][pizd.getFirst()]++;
                 pizdunstvo[1][pizd.getFirst()]++;
             } else
@@ -197,8 +199,8 @@ public class RandomForestWithExam  extends Bagging {
 
         Classifier[] classifiers = this.m_Classifiers;
 
-        for(int j = 0; j < classifiers.length; ++j) {
-            RandomTreeWithExam c = (RandomTreeWithExam)classifiers[j];
+        for (int j = 0; j < classifiers.length; ++j) {
+            RandomTreeWithExam c = (RandomTreeWithExam) classifiers[j];
             c.computePizdunstvo2(inst, pizdunstvo);
         }
 
@@ -220,17 +222,17 @@ public class RandomForestWithExam  extends Bagging {
             Classifier[] var3 = this.m_Classifiers;
             int var4 = var3.length;
 
-            for(int var5 = 0; var5 < var4; ++var5) {
+            for (int var5 = 0; var5 < var4; ++var5) {
                 Classifier c = var3[var5];
-                double[][] forClassifier = ((RandomTreeWithExam)c).getImpurityDecreases();
+                double[][] forClassifier = ((RandomTreeWithExam) c).getImpurityDecreases();
 
-                for(int i = 0; i < this.m_data.numAttributes(); ++i) {
+                for (int i = 0; i < this.m_data.numAttributes(); ++i) {
                     impurityDecreases[i] += forClassifier[i][0];
                     nodeCounts[i] += forClassifier[i][1];
                 }
             }
 
-            for(int i = 0; i < this.m_data.numAttributes(); ++i) {
+            for (int i = 0; i < this.m_data.numAttributes(); ++i) {
                 if (nodeCounts[i] > 0.0D) {
                     impurityDecreases[i] /= nodeCounts[i];
                 }
@@ -250,7 +252,7 @@ public class RandomForestWithExam  extends Bagging {
         newVector.addElement(new Option("\tCompute and output attribute importance (mean impurity decrease method)", "attribute-importance", 0, "-attribute-importance"));
         newVector.addElement(new Option("\tNumber of iterations.\n\t(current value " + this.getNumIterations() + ")", "I", 1, "-I <num>"));
         newVector.addElement(new Option("\tNumber of execution slots.\n\t(default 1 - i.e. no parallelism)\n\t(use 0 to auto-detect number of cores)", "num-slots", 1, "-num-slots <num>"));
-        List<Option> list = Collections.list(((OptionHandler)this.getClassifier()).listOptions());
+        List<Option> list = Collections.list(((OptionHandler) this.getClassifier()).listOptions());
         newVector.addAll(list);
         return newVector.elements();
     }
@@ -288,10 +290,10 @@ public class RandomForestWithExam  extends Bagging {
         }
 
         Vector<String> classifierOptions = new Vector();
-        Collections.addAll(classifierOptions, ((OptionHandler)this.getClassifier()).getOptions());
+        Collections.addAll(classifierOptions, ((OptionHandler) this.getClassifier()).getOptions());
         Option.deleteFlagString(classifierOptions, "-do-not-check-capabilities");
         result.addAll(classifierOptions);
-        return (String[])result.toArray(new String[result.size()]);
+        return (String[]) result.toArray(new String[result.size()]);
     }
 
     public void setOptions(String[] options) throws Exception {
@@ -341,4 +343,5 @@ public class RandomForestWithExam  extends Bagging {
         runClassifier(new RandomForestWithExam(), argv);
     }
 }
+
 

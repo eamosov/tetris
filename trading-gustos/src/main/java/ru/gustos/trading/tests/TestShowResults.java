@@ -26,14 +26,14 @@ public class TestShowResults {
     static PLHistoryAnalyzer planalyzer1 = null;
     static PLHistoryAnalyzer planalyzer2 = null;
     static PLHistoryAnalyzer planalyzer3 = null;
-    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[16];
+    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[4];
     static HashSet<String> ignore = new HashSet<>();
     static SimpleProfitGraph graph = new SimpleProfitGraph();
     static Global global;
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl5.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl44.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
@@ -79,15 +79,17 @@ public class TestShowResults {
         double moneyPart = 1.0/Math.max(1,planalyzer1.histories.size()-ignore.size());
         ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
         TimeSeriesDouble h1 = planalyzer1.makeHistory(false, moneyPart, ignore);
-//        graphs.add(h1);
+        graphs.add(h1);
 //        graphs.add(planalyzer1.makeHistory(false, moneyPart, ignore));
-//        graphs.add(planalyzer2.makeHistory(false, moneyPart, ignore));
+        TimeSeriesDouble h2 = planalyzer2.makeHistory(false, moneyPart, ignore);
+        graphs.add(h2);
 //        graphs.add(planalyzer2.makeHistory(true, moneyPart,ignore));
-//        graphs.add(planalyzer3.makeHistory(false, moneyPart,ignore));
-        for (int i = 0;i<planalyzers.length;i++){
-            graphs.add(planalyzers[i].makeHistory(false, moneyPart,ignore));
-
-        }
+        TimeSeriesDouble h3 = planalyzer3.makeHistory(false, moneyPart, ignore);
+        graphs.add(h3);
+        System.out.println(h2.lastOrZero());
+        System.out.println(h3.lastOrZero());
+//        for (int i = 0;i<planalyzers.length;i++)
+//            graphs.add(planalyzers[i].makeHistory(false, moneyPart,ignore));
 //        graphs.add(planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
         TimeSeriesDouble price = TestGlobal.makeMarketAveragePrice(global, planalyzer1, h1, ignore);
         graph.drawHistory(price, graphs);

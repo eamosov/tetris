@@ -89,5 +89,12 @@ public class TimeSeriesDouble{
                 Arrays.stream(data).limit(size).mapToObj(Double::toString).collect(Collectors.joining(","));
     }
 
+    public double last() {
+        return data[size-1];
+    }
+
+    public double lastOrZero() {
+        return size==0?0:data[size-1];
+    }
 }
 

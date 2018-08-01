@@ -5,8 +5,14 @@ import ru.gustos.trading.global.timeseries.TimeSeries;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TradeMethodsSolver {
+    public static final long BIG_INTERVAL = 60 * 60 * 24 * 90;
+    public static final long SMALL_INTERVAL = 60 * 60 * 24 * 30;
     String instrument;
     PLHistory[][] history;
     boolean wasNotNull;
@@ -15,10 +21,11 @@ public class TradeMethodsSolver {
     TradeMethodsSolver(String instrument){
         this.instrument = instrument;
     }
-
+    long firstTime;
 
     public void buy(long time, double price, boolean[] classifiers) {
         if (history==null) {
+            firstTime = time;
             int n = classifiers.length + 1;
             if (analyzers==null){
                 analyzers = new PLHistoryAnalyzer[n][n];
@@ -55,24 +62,41 @@ public class TradeMethodsSolver {
 
 
     public Pair<Integer,Integer> chooseStrategy(long time){
-        int buy = 0;
-        int sell = 0;
+        if (time-firstTime<BIG_INTERVAL) return null;
+        int ni = 0, nj= 0;
         double best = 0;
-
-//        for (int b = 0;b<history.length;b++)
-//            for (int s = 0;s<history[b].length;s++){
-//                double p = history[b][s].getPossibleProfit(time);
-//                if (p>best){
-//                    best = p;
-//                    buy = b;
-//                    sell = s;
-//                }
-//            }
-//        if (best==0) return null;
+        ArrayList<Pair<Integer,Double>> rates = new ArrayList<>();
+        for (int i = 0;i<history.length;i++)
+            for (int j = 0;j<history[i].length;j++){
+            PLHistory cut = new PLHistory(history[i][j], time - BIG_INTERVAL, time);
+            double p = cut.all.profit * cut.all.drawdown;
+            if (p>1.03)
+                rates.add(new Pair<>(j,p));
+        }
+        rates.sort(Comparator.comparing(Pair::getSecond));
+        if (rates.size()>1)
+            rates.subList(0,rates.size()/2).clear();
+        Set<Integer> top = rates.stream().map(Pair::getFirst).collect(Collectors.toSet());
+        for (int i = 0;i<history.length;i++)
+            for (int j = 0;j<history[i].length;j++){
+            PLHistory cut = new PLHistory(history[i][j], time - SMALL_INTERVAL, time);
+            double p = cut.all.profit*cut.all.drawdown;
+            if (!top.contains(j))
+//                    if (p<1.1 || (!top.contains(j) && hh[j].findByBuyTime(t)==null))
+                p -=1;
+            else
+                p = cut.all.profit;
+            if (p > best) {
+                best = p;
+                ni = i;
+                nj = j;
+            }
+        }
+        if (best==0) return null;
 
         wasNotNull = true;
 
-        return new Pair<>(0,0);
+        return new Pair<>(ni-1,nj-1);
     }
 
     public static void saveAnalyzers(DataOutputStream out) throws IOException {
@@ -80,4 +104,5 @@ public class TradeMethodsSolver {
             for (int j = 0;j<analyzers[i].length;j++)
                 analyzers[i][j].saveHistories(out);
     }
+
 }

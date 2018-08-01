@@ -17,6 +17,8 @@ public class RecurrentValues {
     public EmaRecurrent sd3 = new EmaRecurrent(700);
     public EmaRecurrent volumeLong = new EmaRecurrent(700);
     public EmaRecurrent volumeShort = new EmaRecurrent(5);
+    public EmaRecurrent volumeLong2 = new EmaRecurrent(1700);
+    public EmaRecurrent volumeShort2 = new EmaRecurrent(30);
     public EmaRecurrent deltaToVolume = new EmaRecurrent(500);
     public EmaRecurrent deltaToVolumeShort = new EmaRecurrent(5);
     public EmaRecurrent maxminToVolume = new EmaRecurrent(500);
@@ -27,16 +29,21 @@ public class RecurrentValues {
     public EmaRecurrent change1 = new EmaRecurrent(5);
     public EmaRecurrent change2 = new EmaRecurrent(50);
     public EmaRecurrent change3 = new EmaRecurrent(500);
+    public EmaRecurrent change4 = new EmaRecurrent(1000);
     public GustosAverageRecurrent gustosAvg = new GustosAverageRecurrent(170, 1700, 30);
     public GustosAverageRecurrent gustosAvg2 = new GustosAverageRecurrent(17, 170, 3);
-    public GustosAverageRecurrent gustosAvgBuy = new GustosAverageRecurrent(177, 1842, 30);
-    public GustosAverageRecurrent gustosAvgSell = new GustosAverageRecurrent(702, 1891, 30);
+    public GustosAverageRecurrent gustosAvg3 = new GustosAverageRecurrent(85, 850, 20);
+    public GustosAverageRecurrent gustosAvg4 = new GustosAverageRecurrent(700, 1900, 30);
+//    public GustosAverageRecurrent gustosAvgBuy = new GustosAverageRecurrent(177, 1842, 30);
+//    public GustosAverageRecurrent gustosAvgSell = new GustosAverageRecurrent(702, 1891, 30);
     public StohasticRecurrent stoh0 = new StohasticRecurrent(5, 80, 20, 90, 10);
     public StohasticRecurrent stoh1 = new StohasticRecurrent(30, 80, 20, 90, 10);
     public StohasticRecurrent stoh2 = new StohasticRecurrent(300, 80, 20, 90, 10);
     public MacdRecurrent macd0 = new MacdRecurrent(3, 7, 5);
     public MacdRecurrent macd1 = new MacdRecurrent(25, 60, 17);
     public MacdRecurrent macd2 = new MacdRecurrent(250, 600, 170);
+    public MacdRecurrent macd3 = new MacdRecurrent(70, 200, 50);
+    public MacdRecurrent macd4 = new MacdRecurrent(700, 2000, 500);
     public RsiRecurrent rsi0 = new RsiRecurrent(10);
     public RsiRecurrent rsi1 = new RsiRecurrent(100);
     public RsiRecurrent rsi2 = new RsiRecurrent(1000);
@@ -64,16 +71,22 @@ public class RecurrentValues {
         sd3.feed((p-ema3.value())*(p-ema3.value()));
         gustosAvg.feed(p, volume);
         gustosAvg2.feed(p, volume);
-        gustosAvgBuy.feed(p, volume);
-        gustosAvgSell.feed(p, volume);
+        gustosAvg3.feed(p, volume);
+        gustosAvg4.feed(p, volume);
+//        gustosAvgBuy.feed(p, volume);
+//        gustosAvgSell.feed(p, volume);
         stoh0.feed(bar);
         stoh1.feed(bar);
         stoh2.feed(bar);
         macd0.feed(p);
         macd1.feed(p);
         macd2.feed(p);
+        macd3.feed(p);
+        macd4.feed(p);
         volumeLong.feed(volume);
         volumeShort.feed(volume);
+        volumeLong2.feed(volume);
+        volumeShort2.feed(volume);
         rsi0.feed(p);
         rsi1.feed(p);
         rsi2.feed(p);
@@ -94,14 +107,15 @@ public class RecurrentValues {
         change1.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-10)).getClosePrice()-1)*100);
         change2.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-100)).getClosePrice()-1)*100);
         change3.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-1000)).getClosePrice()-1)*100);
+        change4.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-3000)).getClosePrice()-1)*100);
     }
 
 
 
-    public void setGustosParams(GustosLogicOptimizator.Params params) {
-        gustosParams = params;
-        gustosAvgBuy.changeParams(params.buyWindow(),params.buyVolumeWindow(),params.volumeShort(),params.volumePow1(),params.volumePow2());
-        gustosAvgSell.changeParams(params.sellWindow(),params.sellVolumeWindow(),params.volumeShort(),params.volumePow1(),params.volumePow2());
-    }
+//    public void setGustosParams(GustosLogicOptimizator.Params params) {
+//        gustosParams = params;
+//        gustosAvgBuy.changeParams(params.buyWindow(),params.buyVolumeWindow(),params.volumeShort(),params.volumePow1(),params.volumePow2());
+//        gustosAvgSell.changeParams(params.sellWindow(),params.sellVolumeWindow(),params.volumeShort(),params.volumePow1(),params.volumePow2());
+//    }
 }
 
