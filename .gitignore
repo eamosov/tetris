@@ -5,4 +5,5 @@ target
 cache.sqlite3
 cache.sqlite3-shm
 cache.sqlite3-wal
+.cache.sqlite3*
 .idea
