@@ -77,6 +77,12 @@ public class MomentDataHelper {
         double value = get(from,key);
         double valuen = get(m,key);
         put(m,key+"_lag"+lag,value,false);
+//        put(m,key+"_delta"+lag,valuen-value,false);
+    }
+
+    public void putDelta(MomentData m, String key, MomentData from, int lag){
+        double value = get(from,key);
+        double valuen = get(m,key);
         put(m,key+"_delta"+lag,valuen-value,false);
     }
 

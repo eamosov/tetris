@@ -66,7 +66,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     private fun balance(currency: String): Double {
         val value = balances[currency] ?: 0.0
         return if (currency == "BNB")
-            maxOf(0.0, value - 1.0)
+            maxOf(0.0, value - 5.0)
         else
             value
     }

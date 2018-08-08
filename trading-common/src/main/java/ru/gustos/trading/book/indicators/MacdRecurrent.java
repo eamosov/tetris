@@ -4,6 +4,7 @@ public class MacdRecurrent {
     EmaRecurrent shorte;
     EmaRecurrent longe;
     EmaRecurrent signale;
+    double v,pv;
 
     public MacdRecurrent(int shortEma, int longEma, int signalEma) {
         shorte = new EmaRecurrent(shortEma);
@@ -11,16 +12,18 @@ public class MacdRecurrent {
         signale = new EmaRecurrent(signalEma);
     }
 
-    public double feed(double v) {
-        signale.feed(longe.feed(v) - shorte.feed(v));
+    public double feed(double price) {
+        signale.feed(longe.feed(price) - shorte.feed(price));
+        pv = v;
+        v = (longe.value() - shorte.value()) - signale.value();
         return value();
     }
 
     public double value() {
-        return ((longe.value() - shorte.value()) - signale.value()) / longe.value() * 10;
+        return v / longe.value();
     }
     public double pvalue() {
-        return ((longe.pvalue() - shorte.pvalue()) - signale.pvalue()) / longe.pvalue() * 10;
+        return pv / longe.pvalue();
     }
 }
 

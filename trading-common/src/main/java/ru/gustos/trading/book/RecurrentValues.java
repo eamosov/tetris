@@ -44,12 +44,26 @@ public class RecurrentValues {
     public MacdRecurrent macd2 = new MacdRecurrent(250, 600, 170);
     public MacdRecurrent macd3 = new MacdRecurrent(70, 200, 50);
     public MacdRecurrent macd4 = new MacdRecurrent(700, 2000, 500);
+    public DemaRecurrent dema1 = new DemaRecurrent(25, 60, 17);
+    public DemaRecurrent dema2 = new DemaRecurrent(250, 600, 170);
+    public DemaRecurrent dema3 = new DemaRecurrent(70, 200, 50);
+    public DemaRecurrent vdema0 = new DemaRecurrent(3, 7, 5);
+    public DemaRecurrent vdema1 = new DemaRecurrent(25, 60, 17);
+    public DemaRecurrent vdema2 = new DemaRecurrent(250, 600, 170);
+    public DemaRecurrent vdema3 = new DemaRecurrent(70, 200, 50);
+    public DemaRecurrent vdema4 = new DemaRecurrent(700, 2000, 500);
     public RsiRecurrent rsi0 = new RsiRecurrent(10);
     public RsiRecurrent rsi1 = new RsiRecurrent(100);
     public RsiRecurrent rsi2 = new RsiRecurrent(1000);
     public RsiWithVolumesRecurrent rsiv0 = new RsiWithVolumesRecurrent(10);
     public RsiWithVolumesRecurrent rsiv1 = new RsiWithVolumesRecurrent(100);
     public RsiWithVolumesRecurrent rsiv2 = new RsiWithVolumesRecurrent(1000);
+
+    public VolumeBarRecurrent volumeBar = new VolumeBarRecurrent();
+    public MacdRecurrent vmacd0 = new MacdRecurrent(3, 7, 5);
+    public MacdRecurrent vmacd1 = new MacdRecurrent(25, 60, 17);
+    public MacdRecurrent vmacd2 = new MacdRecurrent(70, 200, 50);
+
 
     public GustosLogicOptimizator.Params gustosParams = new GustosLogicOptimizator.Params();
 
@@ -83,6 +97,9 @@ public class RecurrentValues {
         macd2.feed(p);
         macd3.feed(p);
         macd4.feed(p);
+        dema1.feed(p);
+        dema2.feed(p);
+        dema3.feed(p);
         volumeLong.feed(volume);
         volumeShort.feed(volume);
         volumeLong2.feed(volume);
@@ -108,6 +125,17 @@ public class RecurrentValues {
         change2.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-100)).getClosePrice()-1)*100);
         change3.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-1000)).getClosePrice()-1)*100);
         change4.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-3000)).getClosePrice()-1)*100);
+
+        if (volumeBar.feed(bar)){
+            vmacd0.feed(volumeBar.bar().getClosePrice());
+            vmacd1.feed(volumeBar.bar().getClosePrice());
+            vmacd2.feed(volumeBar.bar().getClosePrice());
+            vdema0.feed(volumeBar.bar().getClosePrice());
+            vdema1.feed(volumeBar.bar().getClosePrice());
+            vdema2.feed(volumeBar.bar().getClosePrice());
+            vdema3.feed(volumeBar.bar().getClosePrice());
+            vdema4.feed(volumeBar.bar().getClosePrice());
+        }
     }
 
 

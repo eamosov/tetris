@@ -33,10 +33,10 @@ public class TestGlobal{
             new Instrument("QTUM","USDT"),
 //            new Instrument("ETC","USDT"),
 //            new Instrument("TUSD","USDT"),
-//            new Instrument("XRP","USDT"),
-//            new Instrument("IOTA","USDT"),
-//            new Instrument("XLM","USDT"),
-//            new Instrument("ADA","USDT"),
+            new Instrument("XRP","USDT"),
+            new Instrument("IOTA","USDT"),
+            new Instrument("XLM","USDT"),
+            new Instrument("ADA","USDT"),
 //            new Instrument("ICX","USDT"),
 //            new Instrument("EOS","USDT"),
 //            new Instrument("ONT","USDT"),
@@ -75,7 +75,7 @@ public class TestGlobal{
         Global global = new Global();
 
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,7,30,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,8,18,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
 

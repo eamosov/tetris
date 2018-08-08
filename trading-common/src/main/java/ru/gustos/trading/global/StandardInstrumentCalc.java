@@ -26,7 +26,7 @@ public class StandardInstrumentCalc {
 
     public static final boolean LOGS = true;
 
-    public static final int TREES = 50;
+    public static final int TREES = 300;
 
     public static boolean withOptimize = false;
 
@@ -62,10 +62,16 @@ public class StandardInstrumentCalc {
 
     }
     static int option(boolean buy, String instrument){
+        int result;
         if (buy)
-            return buyOptions.getOrDefault(instrument,OPTION_RECALL);
+            result = buyOptions.getOrDefault(instrument,OPTION_RECALL);
         else
-            return sellOptions.getOrDefault(instrument,OPTION_ALL);
+            result = sellOptions.getOrDefault(instrument,OPTION_ALL);
+
+        if (result==OPTION_RECALL)
+            result = OPTION_STD;
+
+        return result;
     }
 
     static final String MAIN = "main";
@@ -280,7 +286,7 @@ public class StandardInstrumentCalc {
                 Instances set1 = helper.makeEmptySet(ignore, i, level);
                 ArrayList<Long> moments = makeGoodBadMoments(good, bad, i == 0);
 //                System.out.println(moments.size());
-                full = moments.size()>=30;
+                full = moments.size()>=10;
                 for (int j = 0; j < moments.size(); j++) {
                     long time = moments.get(j);
                     int index = data.getBarIndex(time);
@@ -303,6 +309,7 @@ public class StandardInstrumentCalc {
                     rf.setNumExecutionSlots(cpus);
                     rf.setNumIterations(TREES);
                     rf.setSeed(calcIndex+(int)System.currentTimeMillis());
+
                     int opt = option(i == 0,data.instrument.toString());
                     if (USE_OPTIONS && opt!=OPTION_STD) {
                         if (opt == OPTION_PRECISION || opt == OPTION_RECALL) {
@@ -490,6 +497,28 @@ public class StandardInstrumentCalc {
         helper.put(mldata, "macd2", values.macd2.value());
         helper.put(mldata, "macd3", values.macd3.value());
         helper.put(mldata, "macd4", values.macd4.value());
+//        helper.put(mldata, "pmacd0", values.macd0.pvalue());
+//        helper.put(mldata, "pmacd1", values.macd1.pvalue());
+//        helper.put(mldata, "pmacd2", values.macd2.pvalue());
+//        helper.put(mldata, "pmacd3", values.macd3.pvalue());
+//        helper.put(mldata, "pmacd4", values.macd4.pvalue());
+
+        helper.put(mldata, "vdema0", values.vdema0.value());
+        helper.put(mldata, "vdema1", values.vdema1.value());
+        helper.put(mldata, "vdema2", values.vdema2.value());
+        helper.put(mldata, "vdema3", values.vdema3.value());
+        helper.put(mldata, "vdema4", values.vdema4.value());
+//        helper.putLagged(mldata,"vdema2",prevmldata,1);
+//        helper.putLagged(mldata,"vdema3",prevmldata,1);
+//        helper.putLagged(mldata,"vdema4",prevmldata,1);
+//        helper.put(mldata, "pvdema0", values.vdema0.pvalue());
+//        helper.put(mldata, "pvdema1", values.vdema1.pvalue());
+//        helper.put(mldata, "pvdema2", values.vdema2.pvalue());
+//        helper.put(mldata, "pvdema3", values.vdema3.pvalue());
+//        helper.put(mldata, "pvdema4", values.vdema4.pvalue());
+//        helper.put(mldata, "vmacd0", values.vmacd0.value());
+//        helper.put(mldata, "vmacd1", values.vmacd1.value());
+//        helper.put(mldata, "vmacd2", values.vmacd2.value());
 
         //        helper.put(mldata, "pmacd0", values.macd0.value() - values.macd0.pvalue());
 //        helper.put(mldata, "pmacd1", values.macd1.value() - values.macd1.pvalue());
@@ -509,6 +538,14 @@ public class StandardInstrumentCalc {
         helper.put(mldata, "change3", values.change3.value());
         helper.put(mldata, "change4", values.change4.value());
 
+        helper.putDelta(mldata,"vdema0",prevmldata,1);
+        helper.putDelta(mldata,"vdema1",prevmldata,1);
+        helper.putDelta(mldata,"macd0",prevmldata,1);
+        helper.putDelta(mldata,"macd1",prevmldata,1);
+        helper.putDelta(mldata,"rsi0",prevmldata,1);
+        helper.putDelta(mldata,"rsi1",prevmldata,1);
+        helper.putDelta(mldata,"stoh0",prevmldata,1);
+        helper.putDelta(mldata,"stoh1",prevmldata,1);
         //            helper.put(mldata,"rising",sheet.bar(index-1).getClosePrice() < sheet.bar(index).getMinPrice()?1:0);
 //            helper.put(mldata,"falling",sheet.bar(index-1).getClosePrice() >= sheet.bar(index).getMaxPrice()?1:0);
 

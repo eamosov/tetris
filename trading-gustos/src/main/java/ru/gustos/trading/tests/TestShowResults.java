@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import static ru.gustos.trading.tests.TestGlobal.init;
@@ -33,7 +34,8 @@ public class TestShowResults {
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl44.out"))) {
+        System.out.println((new Date()).getTime());
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl706.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
