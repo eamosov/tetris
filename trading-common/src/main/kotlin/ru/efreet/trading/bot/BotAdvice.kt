@@ -14,4 +14,9 @@ data class BotAdvice(val time: ZonedDateTime,
                      val instrument: Instrument,
                      val price: Double,
                      val bar: XBar,
-                     val indicators: Map<String, Double>?)
+                     val indicators: Map<String, Double>?){
+
+    fun log():String{
+        return "${decision.name} $instrument for $price"
+    }
+}

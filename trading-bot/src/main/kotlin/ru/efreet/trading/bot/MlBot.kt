@@ -3,6 +3,7 @@ package ru.efreet.trading.bot
 import org.eclipse.jetty.websocket.api.Session
 import org.slf4j.LoggerFactory
 import ru.efreet.telegram.Telegram
+import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
@@ -32,6 +33,8 @@ class MlBot {
     private lateinit var cache: BarsCache
     private lateinit var exchange: Exchange
     private lateinit var trader: Trader
+    private var telegram: Telegram? = null
+
     private val bots = mutableMapOf<Instrument, MlBotData>()
 
     private val balanceTimer = Periodical(Duration.ofMinutes(5))
@@ -53,7 +56,19 @@ class MlBot {
 
                 bot.logic.insertBar(bar)
                 val advice = bot.logic.getAdvice(true)
-                val trade = trader.executeAdvice(advice)
+
+                if (advice.decision != Decision.NONE) {
+                    log.info("ADVICE: {}", advice)
+                }
+
+                val trade = try {
+                    tryMultipleTimes(5) { trader.executeAdvice(advice) }
+                } catch (e: Throwable) {
+                    if (advice.decision != Decision.NONE) {
+                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": ${e.message}")
+                    }
+                    throw e
+                }
 
                 if (trade != null) {
                     log.info("TRADE: $trade")
@@ -62,7 +77,10 @@ class MlBot {
             }
 
             balanceTimer.invoke({
-                trader.logBalance()
+                tryMultipleTimes(5) {
+                    trader.logBalance()
+                }
+
             })
 
         } catch (e: Throwable) {
@@ -123,7 +141,7 @@ class MlBot {
 
         val tradeRecordDao = TradeRecordDao(cache.getConnection())
 
-        val telegram = if (botConfig.telegram) {
+        telegram = if (botConfig.telegram) {
             Telegram.create()
         } else null
 
@@ -136,7 +154,6 @@ class MlBot {
         }
 
         telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}")
-
         while (true) {
             Thread.sleep(1000)
 
@@ -145,6 +162,24 @@ class MlBot {
                 if (Duration.between(bot.lastBar, ZonedDateTime.now()).toMinutes() > 2) {
                     log.error("No bars for {}, restart session", instrument)
                     startTrade(bot)
+                }
+            }
+        }
+    }
+
+
+    fun <R> tryMultipleTimes(times: Int, block: () -> R): R {
+        var i = 0
+        while (true) {
+            try {
+                return block()
+            } catch (e: Throwable) {
+                i++
+
+                if (i < times) {
+                    log.warn("Exception in operation, trying to repeat it", e)
+                } else {
+                    throw e
                 }
             }
         }
