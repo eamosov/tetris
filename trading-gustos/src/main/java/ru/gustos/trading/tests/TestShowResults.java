@@ -35,7 +35,7 @@ public class TestShowResults {
 
     public static void main(String[] args) {
         System.out.println((new Date()).getTime());
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl706.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetris/pl/pl354.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);

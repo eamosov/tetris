@@ -135,6 +135,37 @@ public class PLHistoryAnalyzer{
         return result;
     }
 
+    public TimeSeriesDouble makeHistory(String instrument){
+        for (PLHistory h : histories) if (h.instrument.equalsIgnoreCase(instrument)){
+            ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
+            for (int i = 0;i<h.profitHistory.size();i++) {
+                PLHistory.PLTrade e = h.profitHistory.get(i);
+                prepare.add(e);
+            }
+            prepare.sort(Comparator.comparingLong(c -> c.timeSell));
+            TimeSeriesDouble result = new TimeSeriesDouble(prepare.size());
+            double m = 1;
+            for (int i = 0;i<prepare.size();i++){
+                PLHistory.PLTrade p = prepare.get(i);
+                m*=p.profit;
+                result.add(m,p.timeSell);
+            }
+            return result;
+        }
+        return null;
+    }
+
+    public String profits(){
+        StringBuilder sb = new StringBuilder();
+        for (PLHistory h : histories) {
+            if (sb.length()>0)
+                sb.append(",");
+            sb.append(h.instrument).append(":").append(String.format("%.4g",h.all.profit)).append("/").append(String.format("%.4g",h.all.drawdown));
+        }
+        return sb.toString();
+    }
+
+
     public TimeSeriesDouble makeHistoryNormalized(boolean onlyTested, double moneyPart, TimeSeriesDouble normTo, HashSet<String> ignore) {
         ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
         for (PLHistory h : histories)  if (ignore==null || !ignore.contains(h.instrument))
@@ -155,6 +186,7 @@ public class PLHistoryAnalyzer{
         }
         return result;
     }
+
 
     public void saveHistories(DataOutputStream out) throws IOException {
         out.writeInt(histories.size());

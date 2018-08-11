@@ -21,6 +21,8 @@ public class RecurrentValues {
     public EmaRecurrent volumeShort2 = new EmaRecurrent(30);
     public EmaRecurrent deltaToVolume = new EmaRecurrent(500);
     public EmaRecurrent deltaToVolumeShort = new EmaRecurrent(5);
+    public EmaRecurrent deltaToMm = new EmaRecurrent(500);
+    public EmaRecurrent deltaToMmShort = new EmaRecurrent(5);
     public EmaRecurrent maxminToVolume = new EmaRecurrent(500);
     public EmaRecurrent maxminToVolumeShort = new EmaRecurrent(5);
     public EmaRecurrent maxmin = new EmaRecurrent(500);
@@ -116,6 +118,10 @@ public class RecurrentValues {
         d2v = volume /Math.max(bar.middlePrice()/100000.0,bar.deltaMaxMin());
         maxminToVolume.feed(d2v);
         maxminToVolumeShort.feed(d2v);
+
+        double d2mm = bar.delta() / Math.max(bar.middlePrice()/100000.0,bar.deltaMaxMin());
+        deltaToMm.feed(d2mm);
+        deltaToMmShort.feed(d2mm);
 
         maxmin.feed(bar.deltaMaxMin());
         maxminShort.feed(bar.deltaMaxMin());

@@ -30,7 +30,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     }
 
     override var historyBars: Long
-        get() = Duration.ofDays(120).toMillis() / barInterval.duration.toMillis()
+        get() = Duration.ofDays(180).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
 

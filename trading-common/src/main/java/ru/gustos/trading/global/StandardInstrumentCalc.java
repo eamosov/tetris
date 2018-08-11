@@ -26,19 +26,22 @@ public class StandardInstrumentCalc {
 
     public static final boolean LOGS = true;
 
-    public static final int TREES = 300;
+    public static int TREES = 250;
+    public static int goodmomentscount = 6;
+    public static int badmomentscount = 12;
+
 
     public static boolean withOptimize = false;
 
 //    public static HashSet<String> ignoreBuy = Sets.newHashSet();
 //    public static HashSet<String> ignoreSell = Sets.newHashSet();
-    public static HashSet<String> ignoreBuy = Sets.newHashSet("gustosBuy","gustosSell");//,"sd_lag1","sd_delta1","sd_lag2","sd_delta2","macd0","macd1","macd2","macd3");
-    public static HashSet<String> ignoreSell = Sets.newHashSet("gustosBuy","gustosSell");//,"d2vol","mm2vol","d2vol_n","mm2vol_n");
+    public HashSet<String> ignoreBuy = Sets.newHashSet("gustosBuy","gustosSell");//,"sd_lag1","sd_delta1","sd_lag2","sd_delta2","macd0","macd1","macd2","macd3");
+    public HashSet<String> ignoreSell = Sets.newHashSet("gustosBuy","gustosSell");//,"d2vol","mm2vol","d2vol_n","mm2vol_n");
 //    ,"macd4","toAvgSdMax2_delta2","toAvgSdMax2_delta1","toAvgSd2_delta2","toAvgSdMin2_delta1","toAvgSd2_lag1","toAvgSdMax2","toAvgSdMin2","sd_delta1",
 //            "toAvgSdMin_delta1","toAvgSdMax2_lag1","toAvgSdMax_delta1","toAvgSd2","sd2","toAvgSd_delta2","sd2_delta1","toAvgSdMin2_delta2","toAvgSdMin2_lag1","toAvgSd_lag1",
 //            "sd_delta2","toAvgSdMin2_lag2","toAvgSd2_lag2");
 
-    static HashSet<String> ignore(boolean buy){
+    HashSet<String> ignore(boolean buy){
         return buy?ignoreBuy:ignoreSell;
     }
 
@@ -121,6 +124,7 @@ public class StandardInstrumentCalc {
         methods = new TradeMethodsSolver(data.instrument.toString());
         this.data = data;
         this.cpus = cpus;
+        initIgnore();
         plhistoryBase = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer1 : null);
         plhistoryClassifiedBuy = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer2 : null);
         plhistoryClassifiedSelected = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer3 : null);
@@ -128,6 +132,19 @@ public class StandardInstrumentCalc {
         initForCalc();
         calcTillEnd(withModelSolver);
 
+    }
+
+    private void initIgnore() {
+        if (data.instrument.component1().equalsIgnoreCase("ETH")
+                || data.instrument.component1().equalsIgnoreCase("XRP")
+                || data.instrument.component1().equalsIgnoreCase("IOTA")
+                || data.instrument.component1().equalsIgnoreCase("XLM")
+                || data.instrument.component1().equalsIgnoreCase("ADA")
+        ){
+            List<String> ll = Arrays.asList("vdema0", "vdema1", "vdema2", "vdema3", "vdema4", "vdema0_delta1", "vdema1_delta1", "macd0_delta1", "macd1_delta1", "rsi0_delta1", "rsi1_delta1", "stoh0_delta1", "stoh1_delta1");
+            ignoreBuy.addAll(ll);
+            ignoreSell.addAll(ll);
+        }
     }
 
     private void calcTillEnd(boolean withModelSolver) {
@@ -253,7 +270,6 @@ public class StandardInstrumentCalc {
         }
     }
 
-
     private ArrayList<Long> makeGoodBadMoments(boolean good, boolean bad, boolean buyTime) {
         ArrayList<Long> moments = new ArrayList<>();
         double limit = 0.03;
@@ -262,14 +278,14 @@ public class StandardInstrumentCalc {
         if (good) {
             ArrayList<Long> tmpmoments;
             tmpmoments = gustosProfit.getCriticalBuyMoments(limit, true, false, buyTime);
-            while (tmpmoments.size() > 30) tmpmoments.remove(0);
+            while (tmpmoments.size() > goodmomentscount) tmpmoments.remove(0);
             moments.addAll(tmpmoments);
         }
 
         if (bad) {
             ArrayList<Long> tmpmoments;
             tmpmoments = gustosProfit.getCriticalBuyMoments(limit, false, true, buyTime);
-            while (tmpmoments.size() > 30) tmpmoments.remove(0);
+            while (tmpmoments.size() > badmomentscount) tmpmoments.remove(0);
             moments.addAll(tmpmoments);
             moments.sort(Long::compare);
         }
@@ -487,6 +503,9 @@ public class StandardInstrumentCalc {
         helper.put(mldata, "mm2vol", values.maxminToVolumeShort.value() / values.maxminToVolume.value());
         helper.put(mldata, "d2vol_n", values.deltaToVolumeShort.value());
         helper.put(mldata, "mm2vol_n", values.maxminToVolumeShort.value());
+
+//        helper.put(mldata, "d2mm",values.deltaToMmShort.value()/values.deltaToMm.value());
+//        helper.put(mldata, "d2mm_n",values.deltaToMmShort.value());
 
         helper.put(mldata, "mm", values.maxminShort.value() / values.maxmin.value());
 

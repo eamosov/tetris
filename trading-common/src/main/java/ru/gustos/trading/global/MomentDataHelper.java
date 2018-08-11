@@ -16,6 +16,7 @@ public class MomentDataHelper {
 
     Hashtable<String,Integer> map = new Hashtable<>();
     ArrayList<MetaData> metas = new ArrayList<>();
+    public static double threshold = 0.5;
 
 
     public void register(String key) {
@@ -168,7 +169,7 @@ public class MomentDataHelper {
         instance.setDataset(makeEmptySet(ignoreAttributes, futureAttribute,level));
         try {
             double v = classifier.classifyInstance(instance);
-            return v>0.5;
+            return v>threshold;
         } catch (Exception e) {
             e.printStackTrace();
             throw new NullPointerException("error classifying");

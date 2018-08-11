@@ -1,5 +1,6 @@
 package ru.gustos.trading.tests;
 
+import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
@@ -8,6 +9,7 @@ import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.Binance;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
+import ru.gustos.trading.book.indicators.IndicatorInitData;
 import ru.gustos.trading.global.*;
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import ru.gustos.trading.visual.SimpleProfitGraph;
@@ -24,19 +26,19 @@ import java.util.stream.Collectors;
 public class TestGlobal{
 
     static Instrument[] instruments = new Instrument[]{
-            new Instrument("BTC","USDT"),
-            new Instrument("ETH","USDT"),
-            new Instrument("BCC","USDT"),
-            new Instrument("BNB","USDT"),
-            new Instrument("LTC","USDT"),
-            new Instrument("NEO","USDT"),
-            new Instrument("QTUM","USDT"),
-//            new Instrument("ETC","USDT"),
-//            new Instrument("TUSD","USDT"),
+//            new Instrument("BTC","USDT"),
+//            new Instrument("ETH","USDT"),
+//            new Instrument("BCC","USDT"),
+//            new Instrument("BNB","USDT"),
+//            new Instrument("LTC","USDT"),
+//            new Instrument("NEO","USDT"),
+//            new Instrument("QTUM","USDT"),
             new Instrument("XRP","USDT"),
             new Instrument("IOTA","USDT"),
             new Instrument("XLM","USDT"),
             new Instrument("ADA","USDT"),
+//            new Instrument("ETC","USDT"),
+//            new Instrument("TUSD","USDT"),
 //            new Instrument("ICX","USDT"),
 //            new Instrument("EOS","USDT"),
 //            new Instrument("ONT","USDT"),
@@ -75,7 +77,7 @@ public class TestGlobal{
         Global global = new Global();
 
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,8,18,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,11,0,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
 
@@ -99,16 +101,19 @@ public class TestGlobal{
     }
 
     private static void doIt(String[] args) throws IOException {
-        int calcPeriod = 3600*12;
         Global global = init(instruments);
         int cpus = args.length>0?Integer.parseInt(args[0]):4;
 
-
+        StandardInstrumentCalc.goodmomentscount = TestGlobalConfig.config.goodMoments;
+        StandardInstrumentCalc.badmomentscount = TestGlobalConfig.config.badMoments;
+        StandardInstrumentCalc.TREES = TestGlobalConfig.config.trees;
+        MomentDataHelper.threshold = TestGlobalConfig.config.threshold;
         File ignoreFile = new File("ignore.txt");
         String ignorestring = "";
         if (ignoreFile.exists()) {
-            ignorestring = FileUtils.readFileToString(ignoreFile).trim();
-            MomentDataHelper.ignore.addAll(Arrays.stream(ignorestring.split(",")).collect(Collectors.toList()));
+            ignorestring = FileUtils.readFileToString(ignoreFile);
+            String[] ss = ignorestring.split("\n");
+            MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
 //        StandardInstrumentCalc[] calcs = new StandardInstrumentCalc[instruments.length];
@@ -176,8 +181,10 @@ public class TestGlobal{
         try (FileWriter f = new FileWriter("testres.txt",true)) {
             f.write(""+ZonedDateTime.now().toLocalDateTime().toString()+"\n");
             f.write(res);
+            f.write(TestGlobalConfig.config.toString()+"\n");
             f.write(""+h2.lastOrZero()+"\n");
             f.write(""+h3.lastOrZero()+"\n");
+            f.write(global.planalyzer3.profits()+"\n");
         }
 
 //        Exporter.string2file("d:/weka/prev.arff",global.planalyzer.trainset.toString());
