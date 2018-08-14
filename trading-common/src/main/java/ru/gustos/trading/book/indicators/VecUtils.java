@@ -3,6 +3,7 @@ package ru.gustos.trading.book.indicators;
 import kotlin.Pair;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Volumes;
+import weka.core.stopwords.Null;
 
 import java.awt.*;
 import java.io.*;
@@ -744,5 +745,11 @@ public class VecUtils {
         for (int i = 0;i<res.length;i++)
             res[i] = (res[i]-mm.getFirst())/(mm.getSecond()-mm.getFirst());
         return res;
+    }
+
+    public static void addInPlace(double[] to, double[] add) {
+        if (to.length!=add.length) throw new NullPointerException("unequal lengths: "+to.length+" and "+add.length);
+        for (int i = 0;i<to.length;i++)
+            to[i] += add[i];
     }
 }

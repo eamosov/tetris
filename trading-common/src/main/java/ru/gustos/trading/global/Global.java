@@ -1,11 +1,7 @@
 package ru.gustos.trading.global;
 
-import ru.efreet.trading.bars.XBaseBar;
-import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.VecUtils;
+import ru.gustos.trading.global.timeseries.TimeSeries;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -17,6 +13,8 @@ public class Global {
     public PLHistoryAnalyzer planalyzer1 = new PLHistoryAnalyzer(false);
     public PLHistoryAnalyzer planalyzer2 = new PLHistoryAnalyzer(false);
     public PLHistoryAnalyzer planalyzer3 = new PLHistoryAnalyzer(false);
+
+
 
     public long minTime;
     public long maxTime;

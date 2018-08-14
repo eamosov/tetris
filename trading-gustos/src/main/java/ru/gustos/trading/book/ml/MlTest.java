@@ -45,6 +45,8 @@ public class MlTest {
                 Evaluation evaluation = new Evaluation(trainData);
                 evaluation.evaluateModel(rf, examData);
 
+
+
                 System.out.println("features: "+i);
                 System.out.println("iterations: "+(500*j));
                 System.out.println("kappa: " + evaluation.kappa());
@@ -94,3 +96,5 @@ public class MlTest {
         do2();
     }
 }
+
+

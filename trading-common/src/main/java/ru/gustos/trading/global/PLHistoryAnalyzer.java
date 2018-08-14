@@ -1,6 +1,7 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
@@ -42,6 +43,13 @@ public class PLHistoryAnalyzer{
 
     public void add(PLHistory h){
         histories.add(h);
+    }
+
+    public PLHistory get(String instrument){
+        for (PLHistory h : histories)
+            if (h.instrument.equals(instrument))
+                return h;
+        return null;
     }
 
     void newHistoryEvent(PLHistory history) {
@@ -108,7 +116,7 @@ public class PLHistoryAnalyzer{
         return new DenseInstance(w, ii);
     }
 
-    public ArrayList<Pair<Long, Double>> makeHistory(boolean onlyTested, double moneyPart, HashSet<String> ignore) {
+    public TimeSeriesDouble makeHistory(boolean onlyTested, double moneyPart, HashSet<String> ignore) {
         ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
         for (PLHistory h : histories) if (ignore==null || !ignore.contains(h.instrument))
             for (int i = 0;i<h.profitHistory.size();i++) {
@@ -117,17 +125,48 @@ public class PLHistoryAnalyzer{
                     prepare.add(e);
             }
         prepare.sort(Comparator.comparingLong(c -> c.timeSell));
-        ArrayList<Pair<Long, Double>> result = new ArrayList<>();
+        TimeSeriesDouble result = new TimeSeriesDouble(prepare.size());
         double m = 1;
         for (int i = 0;i<prepare.size();i++){
             PLHistory.PLTrade p = prepare.get(i);
             m*=(p.profit-1)*moneyPart+1;
-            result.add(new Pair<>(p.timeSell,m));
+            result.add(m,p.timeSell);
         }
         return result;
     }
 
-    public ArrayList<Pair<Long, Double>> makeHistoryNormalized(boolean onlyTested, double moneyPart, ArrayList<Pair<Long, Double>> normTo, HashSet<String> ignore) {
+    public TimeSeriesDouble makeHistory(String instrument){
+        for (PLHistory h : histories) if (h.instrument.equalsIgnoreCase(instrument)){
+            ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
+            for (int i = 0;i<h.profitHistory.size();i++) {
+                PLHistory.PLTrade e = h.profitHistory.get(i);
+                prepare.add(e);
+            }
+            prepare.sort(Comparator.comparingLong(c -> c.timeSell));
+            TimeSeriesDouble result = new TimeSeriesDouble(prepare.size());
+            double m = 1;
+            for (int i = 0;i<prepare.size();i++){
+                PLHistory.PLTrade p = prepare.get(i);
+                m*=p.profit;
+                result.add(m,p.timeSell);
+            }
+            return result;
+        }
+        return null;
+    }
+
+    public String profits(){
+        StringBuilder sb = new StringBuilder();
+        for (PLHistory h : histories) {
+            if (sb.length()>0)
+                sb.append(",");
+            sb.append(h.instrument).append(":").append(String.format("%.4g",h.all.profit)).append("/").append(String.format("%.4g",h.all.drawdown));
+        }
+        return sb.toString();
+    }
+
+
+    public TimeSeriesDouble makeHistoryNormalized(boolean onlyTested, double moneyPart, TimeSeriesDouble normTo, HashSet<String> ignore) {
         ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
         for (PLHistory h : histories)  if (ignore==null || !ignore.contains(h.instrument))
             for (int i = 0;i<h.profitHistory.size();i++) {
@@ -136,17 +175,18 @@ public class PLHistoryAnalyzer{
                     prepare.add(e);
             }
         prepare.sort(Comparator.comparingLong(c -> c.timeSell));
-        ArrayList<Pair<Long, Double>> result = new ArrayList<>();
+        TimeSeriesDouble result = new TimeSeriesDouble(prepare.size());
         int normToIndex = 0;
         double m = 1;
         for (int i = 0;i<prepare.size();i++){
             PLHistory.PLTrade p = prepare.get(i);
             m*=(p.profit-1)*moneyPart+1;
-            while (normToIndex<normTo.size()-1 && normTo.get(normToIndex+1).getFirst()<=p.timeSell) normToIndex++;
-            result.add(new Pair<>(p.timeSell,m/normTo.get(normToIndex).getSecond()));
+            while (normToIndex<normTo.size()-1 && normTo.time(normToIndex+1)<=p.timeSell) normToIndex++;
+            result.add(m/normTo.get(normToIndex),p.timeSell);
         }
         return result;
     }
+
 
     public void saveHistories(DataOutputStream out) throws IOException {
         out.writeInt(histories.size());

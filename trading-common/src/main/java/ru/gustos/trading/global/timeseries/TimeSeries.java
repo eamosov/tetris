@@ -1,8 +1,9 @@
-package ru.gustos.trading.global;
+package ru.gustos.trading.global.timeseries;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class TimeSeries<T>{
     ArrayList<T> data;
@@ -17,6 +18,10 @@ public class TimeSeries<T>{
          times = new long[capacity];
     }
 
+    public List<T> direct(){
+        return data;
+    }
+
     public void add(T element, long time){
         int i;
         if (times.length <= data.size())
@@ -24,7 +29,7 @@ public class TimeSeries<T>{
         if (data.size()==0 || time>times[data.size()-1]){
             i = data.size();
         } else {
-            i = Arrays.binarySearch(times, time);
+            i = Arrays.binarySearch(times, 0, size(), time);
             if (i > 0) throw new NullPointerException("dublicate time");
             if (i < 0) i = -i - 1;
             System.arraycopy(times, i, times, i + 1, data.size() - i);
@@ -58,6 +63,10 @@ public class TimeSeries<T>{
         return data.get(index);
     }
 
+    public long timeAt(int index){
+        return times[index];
+    }
+
     public long getBeginTime() {
         return times[0];
     }
@@ -65,4 +74,7 @@ public class TimeSeries<T>{
     public long getEndTime() {
         return times[data.size()-1];
     }
+
 }
+
+

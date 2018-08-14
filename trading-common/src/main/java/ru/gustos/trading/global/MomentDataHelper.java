@@ -1,10 +1,8 @@
 package ru.gustos.trading.global;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
+import kotlin.Pair;
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
@@ -13,14 +11,19 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 public class MomentDataHelper {
+
+    public static HashSet<String> ignore = new HashSet<>();
+
     Hashtable<String,Integer> map = new Hashtable<>();
     ArrayList<MetaData> metas = new ArrayList<>();
+    public static double threshold = 0.5;
 
 
     public void register(String key) {
         register(key,false);
     }
     public void register(String key, boolean bool){
+        if (ignore.contains(key)) return;
         if (map.contains(key))
             throw new NullPointerException();
         MetaData md = new MetaData();
@@ -36,10 +39,10 @@ public class MomentDataHelper {
         metas.add(md);
     }
 
-    public int dataAttributes(int level){
+    public int dataAttributes(HashSet<String> ignoreAttributes, int level){
         int cc = 0;
         for (int i = 0;i<metas.size();i++)
-            if (metas.get(i).data(level))
+            if (metas.get(i).data(ignoreAttributes, level))
                 cc++;
         return cc;
     }
@@ -70,7 +73,22 @@ public class MomentDataHelper {
     public void put(MomentData m, String key, double value){
         put(m,key,value,false);
     }
+
+    public void putLagged(MomentData m, String key, MomentData from, int lag){
+        double value = get(from,key);
+        double valuen = get(m,key);
+        put(m,key+"_lag"+lag,value,false);
+//        put(m,key+"_delta"+lag,valuen-value,false);
+    }
+
+    public void putDelta(MomentData m, String key, MomentData from, int lag){
+        double value = get(from,key);
+        double valuen = get(m,key);
+        put(m,key+"_delta"+lag,valuen-value,false);
+    }
+
     public void put(MomentData m, String key, double value, boolean bool){
+        if (ignore.contains(key)) return;
         if (!map.containsKey(key))
             register(key,bool);
         if (value==Double.NaN)
@@ -82,10 +100,12 @@ public class MomentDataHelper {
         m.values[map.get(key)] = value;
     }
 
-    public void putResult(MomentData m, int futureAttribute, boolean result) {
+    public void putResult(MomentData m, int futureAttribute, String logic, boolean result) {
         int pos = futureAttributePos(futureAttribute);
         MetaData data = metas.get(pos);
         String key = "@"+data.key.substring(1);
+        if (logic!=null)
+            key+="|"+logic;
         put(m,key,result?1.0:0,true);
     }
 
@@ -93,10 +113,10 @@ public class MomentDataHelper {
         return metas.size();
     }
 
-    public ArrayList<Attribute> makeAttributes(int futureAttribute, int level) {
+    public ArrayList<Attribute> makeAttributes(HashSet<String> ignoreAttributes, int futureAttribute, int level) {
         ArrayList<Attribute> attributes = new ArrayList<>();
         for (MetaData meta : metas) {
-            if (meta.data(level)) {
+            if (meta.data(ignoreAttributes, level)) {
                 if (meta.bool)
                     attributes.add(new Attribute(meta.key, Arrays.asList("false", "true")));
                 else
@@ -112,57 +132,47 @@ public class MomentDataHelper {
         return attributes;
     }
 
-    public Instance makeInstance(MomentData data, int futureAttribute, int level){
+    public Instance makeInstance(MomentData data, HashSet<String> ignoreAttributes, int futureAttribute, int level){
         double[] vv = data.values;
-        double[] v = new double[dataAttributes(level)+1];
+        double[] v = new double[dataAttributes(ignoreAttributes, level)+1];
         int p = 0;
         for (int j = 0;j<metas.size();j++)
-            if (metas.get(j).data(level))
+            if (metas.get(j).data(ignoreAttributes, level))
                 v[p++] = vv[metas.get(j).index];
         v[p] = vv[metas.get(futureAttributePos(futureAttribute)).index];
         return new DenseInstance(data.weight,v);
     }
 
-    public Instances makeEmptySet(int futureAttribute, int level){
-        Instances set = new Instances("data", makeAttributes(futureAttribute, level), 10);
+    public Instances makeEmptySet(HashSet<String> ignoreAttributes, int futureAttribute, int level){
+        Instances set = new Instances("data", makeAttributes(ignoreAttributes, futureAttribute, level), 10);
         set.setClassIndex(set.numAttributes()-1);
         return set;
     }
-    public Instances makeSet(MomentDataProvider[] data, int from, int index, int futureAttribute, int level){
-        Instances set = makeEmptySet(futureAttribute, level);
+    public Instances makeSet(MomentDataProvider[] data, HashSet<String> ignoreAttributes, int from, int index, int futureAttribute, int level){
+        Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
         for (int i = from;i<Math.min(index,data.length);i++) if (data[i]!=null && data[i].getMomentData().whenWillKnow<index)
-            set.add(makeInstance(data[i].getMomentData(),futureAttribute, level));
+            set.add(makeInstance(data[i].getMomentData(),ignoreAttributes, futureAttribute, level));
 
         return set;
     }
 
-    public Instances makeSet(List<? extends MomentDataProvider> data, int from, int index, long endtime, int futureAttribute, int level){
-        Instances set = makeEmptySet(futureAttribute, level);
+    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int index, long endtime, int futureAttribute, int level){
+        Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
         for (int i = from;i<Math.min(index,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime)
-            set.add(makeInstance(data.get(i).getMomentData(),futureAttribute, level));
+            set.add(makeInstance(data.get(i).getMomentData(),ignoreAttributes, futureAttribute, level));
 
         return set;
     }
 
-    public boolean classify(MomentData mldata, Classifier classifier, int futureAttribute, int level) {
-        Instance instance = makeInstance(mldata, futureAttribute, level);
-        instance.setDataset(makeEmptySet(futureAttribute,level));
+    public boolean classify(MomentData mldata, HashSet<String> ignoreAttributes, Classifier classifier, int futureAttribute, int level) {
+        Instance instance = makeInstance(mldata, ignoreAttributes, futureAttribute, level);
+        instance.setDataset(makeEmptySet(ignoreAttributes, futureAttribute,level));
         try {
             double v = classifier.classifyInstance(instance);
-            return v>0.5;
+            return v>threshold;
         } catch (Exception e) {
             e.printStackTrace();
             throw new NullPointerException("error classifying");
         }
-    }
-
-    public void printImpurity(Instances set1, double[] impurity, String prefix) {
-        StringBuilder sb = new StringBuilder(prefix);
-        for (int i = 0;i<impurity.length;i++) {
-            if (i!=0)
-                sb.append(",");
-            sb.append(set1.attribute(i).name()).append("=").append(String.format("%.3g", impurity[i]));
-        }
-        System.out.println(sb.toString());
     }
 }

@@ -234,16 +234,27 @@ public class GustosLogicOptimizator {
 
         Params defaults() {
             params[0] = 30;
-            params[1] = 177;
-            params[2] = 702;
-            params[3] = 1842;
-            params[4] = 1891;
+            params[1] = 170;
+            params[2] = 700;
+            params[3] = 1700;
+            params[4] = 1900;
             params[5] = 8;
             params[6] = 16;
             params[7] = 11;
             params[8] = 7;
             params[9] = 24;
             params[10] = 14;
+//            params[0] = 30;
+//            params[1] = 177;
+//            params[2] = 702;
+//            params[3] = 1842;
+//            params[4] = 1891;
+//            params[5] = 8;
+//            params[6] = 16;
+//            params[7] = 11;
+//            params[8] = 7;
+//            params[9] = 24;
+//            params[10] = 14;
             return this;
         }
 

@@ -30,7 +30,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     }
 
     override var historyBars: Long
-        get() = Duration.ofDays(120).toMillis() / barInterval.duration.toMillis()
+        get() = Duration.ofDays(180).toMillis() / barInterval.duration.toMillis()
         set(value) {}
 
 
@@ -40,7 +40,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun prepareBarsImpl() {
 
         synchronized(this) {
-            calc = StandardInstrumentCalc(InstrumentData(null, instrument, bars, null))
+            calc = StandardInstrumentCalc(InstrumentData(null, instrument, bars, null),0, false, false)
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")

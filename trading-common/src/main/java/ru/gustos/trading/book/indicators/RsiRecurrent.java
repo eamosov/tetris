@@ -19,10 +19,12 @@ public class RsiRecurrent {
             return 0;
         }
         double d = price - prev;
-        if (d > 0)
+        if (d > 0) {
             greens.feed(d);
-        if (d < 0)
+        }
+        if (d < 0) {
             reds.feed(d);
+        }
 
 
         prev = price;
