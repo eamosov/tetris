@@ -9,8 +9,13 @@ import java.io.IOException;
 public class TestGlobalConfig {
     public int goodMoments = 14;
     public int badMoments = 14;
-    public int trees = 50;
+    public int treesBuy = 250;
+    public int treesSell = 250;
     public double threshold = 0.5;
+    public int kValueBuy = 0;
+    public int kValueSell = 0;
+    public int momentsInterval = 40;
+    public double momentLimit = 0.03;
 
     static TestGlobalConfig config;
 
@@ -27,6 +32,6 @@ public class TestGlobalConfig {
 
     @Override
     public String toString() {
-        return String.format("goodMoments: %d, badMoments: %d, trees: %d, threshold: %.3g", goodMoments,badMoments, trees, threshold);
+        return String.format("goodMoments: %d, badMoments: %d, treesBuy: %d, treesSell: %d, threshold: %.3g, kValueBuy: %d, kValueSell: %d, momentsInterval: %d, limit: %.4g", goodMoments,badMoments, treesBuy, treesSell, threshold, kValueBuy, kValueSell,momentsInterval, momentLimit);
     }
 }

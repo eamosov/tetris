@@ -26,23 +26,25 @@ import java.util.stream.Collectors;
 public class TestGlobal{
 
     static Instrument[] instruments = new Instrument[]{
-//            new Instrument("BTC","USDT"),
-//            new Instrument("ETH","USDT"),
-//            new Instrument("BCC","USDT"),
-//            new Instrument("BNB","USDT"),
-//            new Instrument("LTC","USDT"),
-//            new Instrument("NEO","USDT"),
+            new Instrument("BTC","USDT"),
+            new Instrument("ETH","USDT"),
+            new Instrument("BCC","USDT"),
+            new Instrument("BNB","USDT"),
+            new Instrument("LTC","USDT"),
+            new Instrument("NEO","USDT"),
 //            new Instrument("QTUM","USDT"),
-            new Instrument("XRP","USDT"),
-            new Instrument("IOTA","USDT"),
+//            new Instrument("XRP","USDT"),
+//            new Instrument("IOTA","USDT"),
             new Instrument("XLM","USDT"),
-            new Instrument("ADA","USDT"),
+//            new Instrument("ADA","USDT"),
 //            new Instrument("ETC","USDT"),
 //            new Instrument("TUSD","USDT"),
 //            new Instrument("ICX","USDT"),
 //            new Instrument("EOS","USDT"),
 //            new Instrument("ONT","USDT"),
 //            new Instrument("TRX","USDT"),
+//            new Instrument("NULS","USDT"),
+//            new Instrument("VET","USDT"),
     };
 
     public static TimeSeriesDouble makeMarketAveragePrice(Global global, PLHistoryAnalyzer pl, TimeSeriesDouble trades, HashSet<String> ignore) {
@@ -76,24 +78,29 @@ public class TestGlobal{
     public static Global init(Instrument[] instruments){
         Global global = new Global();
 
-        ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,11,0,0,0,0, ZoneId.systemDefault());
-        Exchange exch = new Binance();
-        BarInterval interval = BarInterval.ONE_MIN;
 
 
         for (Instrument ii : instruments) {
             System.gc();
-            if (StandardInstrumentCalc.LOGS)
-                System.out.println("Loading instrument: "+ii.toString());
-            BarsCache cache = new BarsCache("cache.sqlite3");
-            List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
-//            bars = BarsPacker.packBars(bars,5);
-            global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
+            addInstrument(global,ii);
         }
         System.out.println("Calc global data "+Arrays.deepToString(instruments));
         global.calcData();
         return global;
+    }
+
+    public static void addInstrument(Global global, Instrument ii){
+        ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,16,5,0,0,0, ZoneId.systemDefault());
+        Exchange exch = new Binance();
+        BarInterval interval = BarInterval.ONE_MIN;
+        if (StandardInstrumentCalc.LOGS)
+            System.out.println("Loading instrument: "+ii.toString());
+        BarsCache cache = new BarsCache("cache.sqlite3");
+        List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
+//            bars = BarsPacker.packBars(bars,5);
+        global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -101,12 +108,17 @@ public class TestGlobal{
     }
 
     private static void doIt(String[] args) throws IOException {
-        Global global = init(instruments);
+        Global global = new Global();
         int cpus = args.length>0?Integer.parseInt(args[0]):4;
 
         StandardInstrumentCalc.goodmomentscount = TestGlobalConfig.config.goodMoments;
         StandardInstrumentCalc.badmomentscount = TestGlobalConfig.config.badMoments;
-        StandardInstrumentCalc.TREES = TestGlobalConfig.config.trees;
+        StandardInstrumentCalc.treesBuy = TestGlobalConfig.config.treesBuy;
+        StandardInstrumentCalc.treesSell = TestGlobalConfig.config.treesSell;
+        StandardInstrumentCalc.kValueBuy = TestGlobalConfig.config.kValueBuy;
+        StandardInstrumentCalc.kValueSell = TestGlobalConfig.config.kValueSell;
+        StandardInstrumentCalc.momentsInterval = TestGlobalConfig.config.momentsInterval;
+        StandardInstrumentCalc.momentLimit = TestGlobalConfig.config.momentLimit;
         MomentDataHelper.threshold = TestGlobalConfig.config.threshold;
         File ignoreFile = new File("ignore.txt");
         String ignorestring = "";
@@ -116,14 +128,18 @@ public class TestGlobal{
             MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
+        ZonedDateTime from = ZonedDateTime.of(2018,5,15,0,0,0,0, ZoneId.systemDefault());
+
 //        StandardInstrumentCalc[] calcs = new StandardInstrumentCalc[instruments.length];
         for (int i = 0;i<instruments.length;i++) {
+            addInstrument(global,instruments[i]);
             InstrumentData data = global.getInstrument(instruments[i].toString());
             int bars = StandardInstrumentCalc.calcAllFrom;
-            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars), cpus, false,false);
+            int fromIndex = data.getBarIndex(from);
+            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars), cpus, false,false, fromIndex);
 
             data.global = null;
-            new StandardInstrumentCalc(data, cpus, true,false); // calc future
+            new StandardInstrumentCalc(data, cpus, true,false, 0); // calc future
             c.futuredata = data;
             for (;bars<data.size();bars++){
                 c.checkNeedRenew(false);

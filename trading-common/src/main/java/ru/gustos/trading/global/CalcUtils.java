@@ -24,4 +24,19 @@ public class CalcUtils {
         return bar.getMinPrice() <= p && bar.getMaxPrice() >= p && bar.getClosePrice() < buyGar.value() - buyGar.sd() * params.buyBoundDiv() * 0.1 && pbar.getClosePrice() < bar.getMaxPrice();
     }
 
+    public static boolean gustosSellEasy(InstrumentData data, int index, GustosAverageRecurrent sellGar, GustosLogicOptimizator.Params params) {
+        if (index == 0) return false;
+        XBar bar = data.bar(index);
+        double sma = sellGar.value();
+        double sd = sellGar.sd();
+        return bar.getClosePrice() > sma + sd * params.sellBoundDiv() * 0.1;
+    }
+
+    public static boolean gustosBuyEasy(InstrumentData data, int index, GustosAverageRecurrent buyGar, GustosLogicOptimizator.Params params) {
+        if (index == 0) return false;
+        XBar bar = data.bar(index);
+
+        return bar.getClosePrice() < buyGar.value() - buyGar.sd() * params.buyBoundDiv() * 0.1;
+    }
+
 }

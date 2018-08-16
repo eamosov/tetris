@@ -20,29 +20,35 @@ import java.util.*;
 public class StandardInstrumentCalc {
     public static final int calcAllFrom = 60 * 24 * 7 * 2;
     public static final int calcSimpleFrom = 60 * 24 * 16;
-    public static final int calcModelFrom = 60 * 24 * 7 * 6;
+    public int calcModelFrom = 60 * 24 * 7 * 6;
     public static final int optimizeInterval = 60 * 24 * 7 * 2;
     public static final int optimizePeriod = 60 * 24 * 2;
 
     public static final boolean LOGS = true;
 
-    public static int TREES = 250;
+    public static int treesBuy = 1000;
+    public static int treesSell = 1000;
     public static int goodmomentscount = 6;
     public static int badmomentscount = 12;
+    public static int kValueBuy = 0;
+    public static int kValueSell = 0;
+    public static int momentsInterval = 40;
+    public static double momentLimit = 0;
+    public static int learnInterval = 60*3;
 
 
     public static boolean withOptimize = false;
 
-//    public static HashSet<String> ignoreBuy = Sets.newHashSet();
+    //    public static HashSet<String> ignoreBuy = Sets.newHashSet();
 //    public static HashSet<String> ignoreSell = Sets.newHashSet();
-    public HashSet<String> ignoreBuy = Sets.newHashSet("gustosBuy","gustosSell");//,"sd_lag1","sd_delta1","sd_lag2","sd_delta2","macd0","macd1","macd2","macd3");
-    public HashSet<String> ignoreSell = Sets.newHashSet("gustosBuy","gustosSell");//,"d2vol","mm2vol","d2vol_n","mm2vol_n");
+    public HashSet<String> ignoreBuy = Sets.newHashSet("gustosBuy", "gustosSell");//,"sd_lag1","sd_delta1","sd_lag2","sd_delta2","macd0","macd1","macd2","macd3");
+    public HashSet<String> ignoreSell = Sets.newHashSet("gustosBuy", "gustosSell");//,"d2vol","mm2vol","d2vol_n","mm2vol_n");
 //    ,"macd4","toAvgSdMax2_delta2","toAvgSdMax2_delta1","toAvgSd2_delta2","toAvgSdMin2_delta1","toAvgSd2_lag1","toAvgSdMax2","toAvgSdMin2","sd_delta1",
 //            "toAvgSdMin_delta1","toAvgSdMax2_lag1","toAvgSdMax_delta1","toAvgSd2","sd2","toAvgSd_delta2","sd2_delta1","toAvgSdMin2_delta2","toAvgSdMin2_lag1","toAvgSd_lag1",
 //            "sd_delta2","toAvgSdMin2_lag2","toAvgSd2_lag2");
 
-    HashSet<String> ignore(boolean buy){
-        return buy?ignoreBuy:ignoreSell;
+    HashSet<String> ignore(boolean buy) {
+        return buy ? ignoreBuy : ignoreSell;
     }
 
     static final int OPTION_ALL = 0;
@@ -50,28 +56,30 @@ public class StandardInstrumentCalc {
     static final int OPTION_PRECISION = 2;
     static final int OPTION_RECALL = 3;
 
-    static final HashMap<String,Integer> buyOptions = new HashMap<>();
-    static final HashMap<String,Integer> sellOptions = new HashMap<>();
+    static final HashMap<String, Integer> buyOptions = new HashMap<>();
+    static final HashMap<String, Integer> sellOptions = new HashMap<>();
+
     static {
 
-        buyOptions.put("ETH_USDT",OPTION_RECALL);
-        sellOptions.put("ETH_USDT",OPTION_PRECISION);
+        buyOptions.put("ETH_USDT", OPTION_RECALL);
+        sellOptions.put("ETH_USDT", OPTION_PRECISION);
 
-        buyOptions.put("BNB_USDT",OPTION_STD);
-        sellOptions.put("BNB_USDT",OPTION_RECALL);
+        buyOptions.put("BNB_USDT", OPTION_STD);
+        sellOptions.put("BNB_USDT", OPTION_RECALL);
 
-        buyOptions.put("NEO_USDT",OPTION_PRECISION);
-        sellOptions.put("NEO_USDT",OPTION_RECALL);
+        buyOptions.put("NEO_USDT", OPTION_PRECISION);
+        sellOptions.put("NEO_USDT", OPTION_RECALL);
 
     }
-    static int option(boolean buy, String instrument){
+
+    static int option(boolean buy, String instrument) {
         int result;
         if (buy)
-            result = buyOptions.getOrDefault(instrument,OPTION_RECALL);
+            result = buyOptions.getOrDefault(instrument, OPTION_RECALL);
         else
-            result = sellOptions.getOrDefault(instrument,OPTION_ALL);
+            result = sellOptions.getOrDefault(instrument, OPTION_ALL);
 
-        if (result==OPTION_RECALL)
+        if (result == OPTION_RECALL)
             result = OPTION_STD;
 
         return result;
@@ -81,7 +89,7 @@ public class StandardInstrumentCalc {
     static final boolean USE_OPTIONS = true;
     static final String PRECISION = "precision";
     static final String RECALL = "recall";
-    static final String[] logics = new String[]{MAIN,PRECISION,RECALL};
+    static final String[] logics = new String[]{MAIN, PRECISION, RECALL};
 
     static boolean usePrecision = false;
     static boolean useRecall = false;
@@ -107,7 +115,6 @@ public class StandardInstrumentCalc {
     int cpus;
 
 
-
     //    Volumes volumes;
     RecurrentValues values;
     PLHistory gustosProfit;
@@ -118,11 +125,14 @@ public class StandardInstrumentCalc {
     Model newModel = null;
     boolean onlyUsual;
 
-    public StandardInstrumentCalc(InstrumentData data, int cpus, boolean onlyUsual, boolean withModelSolver) {
+    public StandardInstrumentCalc(InstrumentData data, int cpus, boolean onlyUsual, boolean withModelSolver, int modelFrom) {
         this.helper = data.helper;
         this.onlyUsual = onlyUsual;
         methods = new TradeMethodsSolver(data.instrument.toString());
         this.data = data;
+
+        if (modelFrom != 0)
+            calcModelFrom = modelFrom;
         this.cpus = cpus;
         initIgnore();
         plhistoryBase = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer1 : null);
@@ -135,21 +145,21 @@ public class StandardInstrumentCalc {
     }
 
     private void initIgnore() {
-        if (data.instrument.component1().equalsIgnoreCase("ETH")
-                || data.instrument.component1().equalsIgnoreCase("XRP")
-                || data.instrument.component1().equalsIgnoreCase("IOTA")
-                || data.instrument.component1().equalsIgnoreCase("XLM")
-                || data.instrument.component1().equalsIgnoreCase("ADA")
-        ){
-            List<String> ll = Arrays.asList("vdema0", "vdema1", "vdema2", "vdema3", "vdema4", "vdema0_delta1", "vdema1_delta1", "macd0_delta1", "macd1_delta1", "rsi0_delta1", "rsi1_delta1", "stoh0_delta1", "stoh1_delta1");
-            ignoreBuy.addAll(ll);
-            ignoreSell.addAll(ll);
-        }
+//        if (data.instrument.component1().equalsIgnoreCase("ETH")
+//                || data.instrument.component1().equalsIgnoreCase("XRP")
+//                || data.instrument.component1().equalsIgnoreCase("IOTA")
+//                || data.instrument.component1().equalsIgnoreCase("XLM")
+//                || data.instrument.component1().equalsIgnoreCase("ADA")
+//        ){
+//            List<String> ll = Arrays.asList("vdema0", "vdema1", "vdema2", "vdema3", "vdema4", "vdema0_delta1", "vdema1_delta1", "macd0_delta1", "macd1_delta1", "rsi0_delta1", "rsi1_delta1", "stoh0_delta1", "stoh1_delta1");
+//            ignoreBuy.addAll(ll);
+//            ignoreSell.addAll(ll);
+//        }
     }
 
     private void calcTillEnd(boolean withModelSolver) {
         while (calcIndex < data.size()) {
-            if (withModelSolver && data.size()-calcIndex<TradeMethodsSolver.BIG_INTERVAL/60+60*24*5)
+            if (withModelSolver && data.size() - calcIndex < TradeMethodsSolver.BIG_INTERVAL / 60 + 60 * 24 * 5)
                 checkNeedRenew(false);
             doNext();
         }
@@ -204,10 +214,10 @@ public class StandardInstrumentCalc {
     }
 
     public void checkNeedRenew(boolean thread) {
-        if (calcIndex >= calcAllFrom && calcIndex - model.index >= 60) {
-            ArrayList<Long> moments = makeGoodBadMoments(true, true, true);
-            if (moments.size()>0 && moments.get(moments.size()-1).doubleValue()!=prevLastMoment) {
-                prevLastMoment = moments.get(moments.size()-1);
+        if (calcIndex >= calcModelFrom && calcIndex - model.index >= 60) {
+            ArrayList<PLHistory.CriticalMoment> moments = makeGoodBadMoments(true);
+            if (moments.size() > 0 && moments.get(moments.size() - 1).timeBuy != prevLastMoment) {
+                prevLastMoment = moments.get(moments.size() - 1).timeBuy;
                 renewModel(thread);
             }
         }
@@ -257,12 +267,11 @@ public class StandardInstrumentCalc {
 
 
     private void prepareModel(Model model, int calcIndex) {
-        int period = 60 * 3;
         long endtime = data.bar(calcIndex - 1).getEndTime().toEpochSecond();
 //        int period = 60 * 24 * 2;
         try {
 //            makeSimpleModel(models,period,endtime);
-            makeGoodBadModel(model, calcIndex, period, endtime, true, true, 9);
+            makeGoodBadModel(model, calcIndex, endtime, 9);
 //            makeGoodBadModel(models2,period,endtime, false, true);
 
         } catch (Exception e) {
@@ -270,64 +279,99 @@ public class StandardInstrumentCalc {
         }
     }
 
-    private ArrayList<Long> makeGoodBadMoments(boolean good, boolean bad, boolean buyTime) {
-        ArrayList<Long> moments = new ArrayList<>();
-        double limit = 0.03;
-//        if (data.instrument.toString().equalsIgnoreCase("BTC_USDT"))
-//            limit = 0.025;
-        if (good) {
-            ArrayList<Long> tmpmoments;
-            tmpmoments = gustosProfit.getCriticalBuyMoments(limit, true, false, buyTime);
-            while (tmpmoments.size() > goodmomentscount) tmpmoments.remove(0);
-            moments.addAll(tmpmoments);
+    private ArrayList<PLHistory.CriticalMoment> makeGoodBadMoments(boolean buyTime) {
+        ArrayList<PLHistory.CriticalMoment> moments = new ArrayList<>();
+        ArrayList<PLHistory.CriticalMoment> tmpmoments;
+        double limit = StandardInstrumentCalc.momentLimit;
+        if (limit==0){
+            if (data.instrument.component1().equalsIgnoreCase("NEO") || data.instrument.component1().equalsIgnoreCase("XLM"))
+                limit = 0.04;
+            else if (data.instrument.component1().equalsIgnoreCase("BNB"))
+                limit = 0.05;
+            else if (data.instrument.component1().equalsIgnoreCase("LTC") || data.instrument.component1().equalsIgnoreCase("ETH"))
+                limit = 0.025;
+            else
+                limit = 0.03;
         }
+        tmpmoments = gustosProfit.getCriticalBuyMoments(limit, true, false);
+        while (tmpmoments.size() > goodmomentscount) tmpmoments.remove(0);
+        moments.addAll(tmpmoments);
+        tmpmoments = gustosProfit.getCriticalBuyMoments(limit, false, true);
+        while (tmpmoments.size() > badmomentscount) tmpmoments.remove(0);
+        moments.addAll(tmpmoments);
+        moments.sort(Comparator.comparingLong(c -> c.timeBuy));
+        return moments;
+    }
 
-        if (bad) {
-            ArrayList<Long> tmpmoments;
-            tmpmoments = gustosProfit.getCriticalBuyMoments(limit, false, true, buyTime);
-            while (tmpmoments.size() > badmomentscount) tmpmoments.remove(0);
-            moments.addAll(tmpmoments);
-            moments.sort(Long::compare);
-        }
+    private ArrayList<Long> makeGoodBadMoments2(boolean buyTime) {
+        ArrayList<Long> moments = new ArrayList<>();
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, 0, 14 * 24 * 3600, 2));
+        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, 0, momentsInterval * 24 * 3600, goodmomentscount));
+
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, 0, 14 * 24 * 3600, 3));
+        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, 0, momentsInterval * 24 * 3600, badmomentscount));
+
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, 0, 7 * 24 * 3600, 3));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, 7 * 24 * 3600, 14 * 24 * 3600, 2));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, (7 + 14) * 24 * 3600, 28 * 24 * 3600, 1));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(true, false, buyTime, (7 + 14 + 28) * 24 * 3600, 56 * 24 * 3600, 1));
+//
+//
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, 0, 7 * 24 * 3600, 5));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, 7 * 24 * 3600, 14 * 24 * 3600, 4));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, (7 + 14) * 24 * 3600, 28 * 24 * 3600, 3));
+//        moments.addAll(gustosProfit.getMostCriticalBuyMoments(false, true, buyTime, (7 + 14 + 28) * 24 * 3600, 56 * 24 * 3600, 2));
+
+        moments.sort(Long::compare);
         return moments;
     }
 
 
-    private void makeGoodBadModel(Model model, int calcIndex, int period, long endtime, boolean good, boolean bad, int level) {
+    private void makeGoodBadModel(Model model, int calcIndex, long endtime, int level) {
         try {
+            int period = learnInterval;
             model.clear();
             for (int i = 0; i < helper.futureAttributes(); i++) {
                 boolean full = false;
-                HashSet<String> ignore = ignore(i==0);
+                boolean buy = i == 0;
+                HashSet<String> ignore = ignore(buy);
                 Instances set1 = helper.makeEmptySet(ignore, i, level);
-                ArrayList<Long> moments = makeGoodBadMoments(good, bad, i == 0);
+                ArrayList<PLHistory.CriticalMoment> moments = makeGoodBadMoments(buy);
 //                System.out.println(moments.size());
-                full = moments.size()>=10;
+                full = true;//moments.size()>=goodmomentscount+badmomentscount;
                 for (int j = 0; j < moments.size(); j++) {
-                    long time = moments.get(j);
-                    int index = data.getBarIndex(time);
+                    PLHistory.CriticalMoment m = moments.get(j);
+                    int index = data.getBarIndex(m.time(buy));
                     if (index > calcAllFrom) {
-                        Instances settemp = helper.makeSet(data.bars.direct(), ignore,Math.max(calcAllFrom, index - period), Math.min(targetCalcedTo, index + period), endtime, i, level);
+                        int fromIndex = Math.max(calcAllFrom, index - period);
+                        int toIndex = Math.min(targetCalcedTo, index + period);
+//                        if (buy)
+//                            toIndex = Math.min(toIndex,data.getBarIndex(m.timeSell));
+
+                        Instances settemp = helper.makeSet(data.bars.direct(), ignore, fromIndex, toIndex, endtime, i, level);
                         set1.addAll(settemp);
                     }
                 }
                 if (set1.size() < 10) {
+                    model.full = false;
                     System.out.println(String.format("use simple model! instrument: %s, attribute: %d, size: %d", data.instrument, i, set1.size()));
                     model.models.get(MAIN).add(makeSimpleModel(ignore, period, endtime, i, level));
                     if (usePrecision)
-                        model.models.get(PRECISION).add(makeSimpleModel(ignore,period, endtime, i, level));
+                        model.models.get(PRECISION).add(makeSimpleModel(ignore, period, endtime, i, level));
                     if (useRecall)
-                        model.models.get(RECALL).add(makeSimpleModel(ignore,period, endtime, i, level));
-                }else {
+                        model.models.get(RECALL).add(makeSimpleModel(ignore, period, endtime, i, level));
+                } else {
                     model.full = full;
                     if (set1.numDistinctValues(set1.classIndex()) == 1) System.out.println("no distinct values!");
                     RandomForestWithExam rf = new RandomForestWithExam();
                     rf.setNumExecutionSlots(cpus);
-                    rf.setNumIterations(TREES);
-                    rf.setSeed(calcIndex+(int)System.currentTimeMillis());
+                    int trees = buy ? treesBuy : treesSell;
+                    rf.setNumIterations(trees);
+                    rf.setNumFeatures(Math.min(buy ? kValueBuy : kValueSell, set1.numAttributes() - 1));
+                    rf.setSeed(calcIndex + (int) System.currentTimeMillis());
 
-                    int opt = option(i == 0,data.instrument.toString());
-                    if (USE_OPTIONS && opt!=OPTION_STD) {
+                    int opt = option(buy, data.instrument.toString());
+                    if (USE_OPTIONS && opt != OPTION_STD) {
                         if (opt == OPTION_PRECISION || opt == OPTION_RECALL) {
                             CostSensitiveClassifier costSensitiveClassifier = new CostSensitiveClassifier();
                             CostMatrix costMatrix = new CostMatrix(2);
@@ -349,7 +393,7 @@ public class StandardInstrumentCalc {
                     if (usePrecision) {
                         rf = new RandomForestWithExam();
                         rf.setNumExecutionSlots(cpus);
-                        rf.setNumIterations(TREES);
+                        rf.setNumIterations(trees);
                         rf.setSeed(calcIndex);
 
                         CostSensitiveClassifier costSensitiveClassifier = new CostSensitiveClassifier();
@@ -363,7 +407,7 @@ public class StandardInstrumentCalc {
                     if (useRecall) {
                         rf = new RandomForestWithExam();
                         rf.setNumExecutionSlots(cpus);
-                        rf.setNumIterations(TREES);
+                        rf.setNumIterations(trees);
                         rf.setSeed(calcIndex);
                         CostSensitiveClassifier costSensitiveClassifier = new CostSensitiveClassifier();
                         CostMatrix costMatrix = new CostMatrix(2);
@@ -391,7 +435,7 @@ public class StandardInstrumentCalc {
             set1 = helper.makeSet(data.bars.direct(), ignore, calcIndex - period, targetCalcedTo, endtime, attribute, level);
             int plus = 1;
             while (set1.size() == 0 && calcIndex - period * (1 + plus) >= 0) {
-                set1 = helper.makeSet(data.bars.direct(), ignore,calcIndex - period * (1 + plus), targetCalcedTo, endtime, attribute, level);
+                set1 = helper.makeSet(data.bars.direct(), ignore, calcIndex - period * (1 + plus), targetCalcedTo, endtime, attribute, level);
                 plus++;
             }
             if (set1.size() == 0)
@@ -436,8 +480,8 @@ public class StandardInstrumentCalc {
     private void calcUsual(int index) {
         InstrumentMoment m = data.bars.get(index);
         MomentData mldata = m.mldata;
-        MomentData prevmldata = index>0?data.bars.get(index-1).mldata:mldata;
-        MomentData prevmldata2 = index>1?data.bars.get(index-2).mldata:mldata;
+        MomentData prevmldata = index > 0 ? data.bars.get(index - 1).mldata : mldata;
+        MomentData prevmldata2 = index > 1 ? data.bars.get(index - 2).mldata : mldata;
         price = m.bar.getClosePrice();
         maxprice = m.bar.getMaxPrice();
         minprice = m.bar.getMinPrice();
@@ -510,7 +554,6 @@ public class StandardInstrumentCalc {
         helper.put(mldata, "mm", values.maxminShort.value() / values.maxmin.value());
 
 
-
         helper.put(mldata, "macd0", values.macd0.value());
         helper.put(mldata, "macd1", values.macd1.value());
         helper.put(mldata, "macd2", values.macd2.value());
@@ -557,14 +600,14 @@ public class StandardInstrumentCalc {
         helper.put(mldata, "change3", values.change3.value());
         helper.put(mldata, "change4", values.change4.value());
 
-        helper.putDelta(mldata,"vdema0",prevmldata,1);
-        helper.putDelta(mldata,"vdema1",prevmldata,1);
-        helper.putDelta(mldata,"macd0",prevmldata,1);
-        helper.putDelta(mldata,"macd1",prevmldata,1);
-        helper.putDelta(mldata,"rsi0",prevmldata,1);
-        helper.putDelta(mldata,"rsi1",prevmldata,1);
-        helper.putDelta(mldata,"stoh0",prevmldata,1);
-        helper.putDelta(mldata,"stoh1",prevmldata,1);
+        helper.putDelta(mldata, "vdema0", prevmldata, 1);
+        helper.putDelta(mldata, "vdema1", prevmldata, 1);
+        helper.putDelta(mldata, "macd0", prevmldata, 1);
+        helper.putDelta(mldata, "macd1", prevmldata, 1);
+        helper.putDelta(mldata, "rsi0", prevmldata, 1);
+        helper.putDelta(mldata, "rsi1", prevmldata, 1);
+        helper.putDelta(mldata, "stoh0", prevmldata, 1);
+        helper.putDelta(mldata, "stoh1", prevmldata, 1);
         //            helper.put(mldata,"rising",sheet.bar(index-1).getClosePrice() < sheet.bar(index).getMinPrice()?1:0);
 //            helper.put(mldata,"falling",sheet.bar(index-1).getClosePrice() >= sheet.bar(index).getMaxPrice()?1:0);
 
@@ -647,7 +690,7 @@ public class StandardInstrumentCalc {
         }
         if (model.simpleModels.size() > 0) {
             for (int i = 0; i < model.simpleModels.size(); i++) {
-                boolean cc = helper.classify(mldata, ignore(i==0),model.simpleModels.get(i), i, 0);
+                boolean cc = helper.classify(mldata, ignore(i == 0), model.simpleModels.get(i), i, 0);
                 helper.put(mldata, "1simple" + i, cc ? 1 : 0, true);
             }
         }
@@ -690,31 +733,30 @@ public class StandardInstrumentCalc {
     public void calcPredictions(int index) {
         if (model.models.get(MAIN).size() > 0) {
             MomentData mldata = data.bars.get(index).mldata;
-            boolean[][] results = new boolean[2][1+(usePrecision?1:0)+(useRecall?1:0)];
+            boolean[][] results = new boolean[2][1 + (usePrecision ? 1 : 0) + (useRecall ? 1 : 0)];
             for (int i = 0; i < model.models.get(MAIN).size(); i++) {
 
                 int c = 0;
-                helper.putResult(mldata, i, MAIN, results[i][c++] = model.full && helper.classify(mldata, ignore(i==0),model.models.get(MAIN).get(i), i, 9));
+                helper.putResult(mldata, i, MAIN, results[i][c++] = model.full && helper.classify(mldata, ignore(i == 0), model.models.get(MAIN).get(i), i, 9));
                 if (usePrecision)
-                    helper.putResult(mldata, i, PRECISION, results[i][c++] = model.full && helper.classify(mldata, ignore(i==0), model.models.get(PRECISION).get(i), i, 9));
+                    helper.putResult(mldata, i, PRECISION, results[i][c++] = model.full && helper.classify(mldata, ignore(i == 0), model.models.get(PRECISION).get(i), i, 9));
                 if (useRecall)
-                    helper.putResult(mldata, i, RECALL, results[i][c++] = model.full && helper.classify(mldata, ignore(i==0), model.models.get(RECALL).get(i), i, 9));
+                    helper.putResult(mldata, i, RECALL, results[i][c++] = model.full && helper.classify(mldata, ignore(i == 0), model.models.get(RECALL).get(i), i, 9));
             }
-
 
 
             boolean classifiedBuy = helper.get(mldata, "@goodBuy|main") > 0.5;
             boolean classifiedSell = helper.get(mldata, "@goodSell|main") > 0.5;
 
-            if (gbuy && futuredata!=null){
+            if (gbuy && futuredata != null) {
                 Classifier classifier = model.models.get(MAIN).get(0);
                 if (classifier instanceof RandomForestWithExam) {
                     RandomForestWithExam r = (RandomForestWithExam) classifier;
                     Instance inst = helper.makeInstance(mldata, ignoreBuy, 0, 9);
-                    Instances set = helper.makeEmptySet(ignoreBuy,0, 9);
+                    Instances set = helper.makeEmptySet(ignoreBuy, 0, 9);
                     inst.setDataset(set);
                     Pair<Double, Integer> pp = new GustosLogicStrategy().calcProfit(futuredata, index);
-                    if (pp.getSecond()<futuredata.size()) {
+                    if (pp.getSecond() < futuredata.size()) {
                         inst.setValue(inst.classIndex(), pp.getFirst() > 1 ? 1 : 0);
                         try {
                             double[][] p = r.computePizdunstvo(inst);
@@ -727,7 +769,7 @@ public class StandardInstrumentCalc {
                 }
             }
 
-            if (gsell && futuredata!=null){
+            if (gsell && futuredata != null) {
                 Classifier classifier = model.models.get(MAIN).get(1);
                 if (classifier instanceof RandomForestWithExam) {
                     RandomForestWithExam r = (RandomForestWithExam) classifier;
@@ -735,7 +777,7 @@ public class StandardInstrumentCalc {
                     Instances set = helper.makeEmptySet(ignoreSell, 1, 9);
                     inst.setDataset(set);
                     int next = new GustosLogicStrategy().nextSell(futuredata, index);
-                    if (next<futuredata.size()) {
+                    if (next < futuredata.size()) {
                         inst.setValue(inst.classIndex(), futuredata.bar(calcIndex).getClosePrice() > futuredata.bar(next).getClosePrice() ? 1 : 0);
                         try {
                             double[][] p = r.computePizdunstvo(inst);
@@ -754,27 +796,27 @@ public class StandardInstrumentCalc {
 
             if (gbuy) {
 //                if (methods.wasNotNull()) {
-                    plhistoryBase.buyMoment(price, time);
-                    if (classifiedBuy) {
-                        plhistoryClassifiedBuy.buyMoment(price, time);
-                        plhistoryClassifiedSelected.buyMoment(price, time);
-                    }
+                plhistoryBase.buyMoment(price, time);
+                if (classifiedBuy) {
+                    plhistoryClassifiedBuy.buyMoment(price, time);
+                    plhistoryClassifiedSelected.buyMoment(price, time);
+                }
 
 //                    if (strategy != null && (strategy.getFirst() == -1 || results[0][strategy.getFirst()]))
 //                }
-                methods.buy(time,price,results[0]);
+                methods.buy(time, price, results[0]);
 
             }
 
             if (gsell) {
 //                if (methods.wasNotNull()) {
-                    plhistoryBase.sellMoment(price, time);
-                    plhistoryClassifiedBuy.sellMoment(price, time);
+                plhistoryBase.sellMoment(price, time);
+                plhistoryClassifiedBuy.sellMoment(price, time);
 //                    if (strategy != null && (strategy.getSecond() == -1 || results[1][strategy.getSecond()]))
                 if (classifiedSell)
-                        plhistoryClassifiedSelected.sellMoment(price, time);
+                    plhistoryClassifiedSelected.sellMoment(price, time);
 //                }
-                methods.sell(time,price,results[1]);
+                methods.sell(time, price, results[1]);
             }
 
 
@@ -831,8 +873,8 @@ public class StandardInstrumentCalc {
 //            classifiedSell = true;
 //        else
 //            classifiedSell = helper.get(mldata, "@goodSell|"+logics[p.getSecond()]) > 0.5;
-        classifiedBuy = helper.get(mldata,"@goodBuy|main") > 0.5;
-        classifiedSell = helper.get(mldata,"@goodSell|main") > 0.5;
+        classifiedBuy = helper.get(mldata, "@goodBuy|main") > 0.5;
+        classifiedSell = helper.get(mldata, "@goodSell|main") > 0.5;
 
         boolean gbuy = helper.get(mldata, "gustosBuy") > 0.5;
         boolean gsell = helper.get(mldata, "gustosSell") > 0.5;
@@ -846,7 +888,7 @@ public class StandardInstrumentCalc {
         double sd = 0.02;
         int index;
         boolean full = false;
-        Hashtable<String,ArrayList<Classifier>> models = new Hashtable<>();
+        Hashtable<String, ArrayList<Classifier>> models = new Hashtable<>();
         ArrayList<Classifier> simpleModels = new ArrayList<>();
         GustosLogicsOptimizedHistory optimized;
 

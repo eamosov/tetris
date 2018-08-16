@@ -1,11 +1,14 @@
 package ru.gustos.trading.global;
 
+import kotlin.Pair;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class PLHistory {
 
@@ -160,20 +163,41 @@ public class PLHistory {
         return true;
     }
 
-    public ArrayList<Long> getCriticalBuyMoments(double limit, boolean good, boolean bad, boolean buyTime) {
-        ArrayList<Long> times = new ArrayList<>();
+    public ArrayList<CriticalMoment> getCriticalBuyMoments(double limit, boolean good, boolean bad) {
+        ArrayList<CriticalMoment> times = new ArrayList<>();
         int goodc = 0, badc = 0;
         for (PLTrade t : profitHistory){
             if (good && t.profit>1+limit) {
-                times.add(buyTime?t.timeBuy:t.timeSell);
+                times.add(t.criticalMoment());
                 goodc++;
             }if (bad && t.profit<1-limit) {
-                times.add(buyTime?t.timeBuy:t.timeSell);
+                times.add(t.criticalMoment());
                 badc++;
             }
         }
 //        System.out.println(goodc+" "+badc);
         return times;
+    }
+
+
+    public ArrayList<Long> getMostCriticalBuyMoments(boolean good, boolean bad, boolean buyTime, long backtime, long interval, int cnt) {
+        if (profitHistory.size()==0) return new ArrayList<>();
+        ArrayList<Pair<Long,Double>> times = new ArrayList<>();
+        int goodc = 0, badc = 0;
+        long from = profitHistory.get(profitHistory.size()-1).timeBuy-backtime-interval;
+        for (PLTrade t : profitHistory) if (t.timeBuy>=from && t.timeBuy<from+interval){
+            if (good && t.profit>1) {
+                times.add(new Pair<>(buyTime?t.timeBuy:t.timeSell, 1-t.profit));
+                goodc++;
+            }
+            if (bad && t.profit<1) {
+                times.add(new Pair<>(buyTime?t.timeBuy:t.timeSell,t.profit));
+                badc++;
+            }
+        }
+        times.sort(Comparator.comparing(Pair::getSecond));
+//        System.out.println(goodc+" "+badc);
+        return times.stream().limit(cnt).map(Pair<Long, Double>::getFirst).collect(Collectors.toCollection(ArrayList::new));
     }
 
 
@@ -285,7 +309,25 @@ public class PLHistory {
             out.writeLong(timeSell);
             out.writeBoolean(tested);
         }
+
+        public CriticalMoment criticalMoment(){
+            CriticalMoment m = new CriticalMoment();
+            m.timeBuy = timeBuy;
+            m.timeSell = timeSell;
+            m.profit = profit;
+            return m;
+        }
     }
 
+    public class CriticalMoment {
+        public long timeBuy;
+        public long timeSell;
+        public double profit;
+
+        public long time(boolean buy) {
+            return buy?timeBuy:timeSell;
+        }
+    }
 }
+
 
