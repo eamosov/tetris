@@ -61,7 +61,7 @@ public class TestLogicParamsImprover {
             graphs.add(h1);
             TimeSeriesDouble h2 = anal2.makeHistory(false, 1, null);
             graphs.add(h2);
-            graph.drawHistory(TestGlobal.makeMarketAveragePrice(global, anal1, h1, null), graphs);
+            graph.drawHistory(TestGlobal.makeMarketAveragePrice(global, anal1, h1, null), graphs, null);
 //            GustosLogicOptimizator.Params p = new GustosLogicOptimizator.Params();
 //            for (int i = 0;i<p.params.length;i++) {
 //                SimpleCharts charts = new SimpleCharts(data.instrument.toString()+" "+paramNames[i]);

@@ -16,6 +16,9 @@ public class TestGlobalConfig {
     public int kValueSell = 0;
     public int momentsInterval = 40;
     public double momentLimit = 0.03;
+    public int learnIntervalBuy = 180;
+    public int learnIntervalSell = 180;
+    public int maxDepth = 0;
 
     static TestGlobalConfig config;
 
@@ -32,6 +35,6 @@ public class TestGlobalConfig {
 
     @Override
     public String toString() {
-        return String.format("goodMoments: %d, badMoments: %d, treesBuy: %d, treesSell: %d, threshold: %.3g, kValueBuy: %d, kValueSell: %d, momentsInterval: %d, limit: %.4g", goodMoments,badMoments, treesBuy, treesSell, threshold, kValueBuy, kValueSell,momentsInterval, momentLimit);
+        return String.format("goodMoments: %d, badMoments: %d, treesBuy: %d, treesSell: %d, threshold: %.3g, kValueBuy: %d, kValueSell: %d, momentsInterval: %d, limit: %.3g, learnIntervalBuy: %d, learnIntervalSell: %d, maxDepth: %d", goodMoments,badMoments, treesBuy, treesSell, threshold, kValueBuy, kValueSell,momentsInterval, momentLimit, learnIntervalBuy, learnIntervalSell, maxDepth);
     }
 }

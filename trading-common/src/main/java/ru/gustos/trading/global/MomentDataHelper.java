@@ -3,8 +3,8 @@ package ru.gustos.trading.global;
 import java.util.*;
 
 import kotlin.Pair;
+import smile.classification.RandomForest;
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.RandomForest;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -164,15 +164,25 @@ public class MomentDataHelper {
         return set;
     }
 
-    public boolean classify(MomentData mldata, HashSet<String> ignoreAttributes, Classifier classifier, int futureAttribute, int level) {
+    public Instance prepareInstance(MomentData mldata, HashSet<String> ignoreAttributes, int futureAttribute, int level){
         Instance instance = makeInstance(mldata, ignoreAttributes, futureAttribute, level);
         instance.setDataset(makeEmptySet(ignoreAttributes, futureAttribute,level));
-        try {
-            double v = classifier.classifyInstance(instance);
-            return v>threshold;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new NullPointerException("error classifying");
+        return instance;
+    }
+
+    public boolean classify(MomentData mldata, HashSet<String> ignoreAttributes, Object classifier, int futureAttribute, int level) {
+        Instance instance = prepareInstance(mldata, ignoreAttributes, futureAttribute, level);
+        if (classifier instanceof Classifier) {
+            try {
+                double v = ((Classifier)classifier).classifyInstance(instance);
+                return v > threshold;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new NullPointerException("error classifying");
+            }
+        } else {
+            RandomForest rf = (RandomForest)classifier;
+            return rf.predict(CalcUtils.smileInstance(instance))==1;
         }
     }
 }

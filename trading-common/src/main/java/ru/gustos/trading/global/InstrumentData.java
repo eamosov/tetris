@@ -108,7 +108,7 @@ class InstrumentMoment implements  MomentDataProvider{
 
     public InstrumentMoment(XBar bar) {
         this.bar = bar;
-        mldata = new MomentData(90);
+        mldata = new MomentData(160);
     }
 
 

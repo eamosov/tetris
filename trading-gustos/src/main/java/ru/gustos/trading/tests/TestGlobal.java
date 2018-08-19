@@ -91,7 +91,7 @@ public class TestGlobal{
 
     public static void addInstrument(Global global, Instrument ii){
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,16,5,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,18,7,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
         if (StandardInstrumentCalc.LOGS)
@@ -119,6 +119,9 @@ public class TestGlobal{
         StandardInstrumentCalc.kValueSell = TestGlobalConfig.config.kValueSell;
         StandardInstrumentCalc.momentsInterval = TestGlobalConfig.config.momentsInterval;
         StandardInstrumentCalc.momentLimit = TestGlobalConfig.config.momentLimit;
+        StandardInstrumentCalc.learnIntervalBuy = TestGlobalConfig.config.learnIntervalBuy;
+        StandardInstrumentCalc.learnIntervalSell = TestGlobalConfig.config.learnIntervalSell;
+        StandardInstrumentCalc.maxDepth = TestGlobalConfig.config.maxDepth;
         MomentDataHelper.threshold = TestGlobalConfig.config.threshold;
         File ignoreFile = new File("ignore.txt");
         String ignorestring = "";
@@ -128,8 +131,8 @@ public class TestGlobal{
             MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
-        ZonedDateTime from = ZonedDateTime.of(2018,5,15,0,0,0,0, ZoneId.systemDefault());
-
+        ZonedDateTime from = ZonedDateTime.of(2018,1,15,0,0,0,0, ZoneId.systemDefault());
+        double[] kappas = new double[instruments.length];
 //        StandardInstrumentCalc[] calcs = new StandardInstrumentCalc[instruments.length];
         for (int i = 0;i<instruments.length;i++) {
             addInstrument(global,instruments[i]);
@@ -145,7 +148,7 @@ public class TestGlobal{
                 c.checkNeedRenew(false);
                 c.addBar(data.bar(bars));
             }
-
+            kappas[i] = c.kappas/Math.max(1,c.kappascnt);
         }
 //        long toTime = ZonedDateTime.now().toEpochSecond();
 //        long time = global.minTime;
@@ -183,8 +186,10 @@ public class TestGlobal{
             global.planalyzer2.saveHistories(out);
             global.planalyzer3.saveHistories(out);
             TradeMethodsSolver.saveAnalyzers(out);
-            PizdunstvoData.pdbuy.save(out);
-            PizdunstvoData.pdsell.save(out);
+            TreePizdunstvo.p.save(out);
+            global.planalyzer2.saveModelTimes(out);
+//            PizdunstvoData.pdbuy.save(out);
+//            PizdunstvoData.pdsell.save(out);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -194,15 +199,18 @@ public class TestGlobal{
         System.out.println(h2.lastOrZero());
         System.out.println(h3.lastOrZero());
         String res = name+" ignores "+ignorestring+"\n";
+        String out = ZonedDateTime.now().toLocalDateTime().toString()+"\n";
+        out+=res;
+        out+=TestGlobalConfig.config.toString()+"\n";
+        out+=h2.lastOrZero()+"\n";
+        out+=h3.lastOrZero()+"\n";
+        out+="base:"+global.planalyzer1.profits()+"\n";
+        out+=global.planalyzer2.profits()+"\n";
+        out+="train kappas "+Arrays.toString(kappas)+"\n";
         try (FileWriter f = new FileWriter("testres.txt",true)) {
-            f.write(""+ZonedDateTime.now().toLocalDateTime().toString()+"\n");
-            f.write(res);
-            f.write(TestGlobalConfig.config.toString()+"\n");
-            f.write(""+h2.lastOrZero()+"\n");
-            f.write(""+h3.lastOrZero()+"\n");
-            f.write(global.planalyzer3.profits()+"\n");
+            f.write(out);
         }
-
+        System.out.println(out);
 //        Exporter.string2file("d:/weka/prev.arff",global.planalyzer.trainset.toString());
 
     }

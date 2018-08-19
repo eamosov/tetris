@@ -135,6 +135,15 @@ public class PLHistoryAnalyzer{
         return result;
     }
 
+    public ArrayList<Long> makeModelTimes(HashSet<String> ignore) {
+        ArrayList<Long> prepare = new ArrayList<>();
+        for (PLHistory h : histories) if (ignore==null || !ignore.contains(h.instrument))
+            prepare.addAll(h.modelTimes);
+
+        prepare.sort(Comparator.naturalOrder());
+        return prepare;
+    }
+
     public TimeSeriesDouble makeHistory(String instrument){
         for (PLHistory h : histories) if (h.instrument.equalsIgnoreCase(instrument)){
             ArrayList<PLHistory.PLTrade> prepare = new ArrayList<>();
@@ -157,11 +166,16 @@ public class PLHistoryAnalyzer{
 
     public String profits(){
         StringBuilder sb = new StringBuilder();
+        int cc = 0;
+        int cp = 0;
         for (PLHistory h : histories) {
             if (sb.length()>0)
                 sb.append(",");
-            sb.append(h.instrument).append(":").append(String.format("%.4g",h.all.profit)).append("/").append(String.format("%.4g",h.all.drawdown));
+            sb.append(String.format("%s:%.4g*%.2g(%d of %d)",h.instrument,h.all.profit,h.all.drawdown,h.all.goodcount,h.all.count));
+            cc+=h.all.count;
+            cp+=h.all.goodcount;
         }
+        sb.append(", trades ").append(cp).append(" of ").append(cc);
         return sb.toString();
     }
 
@@ -201,5 +215,22 @@ public class PLHistoryAnalyzer{
             res.add(new PLHistory(in));
         }
         return res;
+    }
+
+    public void saveModelTimes(DataOutputStream out) throws IOException {
+        for (int i = 0;i<histories.size();i++) {
+            ArrayList<Long> times = histories.get(i).modelTimes;
+            out.writeInt(times.size());
+            for (int j = 0;j<times.size();j++)
+                out.writeLong(times.get(j));
+        }
+    }
+
+    public void loadModelTimes(DataInputStream in) throws IOException {
+        for (int i = 0;i<histories.size();i++) {
+            int cc = in.readInt();
+            while (cc-->0)
+                histories.get(i).modelTimes.add(in.readLong());
+        }
     }
 }

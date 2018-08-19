@@ -4,12 +4,14 @@ import org.jfree.chart.ChartFactory
 import org.jfree.chart.ChartPanel
 import org.jfree.chart.axis.DateAxis
 import org.jfree.chart.axis.NumberAxis
+import org.jfree.chart.plot.ValueMarker
 import org.jfree.chart.plot.XYPlot
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer
 import org.jfree.chart.ui.ApplicationFrame
 import org.jfree.data.time.Minute
 import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.ui.RefineryUtilities
+import ru.efreet.trading.Decision
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble
 import java.awt.BorderLayout
 import java.awt.Color
@@ -22,9 +24,9 @@ class SimpleProfitGraph {
     var frame : ApplicationFrame= ApplicationFrame("Ta4j example - Indicators to chart")
     var panel : ChartPanel? = null
 
-    fun drawHistory(price: TimeSeriesDouble, history: ArrayList<TimeSeriesDouble>): ApplicationFrame {
+    fun drawHistory(price: TimeSeriesDouble, history: ArrayList<TimeSeriesDouble>, marks: ArrayList<Long>?): ApplicationFrame {
 
-        changeHistory(price,history)
+        changeHistory(price,history, marks)
 
         // Application frame
         frame.pack()
@@ -33,7 +35,7 @@ class SimpleProfitGraph {
         return frame;
     }
 
-    fun changeHistory(price: TimeSeriesDouble, history: ArrayList<TimeSeriesDouble>){
+    fun changeHistory(price: TimeSeriesDouble, history: ArrayList<TimeSeriesDouble>, marks: ArrayList<Long>?){
         val priceDataset = TimeSeriesCollection()
         val priceSeries = org.jfree.data.time.TimeSeries("price")
         for (i in 0..price.size()-1)
@@ -72,6 +74,16 @@ class SimpleProfitGraph {
         val cashFlowRenderer = StandardXYItemRenderer()
         cashFlowRenderer.setSeriesPaint(0, Color.black)
         plot.setRenderer(1, cashFlowRenderer)
+
+        if (marks!=null){
+            for (time in marks){
+                val marker = ValueMarker(Minute(Date.from(Instant.ofEpochSecond(time))).firstMillisecond.toDouble())
+//                if (trade.profit != null)
+//                    marker.label += "(${(trade.profit!! * 100).toInt()} / ${trade.price.toInt()} )"
+                plot.addDomainMarker(marker)
+
+            }
+        }
 
 
         if (panel!=null)

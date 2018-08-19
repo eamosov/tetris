@@ -9,6 +9,7 @@ import weka.gui.ProgrammaticProperty;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RandomTreeWithExam extends AbstractClassifier implements OptionHandler, WeightedInstancesHandler, Randomizable, Drawable, PartitionGenerator {
     private static final long serialVersionUID = -9051119597407396024L;
@@ -25,6 +26,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
     protected double m_MinVarianceProp = 0.001D;
     protected boolean m_computeImpurityDecreases;
     protected double[][] m_impurityDecreasees;
+    protected int goodness = 10;
 
     public RandomTreeWithExam() {
     }
@@ -449,6 +451,52 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         }
     }
 
+    public void computeCombPizdunstvo(Instance inst) throws Exception {
+        double r = classifyInstance(inst);
+        boolean real = inst.value(inst.classIndex()) > 0.5;
+        TreePizdunstvo.p.add(makeAttributesString(inst),real, r > 0.5);
+    }
+
+    public void updateCorrectness(Instance instance, boolean result) throws Exception {
+        if (!result) {
+            double[] distr = distributionForInstance(instance);
+            boolean classified = distr[1] > 0.5;
+            boolean good = result == classified;
+            Tree leaf = m_Tree.getLeaf(instance);
+            if (good) {
+                goodness = Math.min(20, goodness + 5);
+                leaf.goodness = Math.min(20, leaf.goodness + 5);
+            } else {
+                goodness = Math.max(0, goodness - 1);
+                leaf.goodness = Math.max(0, leaf.goodness - 1);
+            }
+        }
+    }
+
+    public int goodness(Instance instance){
+
+//        return m_Tree.getLeaf(instance).goodness+5;
+//        return 10;
+        return m_Tree.getLeaf(instance).goodness<3?0:10;
+//        return goodness==0 || goodness>6?10:0;
+    }
+
+    public boolean isGoodFor(Instance instance){
+        return goodness>3;
+////        return true;
+//        Tree leaf = m_Tree.getLeaf(instance);
+////        System.out.println(leaf.goodness);
+//        return leaf.goodness<13;
+    }
+
+
+
+    private String makeAttributesString(Instance inst) throws Exception {
+        ArrayList<Integer> res = new ArrayList<>();
+        m_Tree.collectAttributes(inst,res);
+        return res.stream().map(i -> inst.attribute(i).name()).sorted().collect(Collectors.joining(","));
+    }
+
     protected class Tree implements Serializable {
         private static final long serialVersionUID = 3549573538656522569L;
         protected RandomTreeWithExam.Tree[] m_Successors;
@@ -457,6 +505,8 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         protected double[] m_Prop = null;
         protected double[] m_ClassDistribution = null;
         protected double[] m_Distribution = null;
+
+        protected int goodness = 10;
 
         protected Tree() {
         }
@@ -519,7 +569,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             return null;
         }
 
-        public void collectAttributes(Instance instance, ArrayList<Integer> to) throws Exception {
+        public void collectAttributes(Instance instance, ArrayList<Integer> to)  {
             if (this.m_Attribute > -1) {
                 Tree succ;
                 if (RandomTreeWithExam.this.m_Info.attribute(this.m_Attribute).isNominal()) {
@@ -533,6 +583,23 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
                 succ.collectAttributes(instance,to);
             }
         }
+
+        public Tree getLeaf(Instance instance) {
+            if (this.m_Attribute > -1) {
+                Tree succ;
+                if (RandomTreeWithExam.this.m_Info.attribute(this.m_Attribute).isNominal()) {
+                    succ = this.m_Successors[(int) instance.value(this.m_Attribute)];
+                } else if (instance.value(this.m_Attribute) < this.m_SplitPoint) {
+                    succ = this.m_Successors[0];
+                } else {
+                    succ = this.m_Successors[1];
+                }
+                return succ.getLeaf(instance);
+            }
+            return this;
+
+        }
+
 
 
         public double[] distributionForInstance(Instance instance) throws Exception {
@@ -1254,6 +1321,15 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             }
 
             return num;
+        }
+
+        public void collectAttributes(HashSet<Integer> res) {
+            if (m_Attribute>=0)
+                res.add(m_Attribute);
+            if (m_Successors!=null)
+                for(int i = 0; i < m_Successors.length; ++i)
+                    if (m_Successors[i]!=null) m_Successors[i].collectAttributes(res);
+
         }
 
     }

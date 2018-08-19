@@ -6,6 +6,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class PLHistory {
     public Stat all = new Stat();
 
     PLHistoryAnalyzer analyzer;
+    ArrayList<Long> modelTimes = new ArrayList<>();
 
     public PLHistory(DataInputStream in) throws IOException {
         load(in);
@@ -235,6 +237,10 @@ public class PLHistory {
         return null;
     }
 
+    public void newModel(ZonedDateTime time) {
+        modelTimes.add(time.toEpochSecond());
+    }
+
     public static class Stat {
         public double profit = 1;
         public double good = 1;
@@ -242,13 +248,15 @@ public class PLHistory {
         public double drawdown = 1;
         public double max = 1;
         public int count = 0;
+        public int goodcount = 0;
 
         void add(double p){
             count++;
             profit*=p;
-            if (p>1)
-                good*=p;
-            else
+            if (p>1) {
+                good *= p;
+                goodcount++;
+            }else
                 bad*=p;
             if (profit>max)
                 max = profit;

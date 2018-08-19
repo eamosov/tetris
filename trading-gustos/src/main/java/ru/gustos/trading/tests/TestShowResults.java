@@ -4,10 +4,7 @@ import kotlin.Pair;
 import org.jfree.chart.ui.ApplicationFrame;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.book.ml.Exporter;
-import ru.gustos.trading.global.Global;
-import ru.gustos.trading.global.InstrumentData;
-import ru.gustos.trading.global.PLHistory;
-import ru.gustos.trading.global.PLHistoryAnalyzer;
+import ru.gustos.trading.global.*;
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import ru.gustos.trading.visual.SimpleProfitGraph;
 
@@ -34,13 +31,15 @@ public class TestShowResults {
 
 
     public static void main(String[] args) {
-        System.out.println((new Date()).getTime());
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl2/pl193.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetris/pl/pl922.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
             for (int i = 0;i<planalyzers.length;i++)
                 planalyzers[i] = new PLHistoryAnalyzer(in);
+            TreePizdunstvo.p.load(in);
+            planalyzer2.loadModelTimes(in);
+
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -94,7 +93,9 @@ public class TestShowResults {
 //            graphs.add(planalyzers[i].makeHistory(false, moneyPart,ignore));
 //        graphs.add(planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
         TimeSeriesDouble price = TestGlobal.makeMarketAveragePrice(global, planalyzer1, h1, ignore);
-        graph.drawHistory(price, graphs);
+        ArrayList<Long> marks = planalyzer2.makeModelTimes(ignore);
+        System.out.println("marks: "+marks);
+        graph.drawHistory(price, graphs, marks);
 //        exportToWeka();
 //        exportPriceToWeka("BNB_USDT");
 //        exportPriceToWeka("BTC_USDT");

@@ -194,6 +194,26 @@ public class RandomForestWithExam extends Bagging {
 
     }
 
+    public void computeCombPizdunstvo(Instance inst) throws Exception {
+
+        Classifier[] classifiers = this.m_Classifiers;
+
+        for (int j = 0; j < classifiers.length; ++j) {
+            RandomTreeWithExam c = (RandomTreeWithExam) classifiers[j];
+            c.computeCombPizdunstvo(inst);
+        }
+
+    }
+
+    public void updateCorrectness(Instance instance, boolean result) throws Exception {
+        Classifier[] classifiers = this.m_Classifiers;
+        for (int j = 0; j < classifiers.length; ++j) {
+            RandomTreeWithExam c = (RandomTreeWithExam) classifiers[j];
+            c.updateCorrectness(instance, result);
+        }
+
+    }
+
     public double[][] computePizdunstvo2(Instance inst) throws Exception {
         double[][] pizdunstvo = new double[2][this.m_data.numAttributes()];
 
@@ -207,6 +227,30 @@ public class RandomForestWithExam extends Bagging {
         return pizdunstvo;
 
     }
+
+    public double[] distributionForInstance(Instance instance) throws Exception {
+        double[] sums = new double[instance.numClasses()];
+
+        for (int i = 0; i < m_NumIterations; ++i) {
+            RandomTreeWithExam t = (RandomTreeWithExam) m_Classifiers[i];
+            int goodness = t.goodness(instance);
+//            if (t.isGoodFor(instance)) {
+                double[] newProbs = t.distributionForInstance(instance);
+
+                for (int j = 0; j < newProbs.length; ++j)
+                    sums[j] += newProbs[j]*goodness;
+//            }
+
+        }
+
+        if (Utils.eq(Utils.sum(sums), 0.0D))
+            return sums;
+        else {
+            Utils.normalize(sums);
+            return sums;
+        }
+    }
+
 
     public double[] computeAverageImpurityDecreasePerAttribute(double[] nodeCounts) throws WekaException {
         if (this.m_Classifiers == null) {
@@ -342,6 +386,7 @@ public class RandomForestWithExam extends Bagging {
     public static void main(String[] argv) {
         runClassifier(new RandomForestWithExam(), argv);
     }
+
 }
 
 
