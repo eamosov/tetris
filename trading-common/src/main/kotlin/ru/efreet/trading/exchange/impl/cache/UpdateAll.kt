@@ -26,7 +26,7 @@ class UpdateAll {
 
             val end = cmd.end ?: ZonedDateTime.now()
 
-            for (instrument in ticker.keys) if (instrument.base.equals("USDT")){// || instrument.base.equals("BTC")){
+            for (instrument in ticker.keys) if (instrument.base == "USDT"/* || instrument.base == "BTC"*/){
 
                 cache.createTable(exchange.getName(), instrument, cmd.barInterval)
 
