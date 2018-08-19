@@ -1,0 +1,13 @@
+{
+  "instruments": {
+    "ETH_USDT": 0.1,
+    "BNB_USDT": 0.1,
+    "BTC_USDT": 0.1,
+    "BCC_USDT": 0.1,
+    "LTC_USDT": 0.1,
+    "XLM_USDT": 0.1
+  },
+  "usdLimit": 0.95,
+  "telegram": true,
+  "keepBnb": 1.0
+}

@@ -16,9 +16,9 @@ import java.time.ZonedDateTime
 class Trader(val tradeRecordDao: TradeRecordDao?,
              val exchange: Exchange,
              val limit: Double,
-             val bet: Double,
-             val instruments: List<Instrument>,
-             val telegram: Telegram? = null
+             val instruments: Map<Instrument, Double> = mapOf(Pair(Instrument.ETH_USDT, 0.5)),
+             val telegram: Telegram? = null,
+             val keepBnb: Double = 1.0
 ) {
 
     private val iTradeHistory: MutableMap<Instrument, ITradeHistory> = mutableMapOf()
@@ -48,7 +48,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         startUsd = usd
         startDeposit = deposit()
 
-        instruments.forEach {
+        instruments.forEach { it, _ ->
             iTradeHistory(it).startAsset = balance(it)
             iTradeHistory(it).startPrice = price(it)
         }
@@ -69,7 +69,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     private fun balance(currency: String): Double {
         val value = balances[currency] ?: 0.0
         return if (currency == "BNB")
-            maxOf(0.0, value - 5.0)
+            maxOf(0.0, value - keepBnb)
         else
             value
     }
@@ -131,7 +131,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             val availableUsd = usd - deposit * (1.0 - limit)
 
             //максимальный размер ставки на одну валюту
-            val maxBet = deposit * limit * bet
+            val maxBet = deposit * limit * instruments[advice.instrument]!!
 
             //сколько уже поставили на одну валюту
             val myBet = balance(advice.instrument) * price(advice.instrument)
@@ -212,7 +212,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     fun deposit(checkOrders: Boolean = true): Double {
-        return instruments.map { instrument ->
+        return instruments.map { (instrument, _) ->
             var i = price(instrument) * balance(instrument)
             if (checkOrders) {
                 val openOrders = getOpenOrders(instrument)
@@ -253,7 +253,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
     fun logBalance() {
 
-        for (i in instruments) {
+        for ((i, _) in instruments) {
             log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), getOpenOrders(i))
         }
 
@@ -262,9 +262,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
     companion object {
         fun fakeTrader(feeP: Double, interval: BarInterval, instrument: Instrument): Trader {
-            return Trader(null, FakeExchange("fake", feeP, interval), 1.0, 1.0, listOf(instrument))
+            return Trader(null, FakeExchange("fake", feeP, interval), 1.0, mapOf(Pair(instrument, 1.0)))
         }
 
-        val log = LoggerFactory.getLogger(Trader.javaClass)
+        val log = LoggerFactory.getLogger(Trader::class.java)
     }
 }

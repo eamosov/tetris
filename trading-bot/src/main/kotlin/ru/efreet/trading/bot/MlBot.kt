@@ -116,7 +116,7 @@ class MlBot {
 
         val startTime = ZonedDateTime.now()
 
-        for (instrument in botConfig.instruments) {
+        for ((instrument, betLimit) in botConfig.instruments) {
 
             val cacheStart = cache.getLast(exchange.getName(), instrument, interval)?.endTime?.minus(interval.duration)
                     ?: ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
@@ -145,7 +145,7 @@ class MlBot {
             Telegram.create()
         } else null
 
-        trader = Trader(tradeRecordDao, exchange, botConfig.usdLimit, botConfig.betLimit, bots.keys.toList(), telegram)
+        trader = Trader(tradeRecordDao, exchange, botConfig.usdLimit, botConfig.instruments, telegram, botConfig.keepBnb)
 
         trader.logBalance()
 

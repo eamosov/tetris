@@ -19,6 +19,7 @@ import ru.efreet.trading.utils.storeAsJson
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.stream.Collectors
 
 data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T00:00Z[GMT]"),
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
@@ -66,7 +67,7 @@ class Simulator(val cmd: CmdArgs) {
 
         exchange.setBalance("USDT", state.usd)
 
-        val trader = Trader(null, exchange, state.usdLimit, state.betLimit, state.instruments)
+        val trader = Trader(null, exchange, state.usdLimit, state.instruments.stream().collect(Collectors.toMap({ it }, { state.betLimit })))
 
         val simulateData = arrayListOf<SimulateData>()
 
