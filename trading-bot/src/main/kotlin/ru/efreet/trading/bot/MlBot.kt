@@ -65,7 +65,7 @@ class MlBot {
                     tryMultipleTimes(5) { trader.executeAdvice(advice) }
                 } catch (e: Throwable) {
                     if (advice.decision != Decision.NONE) {
-                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": ${e.message}")
+                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
                     }
                     throw e
                 }
