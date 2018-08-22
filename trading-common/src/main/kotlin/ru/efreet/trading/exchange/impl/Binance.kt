@@ -63,38 +63,49 @@ class Binance() : Exchange {
         }
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now: ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
         placement.setPrice(BigDecimal.valueOf(price).round())
         placement.setQuantity(BigDecimal.valueOf(asset).round())
-        val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return Order(
-                order.orderId.toString(),
-                instrument,
-                order.price.toDouble(),
-                asset,
-                type,
-                Decision.BUY,
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+
+        try {
+            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            return Order(
+                    order.orderId.toString(),
+                    instrument,
+                    order.price.toDouble(),
+                    asset,
+                    type,
+                    Decision.BUY,
+                    ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        } catch (e: Throwable) {
+            throw OrderException(instrument, placement.getQuantity().toDouble(), placement.getPrice().toDouble(), type, Decision.BUY, e)
+        }
+
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now: ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))
         placement.setPrice(BigDecimal.valueOf(price).round())
         placement.setQuantity(BigDecimal.valueOf(asset).round())
-        val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return Order(
-                order.orderId.toString(),
-                instrument,
-                order.price.toDouble(),
-                asset,
-                type,
-                Decision.SELL,
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+
+        try {
+            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            return Order(
+                    order.orderId.toString(),
+                    instrument,
+                    order.price.toDouble(),
+                    asset,
+                    type,
+                    Decision.SELL,
+                    ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        } catch (e: Throwable) {
+            throw OrderException(instrument, placement.getQuantity().toDouble(), placement.getPrice().toDouble(), type, Decision.SELL, e)
+        }
     }
 
     override fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar> {
@@ -134,7 +145,7 @@ class Binance() : Exchange {
             api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
 
 
-    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) : Session {
+    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit): Session {
 
         return api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
             override fun onMessage(message: BinanceEventKline) {
@@ -199,7 +210,7 @@ class Binance() : Exchange {
         }
     }
 
-    override fun cancelOrder(order:Order) {
+    override fun cancelOrder(order: Order) {
         api.deleteOrderById(symbol(order.instrument), order.orderId.toLong())
     }
 }

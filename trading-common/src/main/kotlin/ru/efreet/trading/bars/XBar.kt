@@ -142,7 +142,7 @@ interface XBar {
     }
 
     fun contains(price : Double) : Boolean{
-        return price>=minPrice && price<=maxPrice
+        return price in minPrice..maxPrice
     }
 
     /**
@@ -159,7 +159,7 @@ interface XBar {
      * @param tradeVolume the traded volume
      * @param tradePrice the price
      */
-    abstract fun addTrade(tradeVolume: Double, tradePrice: Double)
+    fun addTrade(tradeVolume: Double, tradePrice: Double)
 }
 
 fun <T : XBar> List<T>.checkBars() {
