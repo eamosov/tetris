@@ -1,22 +1,8 @@
 package ru.gustos.trading.bots;
 
-import kotlin.reflect.KClass;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import ru.efreet.trading.bars.XExtBar;
-import ru.efreet.trading.bot.BotAdvice;
-import ru.efreet.trading.bot.Trader;
-import ru.efreet.trading.bot.TradesStats;
-import ru.efreet.trading.exchange.BarInterval;
-import ru.efreet.trading.exchange.Instrument;
-import ru.efreet.trading.logic.AbstractBotLogic;
-import ru.efreet.trading.ta.indicators.XIndicator;
-import ru.efreet.trading.trainer.Metrica;
 import ru.gustos.trading.book.Sheet;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class BotRunner {
     public static final double startMoney = 1000;

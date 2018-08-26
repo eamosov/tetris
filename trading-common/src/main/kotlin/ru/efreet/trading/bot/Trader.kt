@@ -15,27 +15,27 @@ import java.time.ZonedDateTime
  */
 class Trader(val tradeRecordDao: TradeRecordDao?,
              val exchange: Exchange,
-             val limit: Double,
-             val instruments: Map<Instrument, Double> = mapOf(Pair(Instrument.ETH_USDT, 0.5)),
+             val limit: Float,
+             val instruments: Map<Instrument, Float> = mapOf(Pair(Instrument.ETH_USDT, 0.5F)),
              val telegram: Telegram? = null,
-             val keepBnb: Double = 1.0
+             val keepBnb: Float = 1.0F
 ) {
 
     private val iTradeHistory: MutableMap<Instrument, ITradeHistory> = mutableMapOf()
-    private val cash: MutableList<Pair<ZonedDateTime, Double>> = arrayListOf()
+    private val cash: MutableList<Pair<ZonedDateTime, Float>> = arrayListOf()
 
 
     private fun iTradeHistory(instrument: Instrument): ITradeHistory {
         return iTradeHistory.computeIfAbsent(instrument) { ITradeHistory() }
     }
 
-    private val startUsd: Double
-    private val startDeposit: Double
+    private val startUsd: Float
+    private val startDeposit: Float
 
-    val usd: Double get() = balance("USDT")
+    val usd: Float get() = balance("USDT")
 
     private lateinit var ticker: Map<Instrument, Ticker>
-    private lateinit var balances: Map<String, Double>
+    private lateinit var balances: Map<String, Float>
 
     private val lastBuy = mutableMapOf<Instrument, XBar>()
 
@@ -62,14 +62,14 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         balances = exchange.getBalancesMap()
     }
 
-    fun balance(instrument: Instrument): Double {
+    fun balance(instrument: Instrument): Float {
         return balance(instrument.asset)
     }
 
-    private fun balance(currency: String): Double {
-        val value = balances[currency] ?: 0.0
+    private fun balance(currency: String): Float {
+        val value = balances[currency] ?: 0.0F
         return if (currency == "BNB")
-            maxOf(0.0, value - keepBnb)
+            maxOf(0.0F, value - keepBnb)
         else
             value
     }
@@ -94,7 +94,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
         td.closePrice = advice.bar.closePrice
 
-        if (td.startPrice == 0.0) {
+        if (td.startPrice == 0.0F) {
             td.startPrice = td.closePrice
         }
 
@@ -128,7 +128,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             val deposit = deposit(false)
 
             //сколько боту осталось доступно USD
-            val availableUsd = usd - deposit * (1.0 - limit)
+            val availableUsd = usd - deposit * (1.0F - limit)
 
             //максимальный размер ставки на одну валюту
             val maxBet = deposit * limit * instruments[advice.instrument]!!
@@ -151,7 +151,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                 if (order != null) {
                     val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
                             advice.decision, advice.decisionArgs, order.type, order.asset,
-                            exchange.getFee() / 200.0,
+                            exchange.getFee() / 200.0F,
                             usdBefore,
                             assetBefore,
                             balance(advice.instrument.base),
@@ -190,7 +190,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                 if (order != null) {
                     val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
                             advice.decision, advice.decisionArgs, order.type, order.asset,
-                            exchange.getFee() / 200.0,
+                            exchange.getFee() / 200.0F,
                             usdBefore,
                             assetBefore,
                             balance(advice.instrument.base),
@@ -211,7 +211,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         return null
     }
 
-    fun deposit(checkOrders: Boolean = true): Double {
+    fun deposit(checkOrders: Boolean = true): Float {
         return instruments.map { (instrument, _) ->
             var i = price(instrument) * balance(instrument)
             if (checkOrders) {
@@ -222,8 +222,8 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         }.sum() + usd
     }
 
-    fun price(instrument: Instrument): Double {
-        return ticker[instrument]?.highestBid ?: 0.0
+    fun price(instrument: Instrument): Float {
+        return ticker[instrument]?.highestBid ?: 0.0F
     }
 
     fun getOpenOrders(instrument: Instrument): List<Order> {
@@ -261,8 +261,8 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     }
 
     companion object {
-        fun fakeTrader(feeP: Double, interval: BarInterval, instrument: Instrument): Trader {
-            return Trader(null, FakeExchange("fake", feeP, interval), 1.0, mapOf(Pair(instrument, 1.0)))
+        fun fakeTrader(feeP: Float, interval: BarInterval, instrument: Instrument): Trader {
+            return Trader(null, FakeExchange("fake", feeP, interval), 1.0F, mapOf(Pair(instrument, 1.0F)))
         }
 
         val log = LoggerFactory.getLogger(Trader::class.java)

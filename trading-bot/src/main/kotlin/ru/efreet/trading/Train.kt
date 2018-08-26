@@ -1,5 +1,6 @@
 package ru.efreet.trading
 
+import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradesStats
@@ -49,7 +50,7 @@ class Train {
 
             val exchange = CachedExchange(realExchange.getName(), realExchange.getFee(), cmd.barInterval, BarsCache(cmd.cachePath))
 
-            val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+            val logic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
             val stateLoaded = logic.loadState(cmd.settings!!)
 
             val population = logic.seed(SeedType.RANDOM, cmd.population ?: 10)
@@ -74,8 +75,8 @@ class Train {
                         synchronized(Train.Companion) {
                             val savePath = cmd.settings + ".out"
                             println("Saving intermediate logic's properties to ${savePath}")
-                            val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
-                            tmpLogic.setMinMax(trainItem.args, 50.0, false)
+                            val tmpLogic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                            tmpLogic.setMinMax(trainItem.args, 50.0F, false)
                             tmpLogic.setParams(trainItem.args)
                             tmpLogic.saveState(savePath, trainItem.result.toString())
                         }
@@ -87,7 +88,7 @@ class Train {
             val savePath = cmd.settings + ".out"
             println("Saving logic's properties to ${savePath}")
 
-            logic.setMinMax(sp, 50.0, false)
+            logic.setMinMax(sp, 50.0F, false)
             logic.setParams(sp)
             logic.saveState(savePath, stats.toString())
             println(logic.logState())

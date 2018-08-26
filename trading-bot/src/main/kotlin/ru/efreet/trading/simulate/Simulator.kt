@@ -2,7 +2,7 @@ package ru.efreet.trading.simulate
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ru.efreet.trading.bars.XBaseBar
+import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.exchange.BarInterval
@@ -24,11 +24,11 @@ import java.util.stream.Collectors
 data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T00:00Z[GMT]"),
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
                  var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT, Instrument.BCC_USDT, Instrument.LTC_USDT),
-                 var usd: Double = 1000.0,
-                 val usdLimit: Double = 1.0,
-                 val betLimit: Double = 0.5,
+                 var usd: Float = 1000.0F,
+                 val usdLimit: Float = 1.0f,
+                 val betLimit: Float = 0.5f,
                  var interval: BarInterval = BarInterval.ONE_MIN,
-                 var feeFactor: Double = 1.0,
+                 var feeFactor: Float = 1.0f,
                  var historyPath: String = "simulate_history.json",
                  var properties: String = "simulate.properties",
                  var graph: Boolean = true) {
@@ -50,10 +50,10 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T
 }
 
 data class SimulateData(val instrument: Instrument,
-                        var logic: BotLogic<Any>,
+                        var logic: BotLogic<Any, XBar>,
                         var lastTrainTime: ZonedDateTime,
                         var everyDay: ZonedDateTime,
-                        val barIterator: Iterator<XBaseBar>
+                        val barIterator: Iterator<XBar>
 )
 
 class Simulator(val cmd: CmdArgs) {
@@ -73,9 +73,9 @@ class Simulator(val cmd: CmdArgs) {
 
         for (instrument in state.instruments) {
 
-            exchange.setBalance(instrument.asset, 0.0)
+            exchange.setBalance(instrument.asset, 0.0f)
 
-            val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
+            val logic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
             if (!logic.loadState(state.properties)) {
                 logic.saveState(state.properties, "initial properties")
             }
@@ -99,7 +99,7 @@ class Simulator(val cmd: CmdArgs) {
             simulateData.add(SimulateData(instrument, logic, lastTrainTime, everyDay, bars.iterator()))
         }
 
-        exchange.setBalance("BNB", 1.0)
+        exchange.setBalance("BNB", 1.0f)
 
         var hasNext: Boolean = true
 

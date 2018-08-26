@@ -72,7 +72,7 @@ class PropertyEditorFactory<T : Any>(val propsCls: KClass<T>, val newInitParams:
     /**
      * Установить параметры min/max/hardBounds свойств из объекта obj
      */
-    fun setMinMax(obj: T, p: Double, hardBounds: Boolean) {
+    fun setMinMax(obj: T, p: Float, hardBounds: Boolean) {
         for (gene in genes) {
             gene.setMinMax(obj, p, hardBounds)
         }

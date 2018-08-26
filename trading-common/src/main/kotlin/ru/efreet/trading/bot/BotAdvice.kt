@@ -12,9 +12,9 @@ data class BotAdvice(val time: ZonedDateTime,
                      val decision: Decision,
                      val decisionArgs: Map<String, String>,
                      val instrument: Instrument,
-                     val price: Double,
+                     val price: Float,
                      val bar: XBar,
-                     val indicators: Map<String, Double>?){
+                     val indicators: Map<String, Float>?){
 
     fun log():String{
         return "${decision.name} $instrument for $price"

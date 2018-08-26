@@ -10,19 +10,19 @@ import java.util.*
 /**
  * Created by fluder on 11/02/2018.
  */
-open class FakeExchange(val _name: String, val _fee: Double, val interval: BarInterval) : Exchange {
+open class FakeExchange(val _name: String, val _fee: Float, val interval: BarInterval) : Exchange {
 
     private val log = LoggerFactory.getLogger(FakeExchange::class.java)
 
-    private val balances = mutableMapOf<String, Double>()
+    private val balances = mutableMapOf<String, Float>()
     private val ticker = mutableMapOf<Instrument, Ticker>()
     private val orders = mutableMapOf<String, Order>()
 
     init {
-        setBalance("USDT", 1000.0)
+        setBalance("USDT", 1000.0F)
     }
 
-    fun setBalance(currency: String, value: Double) {
+    fun setBalance(currency: String, value: Float) {
         balances[currency] = value
     }
 
@@ -47,15 +47,15 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return _name
     }
 
-    override fun getBalancesMap(): Map<String, Double> {
+    override fun getBalancesMap(): Map<String, Float> {
         return balances
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order? {
+    override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order? {
 
-        val base = balances[instrument.base] ?: 0.0
+        val base = balances[instrument.base] ?: 0.0F
         val cost = price * asset
-        if (cost > base || asset <= 0.0 || price <= 0.0) {
+        if (cost > base || asset <= 0.0F || price <= 0.0F) {
             log.error("Couldn't buy {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.base, base)
             return null
         }
@@ -72,10 +72,10 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return order
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order? {
+    override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order? {
 
-        val myAsset = balances[instrument.asset] ?: 0.0
-        if (asset > myAsset || asset <= 0.0 || price <= 0.0) {
+        val myAsset = balances[instrument.asset] ?: 0.0F
+        if (asset > myAsset || asset <= 0.0F || price <= 0.0F) {
             log.error("Couldn't sell {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.asset, myAsset)
             return null
         }
@@ -100,7 +100,7 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
         return arrayListOf()
     }
 
-    override fun getFee(): Double {
+    override fun getFee(): Float {
         return _fee
     }
 
@@ -128,10 +128,10 @@ open class FakeExchange(val _name: String, val _fee: Double, val interval: BarIn
     private fun execOrder(order: Order) {
         if (order.side == Decision.BUY) {
             setBalance(order.instrument.asset,
-                    (balances[order.instrument.asset] ?: 0.0) + order.asset * (1.0 - getFee() / 200.0))
+                    (balances[order.instrument.asset] ?: 0.0F) + order.asset * (1.0F - getFee() / 200.0F))
         } else if (order.side == Decision.SELL) {
             setBalance(order.instrument.base,
-                    (balances[order.instrument.base] ?: 0.0) + order.price * order.asset * (1.0 - getFee() / 200.0))
+                    (balances[order.instrument.base] ?: 0.0F) + order.price * order.asset * (1.0F - getFee() / 200.0F))
         }
     }
 }

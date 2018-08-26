@@ -5,14 +5,14 @@ import java.time.ZonedDateTime
 
 data class ITradeHistory(
         val trades: MutableList<TradeRecord> = mutableListOf(),
-        val indicators: MutableMap<String, MutableList<Pair<ZonedDateTime, Double>>> = mutableMapOf(),
-        var startAsset: Double = 0.0,
-        var asset: Double = 0.0) {
+        val indicators: MutableMap<String, MutableList<Pair<ZonedDateTime, Float>>> = mutableMapOf(),
+        var startAsset: Float = 0.0F,
+        var asset: Float = 0.0F) {
 
-    var startPrice: Double = 0.0
-    var minPrice: Double = Double.MAX_VALUE
-    var maxPrice: Double = 0.0
-    var closePrice: Double = 0.0
+    var startPrice: Float = 0.0F
+    var minPrice: Float = Float.MAX_VALUE
+    var maxPrice: Float = 0.0F
+    var closePrice: Float = 0.0F
 
     lateinit var startTime: ZonedDateTime
     lateinit var endTime: ZonedDateTime

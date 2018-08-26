@@ -11,10 +11,10 @@ class XSoldBySLIndicator(bars: List<XExtBar>,
                                       val xLastTrendIndicator: XLastDecisionIndicator<XExtBar>,
                                       val xTslIndicator: XTslIndicator,
                                       val xTrendStartIndicator: XDecisionStartIndicator,
-                                      val sl: Double,
-                                      val tsl: Double,
-                                      val tp: Double,
-                                      val ttp: Double) : XCachedIndicator2<XExtBar, Boolean>(bars, prop) {
+                                      val sl: Float,
+                                      val tsl: Float,
+                                      val tp: Float,
+                                      val ttp: Float) : XCachedIndicator2<XExtBar, Boolean>(bars, prop) {
 
     override fun calculate(index: Int, bar: XExtBar): Boolean {
 

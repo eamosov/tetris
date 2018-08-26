@@ -12,7 +12,7 @@ class XTslIndicator(bars: List<XExtBar>,
                                  val xLastTrendIndicator: XLastDecisionIndicator<XExtBar>,
                                  val closePriceIndicator: XClosePriceIndicator) : XCachedIndicator<XExtBar>(bars, prop) {
 
-    override fun calculate(index: Int, bar: XExtBar): Double {
+    override fun calculate(index: Int, bar: XExtBar): Float {
         val cur = xLastTrendIndicator.getValue(index)
         val closePrice = closePriceIndicator.getValue(index)
 

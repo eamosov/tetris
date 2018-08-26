@@ -22,7 +22,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 
-data class MlBotData(val instrument: Instrument, var logic: BotLogic<Any>, var lastBar: ZonedDateTime = ZonedDateTime.now()) {
+data class MlBotData(val instrument: Instrument, var logic: BotLogic<Any, XBar>, var lastBar: ZonedDateTime = ZonedDateTime.now()) {
     var session: Session? = null
 }
 
@@ -65,7 +65,7 @@ class MlBot {
                     tryMultipleTimes(5) { trader.executeAdvice(advice) }
                 } catch (e: Throwable) {
                     if (advice.decision != Decision.NONE) {
-                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": ${e.message}")
+                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
                     }
                     throw e
                 }
@@ -116,7 +116,7 @@ class MlBot {
 
         val startTime = ZonedDateTime.now()
 
-        for ((instrument, betLimit) in botConfig.instruments) {
+        for ((instrument, _) in botConfig.instruments) {
 
             val cacheStart = cache.getLast(exchange.getName(), instrument, interval)?.endTime?.minus(interval.duration)
                     ?: ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
@@ -126,7 +126,7 @@ class MlBot {
             cache.saveBars(exchange.getName(), instrument, cacheBars.filter { it.timePeriod == interval.duration })
 
 
-            val logic: BotLogic<Any> = LogicFactory.getLogic("ml", instrument, interval)
+            val logic: BotLogic<Any, XBar> = LogicFactory.getLogic("ml", instrument, interval)
 
             val historyStart = startTime.minus(interval.duration.multipliedBy(logic.historyBars))
             val history = cache.getBars(exchange.getName(), logic.instrument, interval, historyStart, startTime)

@@ -10,7 +10,7 @@ public class InstrumentMoment implements  MomentDataProvider{
     public InstrumentMoment(XBar bar) {
         this.bar = bar;
         mldata = new MomentData(100);
-        mldata2 = new MomentData(300);
+        mldata2 = new MomentData(DecisionCalc.DETECTOR?300:5);
     }
 
 

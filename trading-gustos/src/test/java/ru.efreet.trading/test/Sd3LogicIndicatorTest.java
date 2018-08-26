@@ -1,6 +1,7 @@
 package ru.efreet.trading.test;
 
 import ru.efreet.trading.Decision;
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.exchange.BarInterval;
@@ -21,13 +22,14 @@ public class Sd3LogicIndicatorTest {
 
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
 
-        final List<XBaseBar> bars = cache.getBars("binance", Instrument.getBTC_USDT(),
-                                                  BarInterval.ONE_MIN,
-                                                  ZonedDateTime.parse("2018-01-16T00:00:00Z[GMT]"),
-                                                  ZonedDateTime.now());
+        final List<? extends XBar> bars = cache.getBars("binance", Instrument.getBTC_USDT(),
+                                                        BarInterval.ONE_MIN,
+                                                        ZonedDateTime.parse("2018-01-16T00:00:00Z[GMT]"),
+                                                        ZonedDateTime.now());
 
-        final BotLogic logic = new Sd3Logic("sd3", Instrument.Companion.getBTC_USDT(),
-                                            BarInterval.ONE_MIN, XExtBar.Companion.of(bars));
+        final Sd3Logic logic = new Sd3Logic("sd3", Instrument.getBTC_USDT(), BarInterval.ONE_MIN);
+
+        bars.forEach(logic::insertBar);
         logic.prepareBars();
 
         double money = 1000;

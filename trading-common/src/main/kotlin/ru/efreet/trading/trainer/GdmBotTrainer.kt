@@ -48,7 +48,7 @@ class GdmBotTrainer<P, R, M>(processors: Int = Runtime.getRuntime().availablePro
 
 
         //поиск градиента
-        val derivatives = mutableListOf<Pair<Direction<P>, Double>>()
+        val derivatives = mutableListOf<Pair<Direction<P>, Float>>()
 
         CompletableFuture.allOf(*genes.map() {
             CompletableFuture.supplyAsync(Supplier {
@@ -59,7 +59,7 @@ class GdmBotTrainer<P, R, M>(processors: Int = Runtime.getRuntime().availablePro
                 it.step(steppedParams, grStep)
                 val calc = metrica(steppedParams, function(steppedParams))
                 synchronized(derivatives) {
-                    derivatives.add(Pair(Direction(it, grStep), (calc.toDouble() - origin.metrica.toDouble()) / grStep))
+                    derivatives.add(Pair(Direction(it, grStep), (calc.toFloat() - origin.metrica.toFloat()) / grStep))
                 }
             }, executor)
         }.toTypedArray()).join()
@@ -69,7 +69,7 @@ class GdmBotTrainer<P, R, M>(processors: Int = Runtime.getRuntime().availablePro
         val testGradients = mutableListOf<Vector<P>>()
 
         //Размер шага
-        val maxd = derivatives.filter { it.second != 0.0 }.maxBy { Math.abs(it.second) }
+        val maxd = derivatives.filter { it.second != 0.0F }.maxBy { Math.abs(it.second) }
         if (maxd != null) {
             val stepSize = Math.abs(step / maxd.second)
             //println("maxd=$maxd, stepSize=$stepSize")

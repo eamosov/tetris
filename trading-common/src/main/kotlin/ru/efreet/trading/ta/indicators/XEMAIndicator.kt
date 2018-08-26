@@ -5,7 +5,7 @@ package ru.efreet.trading.ta.indicators
  */
 class XEMAIndicator<B>(bars: List<B>,
                        prop: BarGetterSetter<B>,
-                       indicator: XIndicator<B>,
-                       timeFrame: Int) : AbstractEMAIndicator<B>(bars, prop, indicator, timeFrame, 2.0 / (timeFrame + 1.0)) {
+                       indicator: XIndicator,
+                       timeFrame: Int) : AbstractEMAIndicator<B>(bars, prop, indicator, timeFrame, 2.0F / (timeFrame + 1.0F)) {
 
 }

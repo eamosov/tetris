@@ -7,7 +7,7 @@ import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.logic.AbstractXExtBarBotLogic
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
@@ -17,7 +17,7 @@ import ru.gustos.trading.book.indicators.GustosVolumeLevel2
 import ru.gustos.trading.book.indicators.LevelsTrader
 import java.time.Duration
 
-open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<LevelsLogicParams>(name, LevelsLogicParams::class, instrument, barInterval, bars) {
+open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: BarInterval) : AbstractXExtBarBotLogic<LevelsLogicParams>(name, LevelsLogicParams::class, instrument, barInterval) {
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -42,9 +42,8 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
 
     }
 
-    override var historyBars: Long
+    override val historyBars: Long
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
-        set(value) {}
 
 
     override fun copyParams(src: LevelsLogicParams): LevelsLogicParams = src.copy()
@@ -103,12 +102,12 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
     }
 
     private fun doBar(b: XExtBar) {
-        b.sma = levels.feed(b)
-        levelsTrade.feed(b, b.sma);
-        b.sd = levelsTrade.sd();
-        b.sd2 = if (levelsTrade.high()) 1.0 else -1.0;
-        b.avrVolume = levelsTrade.longVolume()
-        b.avrVolume2 = levelsTrade.shortVolume()
+        b.sma = levels.feed(b).toFloat()
+        levelsTrade.feed(b, b.sma.toDouble());
+        b.sd = levelsTrade.sd().toFloat();
+        b.sd2 = if (levelsTrade.high()) 1.0f else -1.0f;
+        b.avrVolume = levelsTrade.longVolume().toFloat()
+        b.avrVolume2 = levelsTrade.shortVolume().toFloat()
         b.stohastic = levelsTrade.stohastic()
 
     }
@@ -124,11 +123,11 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
     override fun metrica(params: LevelsLogicParams, stats: TradesStats): Metrica {
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 2.0))
-                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0))
+                .add("fine_trades", BotLogic.fine(stats.trades.toFloat(), 50.0f, 2.0f))
+                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0f))
     }
 
-    override fun indicators(): Map<String, XIndicator<XExtBar>> {
+    override fun indicators(): Map<String, XIndicator> {
         return emptyMap()
     }
 

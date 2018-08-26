@@ -1,17 +1,21 @@
 package ru.gustos.trading.book.ml;
 
 import kotlin.Pair;
-import ru.efreet.trading.bars.XExtBar;
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.TradeRecord;
-import ru.efreet.trading.logic.AbstractBotLogic;
+import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.ProfitCalculator;
 import ru.efreet.trading.logic.impl.LogicFactory;
 import ru.gustos.trading.TestUtils;
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.indicators.*;
+import ru.gustos.trading.book.indicators.GustosIndicator;
+import ru.gustos.trading.book.indicators.IndicatorInitData;
+import ru.gustos.trading.book.indicators.LevelsLogicHighIndicator;
+import ru.gustos.trading.book.indicators.LevelsLogicLineIndicator;
+import ru.gustos.trading.book.indicators.SuccessIndicator;
 import ru.gustos.trading.visual.Visualizator;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -25,7 +29,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ProfitChecker {
     static Sheet sheet;
@@ -61,14 +64,10 @@ public class ProfitChecker {
         System.out.println(String.format("\ntesting %s. volumes per day: %g", instr, lastvol));
 //        if (lastvol<1 || !instr.getBase().equals("BTC"))
 //            return;
-        AbstractBotLogic<Object> botLogic;
+
         BarInterval barInterval = BarInterval.ONE_MIN;
-            botLogic = (AbstractBotLogic<Object>)LogicFactory.Companion.getLogic(logic,
-                instr,
-                    barInterval,
-                sheet.moments.stream()
-                        .map(m -> new XExtBar(m.bar))
-                        .collect(Collectors.toList()), false);
+        BotLogic<Object, XBar> botLogic = LogicFactory.Companion.getLogic(logic, instr, barInterval, false);
+        sheet.moments.forEach( m -> botLogic.insertBar(m.bar));
 
         botLogic.loadState(properties);
         ArrayList<Pair<ZonedDateTime,ZonedDateTime>> aa = new ArrayList<>();

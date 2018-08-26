@@ -28,7 +28,7 @@ data class TradeRecord(
         val instrument: String? = null,
 
         @DatabaseField
-        val price: Double? = null,
+        val price: Float? = null,
 
         @DatabaseField(persisterClass = EnumStringType::class)
         val decision: Decision? = null,
@@ -40,35 +40,35 @@ data class TradeRecord(
         val type: OrderType? = null,
 
         @DatabaseField
-        val amount: Double? = null, /*of asset*/
+        val amount: Float? = null, /*of asset*/
 
         @DatabaseField
-        val fee: Double? = null, /* feeRatio */
+        val fee: Float? = null, /* feeRatio */
 
         @DatabaseField
-        val usdBefore: Double? = null,
+        val usdBefore: Float? = null,
 
         @DatabaseField
-        val assetBefore: Double? = null,
+        val assetBefore: Float? = null,
 
         @DatabaseField
-        val usdAfter: Double? = null,
+        val usdAfter: Float? = null,
 
         @DatabaseField
-        val assetAfter: Double? = null
+        val assetAfter: Float? = null
 
 ) : Serializable {
 
-    fun before(): Double {
+    fun before(): Float {
         return usdBefore!! + assetBefore!! * price!!
     }
 
-    fun after(): Double {
+    fun after(): Float {
         return usdAfter!! + assetAfter!! * price!!
     }
 
-    fun profit(buy:TradeRecord): Double {
-        return price!! / buy.price!! * (1.0 - fee!!) * (1.0 - buy.fee!!)
+    fun profit(buy:TradeRecord): Float {
+        return price!! / buy.price!! * (1.0F - fee!!) * (1.0F - buy.fee!!)
     }
 
 }

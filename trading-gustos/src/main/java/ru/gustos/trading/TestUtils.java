@@ -1,5 +1,6 @@
 package ru.gustos.trading;
 
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
@@ -30,7 +31,7 @@ public class TestUtils {
         BarInterval interval = BarInterval.ONE_MIN;
 
         BarsCache cache = new BarsCache("cache.sqlite3");
-        List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, to);
+        List<? extends XBar> bars = cache.getBars(exch.getName(), instr, interval, from, to);
 
 // индикаторы
         IndicatorsLib lib = new IndicatorsLib("indicators.json");
@@ -50,7 +51,7 @@ public class TestUtils {
 
         BarsCache cache = new BarsCache("cache.sqlite3");
         ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
-        List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        List<? extends XBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы
         IndicatorsLib lib = new IndicatorsLib("indicators.json");
@@ -84,7 +85,7 @@ public class TestUtils {
         BarInterval interval = BarInterval.ONE_MIN;
 
         BarsCache cache = new BarsCache("cache.sqlite3");
-        List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, to);
+        List<? extends XBar> bars = cache.getBars(exch.getName(), instr, interval, from, to);
 
         IndicatorsLib lib = libfile==null?new IndicatorsLib():new IndicatorsLib(libfile);
 
@@ -117,11 +118,11 @@ public class TestUtils {
         Instrument instr = new Instrument("BCC", "USDT");
         BarsCache cache1 = new BarsCache("cache.sqlite3");
         BarsCache cache2 = new BarsCache("cache2.sqlite3");
-        List<XBaseBar> bars1 = cache1.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
-        List<XBaseBar> bars2 = cache2.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        List<? extends XBar> bars1 = cache1.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        List<? extends XBar> bars2 = cache2.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
         for (int i = 0;i<bars1.size();i++){
-            XBaseBar b1 = bars1.get(i);
-            XBaseBar b2 = bars2.get(i);
+            XBar b1 = bars1.get(i);
+            XBar b2 = bars2.get(i);
             if (!b1.equals(b2)){
                 System.out.println("not equal "+ b1+" "+b2);
             }

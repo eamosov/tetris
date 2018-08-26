@@ -25,6 +25,8 @@ fun rnd(start: Int, end: Int): Int = if (start == end) start else start + rnd.ne
 
 fun rnd(start: Double, end: Double): Double = if (start == end) start else start + rnd.nextDouble() * (end - start)
 
+fun rnd(start: Float, end: Float): Float = if (start == end) start else start + rnd.nextFloat() * (end - start)
+
 fun <T : Any> KClass<T>.getPropertyByName(name: String): KMutableProperty1<T, *> =
         this.memberProperties.first { it.name == name } as KMutableProperty1<T, *>
 
@@ -46,6 +48,13 @@ fun Double.round2(): Double = (this * 100).toLong() / 100.0
 
 fun Double.round5(): Double = (this * 100000).toLong() / 100000.0
 
+fun Float.pow2(): Float = this * this
+
+fun Float.round2(): Float = (this * 100F).toLong() / 100.0F
+
+fun Float.round5(): Float = (this * 100000F).toLong() / 100000.0F
+
+
 val gson = GsonBuilder().registerTypeAdapter(ZonedDateTime::class.java, ZonedDateTimeType())
         .registerTypeAdapter(Instrument::class.java, InstrumentType())
         .setPrettyPrinting()
@@ -59,10 +68,10 @@ fun Any.storeAsJson(path: String) {
 
 fun Any.toJson(): String = gson.toJson(this)
 
-fun List<Pair<ZonedDateTime, Double>>.sma(timeFrame: Int): List<Pair<ZonedDateTime, Double>> {
-    val out = mutableListOf<Pair<ZonedDateTime, Double>>()
+fun List<Pair<ZonedDateTime, Float>>.sma(timeFrame: Int): List<Pair<ZonedDateTime, Float>> {
+    val out = mutableListOf<Pair<ZonedDateTime, Float>>()
 
-    val sums = DoubleArray(this.size, { 0.0 })
+    val sums = FloatArray(this.size, { 0.0F })
     for (index in 0 until this.size) {
         sums[index] = this[index].second
         if (index > 0) {
@@ -103,10 +112,10 @@ fun List<Pair<ZonedDateTime, Double>>.dema(timeFrame: Int): List<Pair<ZonedDateT
     return out
 }
 
-fun roundAmount(amount: Double, price: Double): Double {
-    var k = 1.0
-    while ((1.0 / price) * k < 1.0) {
-        k = k * 10.0
+fun roundAmount(amount: Float, price: Float): Float {
+    var k = 1.0F
+    while ((1.0F / price) * k < 1.0F) {
+        k = k * 10.0F
     }
 
     return (amount * k).toInt() / k

@@ -6,7 +6,7 @@ import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.logic.AbstractXExtBarBotLogic
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
@@ -18,7 +18,7 @@ import java.util.concurrent.ForkJoinTask
 /**
  * Created by fluder on 20/02/2018.
  */
-open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval, bars) {
+open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterval) : AbstractXExtBarBotLogic<SimpleBotLogicParams>(name, SimpleBotLogicParams::class, instrument, barInterval) {
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -28,7 +28,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
     lateinit var signalEma: XCachedIndicator<XExtBar>
     lateinit var signal2Ema: XCachedIndicator<XExtBar>
 
-    lateinit var sma: XIndicator<XExtBar>
+    lateinit var sma: XIndicator
     lateinit var sd: XCachedIndicator<XExtBar>
 
     lateinit var dayShortEma: XCachedIndicator<XExtBar>
@@ -51,8 +51,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 daySignal = 112,
                 daySignal2 = 537,
 
-                tStopLoss = 50.0,
-                takeProfit = 100.0
+                tStopLoss = 50.0F,
+                takeProfit = 100.0F
         )
     }
 
@@ -71,7 +71,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         of(SimpleBotLogicParams::daySignal, "logic.sd3.daySignal", 1, 2000, 1, false)
         of(SimpleBotLogicParams::daySignal2, "logic.sd3.daySignal2", 1, 2000, 1, false)
 
-        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0, 10.0, 0.05, true)
+        of(SimpleBotLogicParams::stopLoss, "logic.sd3.stopLoss", 1.0F, 10.0F, 0.05F, true)
 //        of(SimpleBotLogicParams::tStopLoss, "logic.sd3.tStopLoss", 1.0, 5.0, 0.05, true)
 //
 //        of(SimpleBotLogicParams::takeProfit, "logic.sd3.takeProfit", 1.0, 20.0, 0.05, true)
@@ -92,25 +92,25 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
 
-        val targetGoodTrades = 0.7
-        val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0)
-        val targetStopLoss = 10.0
-        val targetAvrProfitPerTrade = 1.0075
+        val targetGoodTrades = 0.7F
+        val targetProfit = Math.pow(1.015, Duration.between(stats.start, stats.end).toHours().toDouble() / 24.0).toFloat()
+        val targetStopLoss = 10.0F
+        val targetAvrProfitPerTrade = 1.0075F
 //        val targetTStopLoss = 1.0
 //        val targetTrades = 120.0
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(minOf(stats.trades.toDouble(), 30.0), 30.0, 3.0))
+                .add("fine_trades", BotLogic.fine(minOf(stats.trades.toFloat(), 30.0F), 30.0F, 3.0F))
                 //.add("fine_goodTrades", BotLogic.fine(minOf(stats.goodTrades, targetGoodTrades) * (1.0 / targetGoodTrades), 1.0, 2.0))
-                .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0))
-                .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0, 1.8))
-                .add("ppt", 10.0 * BotLogic.fine(stats.profitPerTrade, targetAvrProfitPerTrade, 2.0))
-                .add("profit", stats.relProfit * 0.15)
+                .add("fine_profit", BotLogic.fine(minOf(stats.profit, targetProfit), targetProfit, 5.0F))
+                .add("goodTrades", BotLogic.funXP(stats.goodTrades / targetGoodTrades - 1.0F, 1.8F))
+                .add("ppt", 10.0F * BotLogic.fine(stats.profitPerTrade, targetAvrProfitPerTrade, 2.0F))
+                .add("profit", stats.relProfit * 0.15F)
                 //.add("trades", stats.trades * 0.0175)
-                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0, 0.5))
-                .add("persist1", -BotLogic.funXP(params.persist1!!.toDouble() - 1.0, 0.02))
-                .add("persist2", -BotLogic.funXP(params.persist2!!.toDouble() - 1.0, 0.02))
-                .add("persist3", -BotLogic.funXP(params.persist3!!.toDouble() - 1.0, 0.02))
+                .add("sl", -BotLogic.funXP(params.stopLoss / targetStopLoss - 1.0F, 0.5F))
+                .add("persist1", -BotLogic.funXP(params.persist1!!.toFloat() - 1.0F, 0.02F))
+                .add("persist2", -BotLogic.funXP(params.persist2!!.toFloat() - 1.0F, 0.02F))
+                .add("persist3", -BotLogic.funXP(params.persist3!!.toFloat() - 1.0F, 0.02F))
 //                .add("tsl", -BotLogic.funXP(params.tStopLoss / targetTStopLoss - 1.0, 0.1))
 //                .add("tp", -BotLogic.funXP(params.takeProfit / 5.0 - 1.0, 0.1))
 //                .add("ttp", -BotLogic.funXP(params.tTakeProfit / 0.2 - 1.0, 0.1))
@@ -130,8 +130,8 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, getParams().signal2!!)
 
         sd = GustosIndicator2(bars, XExtBar._sd, XExtBar._closePrice, XExtBar._volume, XExtBar._sma, XExtBar._avrVolume, getParams().deviationTimeFrame!!, getParams().deviationTimeFrame2!!)
-        sma = object : XIndicator<XExtBar> {
-            override fun getValue(index: Int): Double = getBar(index).sma
+        sma = object : XIndicator {
+            override fun getValue(index: Int): Float = getBar(index).sma
         }
 
         dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, getParams().dayShort!!)
@@ -227,7 +227,7 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
         return price > upperBound(index) && localDownTrend(index)
     }
 
-    override fun indicators(): Map<String, XIndicator<XExtBar>> {
+    override fun indicators(): Map<String, XIndicator> {
         return mapOf(Pair("sma", sma),
                 Pair("sd", sd),
                 Pair("shortEma", shortEma),
@@ -237,17 +237,16 @@ open class Sd3Logic(name: String, instrument: Instrument, barInterval: BarInterv
                 Pair("dayShortEma", dayShortEma),
                 Pair("dayLongEma", dayLongEma),
                 Pair("tsl", tslIndicator),
-                Pair("sl", object : XIndicator<XExtBar> {
-                    override fun getValue(index: Int): Double {
+                Pair("sl", object : XIndicator {
+                    override fun getValue(index: Int): Float {
                         return decisionStartIndicator.getValue(index).closePrice
                     }
                 })
         )
     }
 
-    override var historyBars: Long
+    override val historyBars: Long
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
-        set(value) {}
 
     override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 

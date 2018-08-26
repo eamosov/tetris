@@ -7,6 +7,7 @@ import org.eclipse.jetty.websocket.api.Session
 import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.*
 import ru.efreet.trading.utils.round
@@ -36,8 +37,8 @@ class Binance() : Exchange {
     override fun getName(): String = "binance"
 
 
-    override fun getBalancesMap(): Map<String, Double> {
-        return api.balancesMap().mapValues { it.value.free.toDouble() }
+    override fun getBalancesMap(): Map<String, Float> {
+        return api.balancesMap().mapValues { it.value.free.toFloat() }
     }
 
     fun symbol(instrument: Instrument): BinanceSymbol {
@@ -63,43 +64,54 @@ class Binance() : Exchange {
         }
     }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
-        placement.setPrice(BigDecimal.valueOf(price).round())
-        placement.setQuantity(BigDecimal.valueOf(asset).round())
-        val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return Order(
-                order.orderId.toString(),
-                instrument,
-                order.price.toDouble(),
-                asset,
-                type,
-                Decision.BUY,
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round())
+        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round())
+
+        try {
+            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            return Order(
+                    order.orderId.toString(),
+                    instrument,
+                    order.price.toFloat(),
+                    asset,
+                    type,
+                    Decision.BUY,
+                    ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        } catch (e: Throwable) {
+            throw OrderException(instrument, placement.getQuantity().toFloat(), placement.getPrice().toFloat(), type, Decision.BUY, e)
+        }
+
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))
-        placement.setPrice(BigDecimal.valueOf(price).round())
-        placement.setQuantity(BigDecimal.valueOf(asset).round())
-        val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
-        return Order(
-                order.orderId.toString(),
-                instrument,
-                order.price.toDouble(),
-                asset,
-                type,
-                Decision.SELL,
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round())
+        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round())
+
+        try {
+            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            return Order(
+                    order.orderId.toString(),
+                    instrument,
+                    order.price.toFloat(),
+                    asset,
+                    type,
+                    Decision.SELL,
+                    ZonedDateTime.ofInstant(Instant.ofEpochMilli(order.time), ZoneId.of("GMT")))
+        } catch (e: Throwable) {
+            throw OrderException(instrument, placement.getQuantity().toFloat(), placement.getPrice().toFloat(), type, Decision.SELL, e)
+        }
     }
 
     override fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar> {
         val zone = ZoneId.of("GMT")
-        val bars = mutableListOf<XBar>()
+        val bars = XBarList((Duration.between(startTime, endTime).toMinutes() / interval.duration.toMinutes()).toInt())
         var nextStartTime = startTime.toEpochSecond() * 1000
 
         do {
@@ -109,14 +121,14 @@ class Binance() : Exchange {
             candles.forEach {
                 val bar = XBaseBar(Duration.ofMillis(it.closeTime - it.openTime + 1),
                         ZonedDateTime.ofInstant(Instant.ofEpochMilli(it.closeTime), zone),
-                        it.open.toDouble(),
-                        it.high.toDouble(),
-                        it.low.toDouble(),
-                        it.close.toDouble(),
-                        it.volume.toDouble(),
-                        it.takerBuyBaseAssetVolume.toDouble(),
-                        it.takerBuyQuoteAssetVolume.toDouble(),
-                        it.numberOfTrades.toInt())
+                        it.open.toFloat(),
+                        it.high.toFloat(),
+                        it.low.toFloat(),
+                        it.close.toFloat(),
+                        it.volume.toFloat(),
+                        it.takerBuyBaseAssetVolume.toFloat(),
+                        it.takerBuyQuoteAssetVolume.toFloat(),
+                        it.numberOfTrades.toShort())
 
                 bars.add(bar)
             }
@@ -131,24 +143,24 @@ class Binance() : Exchange {
     }
 
     override fun getLastTrades(instrument: Instrument): List<AggTrade> =
-            api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toDouble(), it.quantity.toDouble()) }
+            api.aggTrades(symbol(instrument)).map { AggTrade(it.timestamp, it.price.toFloat(), it.quantity.toFloat()) }
 
 
-    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit) : Session {
+    fun startTrade(instrument: Instrument, interval: BarInterval, consumer: (XBar, Boolean) -> Unit): Session {
 
         return api.websocketKlines(symbol(instrument), interval(interval), object : BinanceWebSocketAdapterKline() {
             override fun onMessage(message: BinanceEventKline) {
 
                 val bar = XBaseBar(Duration.ofMillis(message.endTime - message.startTime + 1),
                         ZonedDateTime.ofInstant(Instant.ofEpochMilli(message.endTime), ZoneId.of("GMT")),
-                        message.open.toDouble(),
-                        message.high.toDouble(),
-                        message.low.toDouble(),
-                        message.close.toDouble(),
-                        message.volume.toDouble(),
-                        message.volumeOfActiveBuy.toDouble(),
-                        message.quoteVolumeOfActiveBuy.toDouble(),
-                        message.numberOfTrades.toInt())
+                        message.open.toFloat(),
+                        message.high.toFloat(),
+                        message.low.toFloat(),
+                        message.close.toFloat(),
+                        message.volume.toFloat(),
+                        message.volumeOfActiveBuy.toFloat(),
+                        message.quoteVolumeOfActiveBuy.toFloat(),
+                        message.numberOfTrades.toShort())
 
                 consumer(bar, message.isFinal)
             }
@@ -162,8 +174,8 @@ class Binance() : Exchange {
 //        }
 //    }
 
-    override fun getFee(): Double {
-        return 0.1
+    override fun getFee(): Float {
+        return 0.1F
     }
 
     override fun getIntervals(): List<BarInterval> {
@@ -181,15 +193,15 @@ class Binance() : Exchange {
 
         return api.allBookTickersMap().values
                 .stream()
-                .collect(Collectors.toMap({ asInstrument(it.symbol) }, { Ticker(asInstrument(it.symbol), it.bidPrice.toDouble(), it.askPrice.toDouble()) }))
+                .collect(Collectors.toMap({ asInstrument(it.symbol) }, { Ticker(asInstrument(it.symbol), it.bidPrice.toFloat(), it.askPrice.toFloat()) }))
     }
 
     override fun getOpenOrders(instrument: Instrument): List<Order> {
         return api.openOrders(symbol(instrument)).map {
             Order(it.orderId.toString(),
                     instrument,
-                    it.price.toDouble(),
-                    it.origQty.toDouble() - it.executedQty.toDouble(),
+                    it.price.toFloat(),
+                    it.origQty.toFloat() - it.executedQty.toFloat(),
                     OrderType.LIMIT,
                     when (it.side) {
                         BinanceOrderSide.BUY -> Decision.BUY
@@ -199,7 +211,7 @@ class Binance() : Exchange {
         }
     }
 
-    override fun cancelOrder(order:Order) {
+    override fun cancelOrder(order: Order) {
         api.deleteOrderById(symbol(order.instrument), order.orderId.toLong())
     }
 }

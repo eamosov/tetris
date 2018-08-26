@@ -5,11 +5,11 @@ package ru.efreet.trading.ta.indicators
  */
 abstract class AbstractEMAIndicator<B>(bars: List<B>,
                                        prop: BarGetterSetter<B>,
-                                       val indicator: XIndicator<B>,
+                                       val indicator: XIndicator,
                                        val timeFrame: Int,
-                                       private val multiplier: Double) : XCachedIndicator<B>(bars, prop) {
+                                       private val multiplier: Float) : XCachedIndicator<B>(bars, prop) {
 
-    override fun calculate(index: Int, bar: B): Double {
+    override fun calculate(index: Int, bar: B): Float {
         if (index == 0) {
             return indicator.getValue(0)
         }

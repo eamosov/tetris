@@ -3,14 +3,14 @@ package ru.efreet.trading.trainer
 import ru.efreet.trading.utils.PropertyEditor
 
 interface BotMetrica {
-    fun toDouble(): Double
+    fun toFloat(): Float
 }
 
-class DoubleBotMetrica(val value: Double) : BotMetrica, Comparable<DoubleBotMetrica> {
+class FloatBotMetrica(val value: Float) : BotMetrica, Comparable<FloatBotMetrica> {
 
-    override fun toDouble(): Double = value
+    override fun toFloat(): Float = value
 
-    override fun compareTo(other: DoubleBotMetrica): Int = value.compareTo(other.value)
+    override fun compareTo(other: FloatBotMetrica): Int = value.compareTo(other.value)
 
     override fun toString(): String = value.toString()
 }
@@ -19,8 +19,7 @@ data class TrainItem<P, R, M>(var args: P, var result: R, var metrica: M) {
     companion object {
         fun <P, R, M> of(args: P, function: (P) -> R, metrica: (P, R) -> M): TrainItem<P, R, M> {
             val result = function(args)
-            val metrica = metrica(args, result)
-            return TrainItem(args, result, metrica)
+            return TrainItem(args, result, metrica(args, result))
         }
     }
 }

@@ -14,11 +14,11 @@ interface Exchange {
 
     fun getName(): String
 
-    fun getBalancesMap(): Map<String, Double>
+    fun getBalancesMap(): Map<String, Float>
 
-    fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order?
+    fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order?
 
-    fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order?
+    fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order?
 
     fun loadBars(instrument: Instrument, interval: BarInterval, startTime: ZonedDateTime, endTime: ZonedDateTime): List<XBar>
 
@@ -28,7 +28,7 @@ interface Exchange {
 //
 //    fun stopTrade()
 
-    fun getFee(): Double
+    fun getFee(): Float
 
     fun getIntervals(): List<BarInterval>
 

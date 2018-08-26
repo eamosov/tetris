@@ -1,6 +1,7 @@
 package ru.gustos.trading.book.indicators;
 
 import kotlin.Pair;
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.gustos.trading.book.Volumes;
 import weka.core.stopwords.Null;
@@ -423,13 +424,13 @@ public class VecUtils {
         return res;
     }
 
-    public static XBaseBar expandMinMax(XBaseBar minMax, double[] avg, double[] disp, double k, int from, int cnt) {
+    public static XBaseBar expandMinMax(XBar minMax, double[] avg, double[] disp, double k, int from, int cnt) {
         XBaseBar res = new XBaseBar(minMax);
         int to = Math.min(from + cnt, avg.length);
         if (disp != null) {
             for (int i = from; i < to; i++) {
-                res.setMinPrice(Math.min(res.getMinPrice(), avg[i] - disp[i] * k));
-                res.setMaxPrice(Math.max(res.getMaxPrice(), avg[i] + disp[i] * k));
+                res.setMinPrice((float)Math.min(res.getMinPrice(), avg[i] - disp[i] * k));
+                res.setMaxPrice((float)Math.max(res.getMaxPrice(), avg[i] + disp[i] * k));
             }
         } else
             for (int i = from; i < to; i++)
@@ -437,9 +438,9 @@ public class VecUtils {
         return res;
     }
 
-    public static XBaseBar expandMinMax(XBaseBar minMax, double price){
-        minMax.setMinPrice(Math.min(minMax.getMinPrice(), price));
-        minMax.setMaxPrice(Math.max(minMax.getMaxPrice(), price));
+    public static XBar expandMinMax(XBar minMax, double price){
+        minMax.setMinPrice((float)Math.min(minMax.getMinPrice(), price));
+        minMax.setMaxPrice((float)Math.max(minMax.getMaxPrice(), price));
         return minMax;
     }
 

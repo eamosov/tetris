@@ -2,7 +2,7 @@ package ru.gustos.trading
 
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XExtBar
+import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
@@ -12,11 +12,13 @@ import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
-import ru.gustos.trading.global.InstrumentData
 import ru.gustos.trading.global.DecisionManager
+import ru.gustos.trading.global.InstrumentData
 import java.time.Duration
 
-open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
+open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3, XBar>(name, GustosBotLogicParams3::class, instrument, barInterval) {
+
+    final override val bars: MutableList<XBar> = XBarList(historyBars.toInt())
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -29,10 +31,8 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
 
     }
 
-    override var historyBars: Long
+    final override val historyBars: Long
         get() = Duration.ofDays(180).toMillis() / barInterval.duration.toMillis()
-        set(value) {}
-
 
     override fun copyParams(src: GustosBotLogicParams3): GustosBotLogicParams3 = src.copy()
 
@@ -50,23 +50,26 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
 
     override fun insertBar(bar: XBar) {
         synchronized(this) {
-            val b = XExtBar(bar)
-            bars.add(b)
+            bars.add(bar)
             if (barsIsPrepared) {
-                calc.addBar(b)
+                calc.addBar(bar)
                 calc.checkNeedRenew(!simulate)
             }
         }
     }
 
+    override fun resetBars() {
+        barsIsPrepared = false
+    }
+
     override fun metrica(params: GustosBotLogicParams3, stats: TradesStats): Metrica {
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 2.0))
-                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0))
+                .add("fine_trades", BotLogic.fine(stats.trades.toFloat(), 50.0f, 2.0f))
+                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0f))
     }
 
-    override fun indicators(): Map<String, XIndicator<XExtBar>> {
+    override fun indicators(): Map<String, XIndicator> {
         return mapOf(Pair("price", closePrice))
     }
 

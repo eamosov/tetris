@@ -2,13 +2,10 @@ package ru.efreet.trading.logic
 
 import org.slf4j.LoggerFactory
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XBaseBar
-import ru.efreet.trading.bars.XExtBar
+import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.ta.indicators.XIndicator
-import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
@@ -19,22 +16,24 @@ import java.nio.file.StandardOpenOption
 import java.time.ZonedDateTime
 import java.util.*
 
-interface BotLogic<P> {
+interface BotLogic<P, B> {
 
     val instrument: Instrument
+
+    val bars: List<B>
 
     val genes: List<PropertyEditor<P, Any?>>
 
     fun indexOf(time: ZonedDateTime): Int
 
     fun insertBar(bar: XBar)
-    fun insertBars(bars: List<XBaseBar>)
+    fun insertBars(bars: List<XBar>)
 
-    fun firstBar(): XBar
+    fun firstBar(): B
 
-    fun lastBar(): XBar
+    fun lastBar(): B
 
-    fun getBar(index: Int): XBar
+    fun getBar(index: Int): B
 
     fun getBarIndex(time: ZonedDateTime): Int
 
@@ -86,15 +85,13 @@ interface BotLogic<P> {
 
     fun metrica(params: P, stats: TradesStats): Metrica
 
-    var historyBars: Long
+    val historyBars: Long
 
-    fun indicators(): Map<String, XIndicator<XExtBar>>
-
-    //fun getAdvice(index: Int, bar: XExtBar): OrderSideExt?
+    fun indicators(): Map<String, XIndicator>
 
     fun setMinMax(settings: Properties)
 
-    fun setMinMax(obj: P, p: Double, hardBounds: Boolean)
+    fun setMinMax(obj: P, p: Float, hardBounds: Boolean)
 
     fun getMinMax(): Properties
 
@@ -106,12 +103,12 @@ interface BotLogic<P> {
 
         private val log = LoggerFactory.getLogger(BotLogic::class.java)
 
-        fun fine(x: Double, min: Double, base: Double = 2.0): Double {
-            return -Math.pow(base, -(x - min)) + 1.0
+        fun fine(x: Float, min: Float, base: Float = 2.0F): Float {
+            return (-Math.pow(base.toDouble(), -(x.toDouble() - min.toDouble())) + 1.0).toFloat()
         }
 
-        fun funXP(x: Double, p: Double): Double {
-            return Math.signum(x) * (Math.pow(Math.abs(x) + 1.0, p) - 1.0)
+        fun funXP(x: Float, p: Float): Float {
+            return (Math.signum(x) * (Math.pow(Math.abs(x) + 1.0, p.toDouble()) - 1.0)).toFloat()
         }
 
     }

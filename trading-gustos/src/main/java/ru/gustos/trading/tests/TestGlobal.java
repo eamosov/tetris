@@ -23,18 +23,18 @@ import java.util.stream.Collectors;
 public class TestGlobal{
 
     static Instrument[] instruments = new Instrument[]{
-//            new Instrument("BTC","USDT"),
+            new Instrument("BTC","USDT"),
             new Instrument("ETH","USDT"),
             new Instrument("BCC","USDT"),
             new Instrument("BNB","USDT"),
             new Instrument("LTC","USDT"),
             new Instrument("NEO","USDT"),
-//            new Instrument("XLM","USDT"),
-//            new Instrument("XRP","USDT"),
-//            new Instrument("ICX","USDT"),
-//            new Instrument("ONT","USDT"),
-//            new Instrument("NULS","USDT"),
-//            new Instrument("VET","USDT"),
+            new Instrument("XLM","USDT"),
+            new Instrument("XRP","USDT"),
+            new Instrument("ICX","USDT"),
+            new Instrument("ONT","USDT"),
+            new Instrument("NULS","USDT"),
+            new Instrument("VET","USDT"),
 //            new Instrument("QTUM","USDT"),
 //            new Instrument("IOTA","USDT"),
 //            new Instrument("ADA","USDT"),
@@ -87,13 +87,13 @@ public class TestGlobal{
 
     public static void addInstrument(Global global, Instrument ii){
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,23,13,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,26,15,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
         if (DecisionManager.LOGS)
             System.out.println("Loading instrument: "+ii.toString());
         BarsCache cache = new BarsCache("cache.sqlite3");
-        List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
+        List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
 //            bars = BarsPacker.packBars(bars,5);
         global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
 
@@ -157,7 +157,7 @@ public class TestGlobal{
             MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
-        ZonedDateTime from = ZonedDateTime.of(2018,2,15,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2018,5,15,0,0,0,0, ZoneId.systemDefault());
 //        ZonedDateTime dontRenewAfter = ZonedDateTime.of(2018,6,20,0,0,0,0, ZoneId.systemDefault());
         double[] kappas = new double[instruments.length];
         for (int i = 0;i<instruments.length;i++) {
