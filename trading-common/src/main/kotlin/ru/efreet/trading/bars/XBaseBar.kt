@@ -15,7 +15,12 @@ data class XBaseBar(override var timePeriod: Duration,
                     override var volume: Float = 0.0F,
                     override var volumeBase: Float = 0.0F,
                     override var volumeQuote: Float = 0.0F,
-                    override var trades: Short = 0) : XBar {
+                    override var trades: Short = 0,
+                    override var delta5m: Float = 0.0F,
+                    override var delta15m: Float = 0.0F,
+                    override var delta1h: Float = 0.0F,
+                    override var delta1d: Float = 0.0F,
+                    override var delta7d: Float = 0.0F) : XBar {
 
     /** Begin time of the bar  */
     override var beginTime: ZonedDateTime = endTime.minus(timePeriod)
@@ -90,7 +95,7 @@ data class XBaseBar(override var timePeriod: Duration,
     }
 
     override fun toString(): String {
-        return String.format("{begin time: %s, end time: %s, close price: %f, open price: %f, min price: %f, max price: %f, volume: %f, volumeBase: %f, volumeQuote: %f, trades: %d}",
-                beginTime, endTime, closePrice, openPrice, minPrice, maxPrice, volume, volumeBase, volumeQuote, trades)
+        return "XBar(timePeriod=$timePeriod, endTime=$endTime, openPrice=$openPrice, maxPrice=$maxPrice, minPrice=$minPrice, closePrice=$closePrice, volume=$volume, volumeBase=$volumeBase, volumeQuote=$volumeQuote, trades=$trades, delta5m=$delta5m, delta15m=$delta15m, delta1h=$delta1h, delta1d=$delta1d, delta7d=$delta7d)"
     }
+
 }

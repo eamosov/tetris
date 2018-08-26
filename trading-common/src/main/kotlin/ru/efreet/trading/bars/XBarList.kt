@@ -94,6 +94,13 @@ fun ByteArrayList.setXBar(index: Int, v: XBar): Int {
     i += setShort(i, v.trades.toInt())
     i += setShort(i, (v.timePeriod.toMillis() / 1000).toInt())
     i += setLong(i, v.endTime.toEpochSecond())
+
+    i += setFloat(i, v.delta5m)
+    i += setFloat(i, v.delta15m)
+    i += setFloat(i, v.delta1h)
+    i += setFloat(i, v.delta1d)
+    i += setFloat(i, v.delta7d)
+
     return i
 }
 
@@ -108,7 +115,13 @@ const val TRADES_OFFSET = VOLUME_QUOTE_OFFSET + 4
 const val TIME_PERIOD_OFFSET = TRADES_OFFSET + 2
 const val END_TIME_OFFSET = TIME_PERIOD_OFFSET + 2
 
-class XBarRef(val b:ByteArrayList, val index: Int): XBar{
+const val DELTA5M_OFFSET = END_TIME_OFFSET + 8
+const val DELTA15M_OFFSET = DELTA5M_OFFSET + 4
+const val DELTA1H_OFFSET = DELTA15M_OFFSET + 4
+const val DELTA1D_OFFSET = DELTA1H_OFFSET + 4
+const val DELTA7D_OFFSET = DELTA1D_OFFSET + 4
+
+class XBarRef(val b: ByteArrayList, val index: Int) : XBar {
     override var openPrice: Float
         get() = b.getFloat(index + OPEN_PRICE_OFFSET)
         set(value) {
@@ -164,6 +177,36 @@ class XBarRef(val b:ByteArrayList, val index: Int): XBar{
         set(value) {
             b.setLong(index + END_TIME_OFFSET, value.toEpochSecond())
         }
+
+    override var delta5m: Float
+        get() = b.getFloat(index + DELTA5M_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA5M_OFFSET, value)
+        }
+    override var delta15m: Float
+        get() = b.getFloat(index + DELTA15M_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA15M_OFFSET, value)
+        }
+    override var delta1h: Float
+        get() = b.getFloat(index + DELTA1H_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA1H_OFFSET, value)
+        }
+    override var delta1d: Float
+        get() = b.getFloat(index + DELTA1D_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA1D_OFFSET, value)
+        }
+    override var delta7d: Float
+        get() = b.getFloat(index + DELTA7D_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA7D_OFFSET, value)
+        }
+
+    override fun toString(): String {
+        return "XBar(timePeriod=$timePeriod, endTime=$endTime, openPrice=$openPrice, maxPrice=$maxPrice, minPrice=$minPrice, closePrice=$closePrice, volume=$volume, volumeBase=$volumeBase, volumeQuote=$volumeQuote, trades=$trades, delta5m=$delta5m, delta15m=$delta15m, delta1h=$delta1h, delta1d=$delta1d, delta7d=$delta7d)"
+    }
 }
 
 fun ByteArrayList.getXBar(index: Int): XBar {
@@ -177,6 +220,62 @@ fun ByteArrayList.expand(addSize: Int) {
         add(0)
 }
 
+fun List<XBar>.findDelta(index: Int, deltaMinutes: Long): XBar? {
+    val bar = get(index)
+    val n = deltaMinutes / bar.timePeriod.toMinutes()
+    val i = index + n
+
+    if (i < 0 || i >= size)
+        return null
+
+    val r = get(i.toInt())
+    if (Duration.between(bar.endTime, r.endTime).toMinutes() == deltaMinutes)
+        return r
+
+    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes), 0, index, selector = { it.endTime })
+    return if (bs >= 0) {
+        get(bs)
+    } else {
+        val nearest = get(-bs - 1)
+        if (Math.abs(Duration.between(bar.endTime, nearest.endTime).toMinutes() - deltaMinutes) <= 2)
+            nearest
+        else
+            null
+    }
+}
+
+fun <T : XBar> List<T>.fillDelta(index: Int): T {
+    val bar = get(index)
+
+    findDelta(index, -5)?.let {
+        bar.delta5m = bar.closePrice - it.closePrice
+    }
+
+    findDelta(index, -15)?.let {
+        bar.delta15m = bar.closePrice - it.closePrice
+    }
+
+    findDelta(index, -60)?.let {
+        bar.delta1h = bar.closePrice - it.closePrice
+    }
+
+    findDelta(index, -60 * 24)?.let {
+        bar.delta1d = bar.closePrice - it.closePrice
+    }
+
+    findDelta(index, -60 * 24 * 7)?.let {
+        bar.delta7d = bar.closePrice - it.closePrice
+    }
+
+    return bar
+}
+
+fun List<XBar>.fillDelta() {
+    for (index in 0 until size) {
+        fillDelta(index)
+    }
+}
+
 class XBarList : java.util.AbstractList<XBar>, RandomAccess {
 
     companion object {
@@ -186,6 +285,12 @@ class XBarList : java.util.AbstractList<XBar>, RandomAccess {
 
             tmp.setXBar(0, XBaseBar(BarInterval.ONE_MIN.duration, ZonedDateTime.now()))
         }()
+
+        init {
+            if (xBarSize != DELTA7D_OFFSET + 4) {
+                throw IllegalArgumentException("Invalid xBarSize??, xBarSize=${xBarSize}, offset=${DELTA7D_OFFSET + 4}")
+            }
+        }
     }
 
     private val data: ByteArrayList
@@ -211,6 +316,10 @@ class XBarList : java.util.AbstractList<XBar>, RandomAccess {
     }
 
     override fun get(index: Int): XBar {
+
+        if (index < 0 || index >= size)
+            throw IndexOutOfBoundsException("Index ($index) is greater than or equal to list size ($size)")
+
         return data.getXBar(index * xBarSize)
     }
 
@@ -226,4 +335,5 @@ class XBarList : java.util.AbstractList<XBar>, RandomAccess {
 
     override val size: Int
         get() = data.size / xBarSize
+
 }

@@ -65,6 +65,13 @@ interface XBar {
      */
     var endTime: ZonedDateTime
 
+
+    var delta5m: Float
+    var delta15m: Float
+    var delta1h: Float
+    var delta1d: Float
+    var delta7d: Float
+
     /**
      * @param timestamp a timestamp
      * @return true if the provided timestamp is between the begin time and the end time of the current period, false otherwise
@@ -173,7 +180,6 @@ interface XBar {
         volume = volume + tradeVolume
         trades++
     }
-
 }
 
 fun <T : XBar> List<T>.checkBars() {

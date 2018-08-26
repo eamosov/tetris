@@ -74,6 +74,31 @@ data class XExtBar(val bar: XBar) : XBar {
         set(value) {
             bar.endTime = value
         }
+    override var delta5m: Float
+        get() = bar.delta5m
+        set(value) {
+            bar.delta5m = value
+        }
+    override var delta15m: Float
+        get() = bar.delta15m
+        set(value) {
+            bar.delta15m = value
+        }
+    override var delta1h: Float
+        get() = bar.delta1h
+        set(value) {
+            bar.delta1h = value
+        }
+    override var delta1d: Float
+        get() = bar.delta1d
+        set(value) {
+            bar.delta1d = value
+        }
+    override var delta7d: Float
+        get() = bar.delta7d
+        set(value) {
+            bar.delta7d = value
+        }
 
     override fun addTrade(tradeVolume: Float, tradePrice: Float) {
         bar.addTrade(tradeVolume, tradePrice)
@@ -119,14 +144,14 @@ data class XExtBar(val bar: XBar) : XBar {
         var _sd = BarGetterSetter<XExtBar>({ o, v -> o.sd = v }, { it.sd })
         var _avrVolume = BarGetterSetter<XExtBar>({ o, v -> o.avrVolume = v }, { it.avrVolume })
         var _smaSell = BarGetterSetter<XExtBar>({ o, v -> o.smaSell = v }, { it.smaSell })
-        var _sdSell= BarGetterSetter<XExtBar>({ o, v -> o.sdSell = v }, { it.sdSell })
+        var _sdSell = BarGetterSetter<XExtBar>({ o, v -> o.sdSell = v }, { it.sdSell })
         var _avrVolumeSell = BarGetterSetter<XExtBar>({ o, v -> o.avrVolumeSell = v }, { it.avrVolumeSell })
 
         var _dayShortEma = BarGetterSetter<XExtBar>({ o, v -> o.dayShortEma = v }, { it.dayShortEma })
         var _dayLongEma = BarGetterSetter<XExtBar>({ o, v -> o.dayLongEma = v }, { it.dayLongEma })
         var _daySignalEma = BarGetterSetter<XExtBar>({ o, v -> o.daySignalEma = v }, { it.daySignalEma })
         var _daySignal2Ema = BarGetterSetter<XExtBar>({ o, v -> o.daySignal2Ema = v }, { it.daySignal2Ema })
-        var _stohastic = BarGetterSetter2<XExtBar,Decision>({ o, v -> o.stohastic = v }, { it.stohastic })
+        var _stohastic = BarGetterSetter2<XExtBar, Decision>({ o, v -> o.stohastic = v }, { it.stohastic })
 
         var _lastDecision = BarGetterSetter2<XExtBar, Pair<Decision, Map<String, String>>>({ o, v -> o.lastDecision = v }, { it.lastDecision })
         var _decisionStart = BarGetterSetter2<XExtBar, XExtBar>({ o, v -> o.decisionStart = v }, { it.decisionStart })

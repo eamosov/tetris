@@ -112,7 +112,7 @@ class BarsCache(val path: String) {
         )
     }
 
-    fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBar> {
+    fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): XBarList {
         synchronized(this) {
             val bars = XBarList((Duration.between(start, end).toMinutes() / interval.duration.toMinutes()).toInt())
             conn.createStatement().use { statement ->
