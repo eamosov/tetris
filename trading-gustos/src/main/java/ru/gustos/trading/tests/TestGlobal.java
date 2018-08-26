@@ -1,6 +1,5 @@
 package ru.gustos.trading.tests;
 
-import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
@@ -9,10 +8,8 @@ import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.Binance;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
-import ru.gustos.trading.book.indicators.IndicatorInitData;
 import ru.gustos.trading.global.*;
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
-import ru.gustos.trading.visual.SimpleProfitGraph;
 
 import java.io.*;
 import java.time.ZoneId;
@@ -26,25 +23,24 @@ import java.util.stream.Collectors;
 public class TestGlobal{
 
     static Instrument[] instruments = new Instrument[]{
-            new Instrument("BTC","USDT"),
+//            new Instrument("BTC","USDT"),
             new Instrument("ETH","USDT"),
             new Instrument("BCC","USDT"),
             new Instrument("BNB","USDT"),
             new Instrument("LTC","USDT"),
             new Instrument("NEO","USDT"),
-//            new Instrument("QTUM","USDT"),
+//            new Instrument("XLM","USDT"),
 //            new Instrument("XRP","USDT"),
-//            new Instrument("IOTA","USDT"),
-            new Instrument("XLM","USDT"),
-//            new Instrument("ADA","USDT"),
-//            new Instrument("ETC","USDT"),
-//            new Instrument("TUSD","USDT"),
 //            new Instrument("ICX","USDT"),
-//            new Instrument("EOS","USDT"),
 //            new Instrument("ONT","USDT"),
-//            new Instrument("TRX","USDT"),
 //            new Instrument("NULS","USDT"),
 //            new Instrument("VET","USDT"),
+//            new Instrument("QTUM","USDT"),
+//            new Instrument("IOTA","USDT"),
+//            new Instrument("ADA","USDT"),
+//            new Instrument("ETC","USDT"),
+//            new Instrument("EOS","USDT"),
+//            new Instrument("TRX","USDT"),
     };
 
     public static TimeSeriesDouble makeMarketAveragePrice(Global global, PLHistoryAnalyzer pl, TimeSeriesDouble trades, HashSet<String> ignore) {
@@ -91,15 +87,56 @@ public class TestGlobal{
 
     public static void addInstrument(Global global, Instrument ii){
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,18,7,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,23,13,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
-        if (StandardInstrumentCalc.LOGS)
+        if (DecisionManager.LOGS)
             System.out.println("Loading instrument: "+ii.toString());
         BarsCache cache = new BarsCache("cache.sqlite3");
         List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
 //            bars = BarsPacker.packBars(bars,5);
         global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
+
+    }
+
+    public static void saveResults(Global global) throws IOException {
+        String name = "pl/pl.out";
+        int cc = 1;
+        while (new File(name).exists()){
+            name = "pl/pl"+cc+".out";
+            cc++;
+        }
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(name))) {
+            global.planalyzer1.saveHistories(out);
+            global.planalyzer2.saveHistories(out);
+            global.planalyzer3.saveHistories(out);
+//            TradeMethodsSolver.saveAnalyzers(out);
+            TreePizdunstvo.p.save(out);
+            global.planalyzer2.saveModelTimes(out);
+//            PizdunstvoData.pdbuy.save(out);
+//            PizdunstvoData.pdsell.save(out);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        double moneyPart = 1.0/Math.max(1,global.planalyzer1.histories.size());
+        TimeSeriesDouble h2 = global.planalyzer2.makeHistory(false, moneyPart, null);
+        TimeSeriesDouble h3 = global.planalyzer3.makeHistory(false, moneyPart, null);
+        System.out.println(h2.lastOrZero());
+        System.out.println(h3.lastOrZero());
+//        String res = name+" ignores "+ignorestring+"\n";
+        String out = ZonedDateTime.now().toLocalDateTime().toString()+"\n";
+//        out+=res;
+        out+=TestGlobalConfig.config.toString()+"\n";
+        out+=h2.lastOrZero()+"\n";
+        out+=h3.lastOrZero()+"\n";
+        out+="base:"+global.planalyzer1.profits()+"\n";
+        out+=global.planalyzer2.profits()+"\n";
+//        out+="train kappas "+Arrays.toString(kappas)+"\n";
+        try (FileWriter f = new FileWriter("testres.txt",true)) {
+            f.write(out);
+        }
+        System.out.println(out);
+//        Exporter.string2file("d:/weka/prev.arff",global.planalyzer.trainset.toString());
 
     }
 
@@ -111,18 +148,7 @@ public class TestGlobal{
         Global global = new Global();
         int cpus = args.length>0?Integer.parseInt(args[0]):4;
 
-        StandardInstrumentCalc.goodmomentscount = TestGlobalConfig.config.goodMoments;
-        StandardInstrumentCalc.badmomentscount = TestGlobalConfig.config.badMoments;
-        StandardInstrumentCalc.treesBuy = TestGlobalConfig.config.treesBuy;
-        StandardInstrumentCalc.treesSell = TestGlobalConfig.config.treesSell;
-        StandardInstrumentCalc.kValueBuy = TestGlobalConfig.config.kValueBuy;
-        StandardInstrumentCalc.kValueSell = TestGlobalConfig.config.kValueSell;
-        StandardInstrumentCalc.momentsInterval = TestGlobalConfig.config.momentsInterval;
-        StandardInstrumentCalc.momentLimit = TestGlobalConfig.config.momentLimit;
-        StandardInstrumentCalc.learnIntervalBuy = TestGlobalConfig.config.learnIntervalBuy;
-        StandardInstrumentCalc.learnIntervalSell = TestGlobalConfig.config.learnIntervalSell;
-        StandardInstrumentCalc.maxDepth = TestGlobalConfig.config.maxDepth;
-        MomentDataHelper.threshold = TestGlobalConfig.config.threshold;
+        CalcConfig config = CalcConfig.load("testconf.json");
         File ignoreFile = new File("ignore.txt");
         String ignorestring = "";
         if (ignoreFile.exists()) {
@@ -131,24 +157,24 @@ public class TestGlobal{
             MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
-        ZonedDateTime from = ZonedDateTime.of(2018,1,15,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2018,2,15,0,0,0,0, ZoneId.systemDefault());
+//        ZonedDateTime dontRenewAfter = ZonedDateTime.of(2018,6,20,0,0,0,0, ZoneId.systemDefault());
         double[] kappas = new double[instruments.length];
-//        StandardInstrumentCalc[] calcs = new StandardInstrumentCalc[instruments.length];
         for (int i = 0;i<instruments.length;i++) {
             addInstrument(global,instruments[i]);
             InstrumentData data = global.getInstrument(instruments[i].toString());
-            int bars = StandardInstrumentCalc.calcAllFrom;
+            int bars = DecisionManager.calcAllFrom;
             int fromIndex = data.getBarIndex(from);
-            StandardInstrumentCalc c = new StandardInstrumentCalc(new InstrumentData(data, bars), cpus, false,false, fromIndex);
-
+            DecisionManager c = new DecisionManager(config,new InstrumentData(data, bars), cpus, false, fromIndex);
+//            c.dontRenewAfter = data.getBarIndex(dontRenewAfter);
             data.global = null;
-            new StandardInstrumentCalc(data, cpus, true,false, 0); // calc future
+            new DecisionManager(config, data, cpus, true,0); // calc future
             c.futuredata = data;
             for (;bars<data.size();bars++){
                 c.checkNeedRenew(false);
                 c.addBar(data.bar(bars));
             }
-            kappas[i] = c.kappas/Math.max(1,c.kappascnt);
+            kappas[i] = c.models.kappas/Math.max(1,c.models.kappascnt);
         }
 //        long toTime = ZonedDateTime.now().toEpochSecond();
 //        long time = global.minTime;
@@ -165,54 +191,17 @@ public class TestGlobal{
 
 //        for (int i = 0;i<calcs.length;i++)
 //            System.out.println(instruments[i]+" "+calcs[i].plhistoryBase.toPlusMinusString());
-        double moneyPart = 0.1;
-        ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
-        TimeSeriesDouble h1 = global.planalyzer1.makeHistory(false, moneyPart,null);
-        graphs.add(h1);
+//        double moneyPart = 0.1;
+//        ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
+//        TimeSeriesDouble h1 = global.planalyzer1.makeHistory(false, moneyPart,null);
+//        graphs.add(h1);
 //        graphs.add(global.planalyzer1.makeHistoryNormalized(true, moneyPart,h1,null));
-        graphs.add(global.planalyzer2.makeHistory(false, moneyPart,null));
+//        graphs.add(global.planalyzer2.makeHistory(false, moneyPart,null));
 //        graphs.add(global.planalyzer2.makeHistoryNormalized(true, moneyPart,h1));
-        graphs.add(global.planalyzer3.makeHistory(false, moneyPart,null));
+//        graphs.add(global.planalyzer3.makeHistory(false, moneyPart,null));
 //        graphs.add(global.planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
 //        new SimpleProfitGraph().drawHistory(makeMarketAveragePrice(global,global.planalyzer1,h1, null),graphs);
-        String name = "pl/pl.out";
-        int cc = 1;
-        while (new File(name).exists()){
-            name = "pl/pl"+cc+".out";
-            cc++;
-        }
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(name))) {
-            global.planalyzer1.saveHistories(out);
-            global.planalyzer2.saveHistories(out);
-            global.planalyzer3.saveHistories(out);
-            TradeMethodsSolver.saveAnalyzers(out);
-            TreePizdunstvo.p.save(out);
-            global.planalyzer2.saveModelTimes(out);
-//            PizdunstvoData.pdbuy.save(out);
-//            PizdunstvoData.pdsell.save(out);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        moneyPart = 1.0/Math.max(1,global.planalyzer1.histories.size());
-        TimeSeriesDouble h2 = global.planalyzer2.makeHistory(false, moneyPart, null);
-        TimeSeriesDouble h3 = global.planalyzer3.makeHistory(false, moneyPart, null);
-        System.out.println(h2.lastOrZero());
-        System.out.println(h3.lastOrZero());
-        String res = name+" ignores "+ignorestring+"\n";
-        String out = ZonedDateTime.now().toLocalDateTime().toString()+"\n";
-        out+=res;
-        out+=TestGlobalConfig.config.toString()+"\n";
-        out+=h2.lastOrZero()+"\n";
-        out+=h3.lastOrZero()+"\n";
-        out+="base:"+global.planalyzer1.profits()+"\n";
-        out+=global.planalyzer2.profits()+"\n";
-        out+="train kappas "+Arrays.toString(kappas)+"\n";
-        try (FileWriter f = new FileWriter("testres.txt",true)) {
-            f.write(out);
-        }
-        System.out.println(out);
-//        Exporter.string2file("d:/weka/prev.arff",global.planalyzer.trainset.toString());
-
+        saveResults(global);
     }
 
 

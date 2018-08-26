@@ -16,9 +16,9 @@ public class RecurrentValues {
     public EmaRecurrent sd2 = new EmaRecurrent(100);
     public EmaRecurrent sd3 = new EmaRecurrent(700);
     public EmaRecurrent volumeLong = new EmaRecurrent(700);
-    public EmaRecurrent volumeShort = new EmaRecurrent(5);
+    public EmaRecurrent volumeShort = new EmaRecurrent(3);
     public EmaRecurrent volumeLong2 = new EmaRecurrent(1700);
-    public EmaRecurrent volumeShort2 = new EmaRecurrent(30);
+    public EmaRecurrent volumeShort2 = new EmaRecurrent(10);
     public EmaRecurrent deltaToVolume = new EmaRecurrent(500);
     public EmaRecurrent deltaToVolumeShort = new EmaRecurrent(5);
     public EmaRecurrent deltaToMm = new EmaRecurrent(500);

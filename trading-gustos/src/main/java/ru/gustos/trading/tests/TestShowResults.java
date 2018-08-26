@@ -24,27 +24,27 @@ public class TestShowResults {
     static PLHistoryAnalyzer planalyzer1 = null;
     static PLHistoryAnalyzer planalyzer2 = null;
     static PLHistoryAnalyzer planalyzer3 = null;
-    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[4];
+//    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[4];
     static HashSet<String> ignore = new HashSet<>();
     static SimpleProfitGraph graph = new SimpleProfitGraph();
     static Global global;
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetris/pl/pl922.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl1646.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
-            for (int i = 0;i<planalyzers.length;i++)
-                planalyzers[i] = new PLHistoryAnalyzer(in);
-            TreePizdunstvo.p.load(in);
-            planalyzer2.loadModelTimes(in);
+//            for (int i = 0;i<planalyzers.length;i++)
+//                planalyzers[i] = new PLHistoryAnalyzer(in);
+//            TreePizdunstvo.p.load(in);
+//            planalyzer2.loadModelTimes(in);
 
         } catch (Exception e){
             e.printStackTrace();
         }
 
-        planalyzer1 = planalyzers[0];
+//        planalyzer1 = planalyzers[0];
         ArrayList<PLHistory> hh = planalyzer1.histories;
         global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new));
 //        System.out.println(planalyzer3.histories.get(0).profitHistory.size());

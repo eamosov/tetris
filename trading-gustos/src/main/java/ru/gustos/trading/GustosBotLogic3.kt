@@ -13,14 +13,14 @@ import ru.efreet.trading.ta.indicators.XClosePriceIndicator
 import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.global.InstrumentData
-import ru.gustos.trading.global.StandardInstrumentCalc
+import ru.gustos.trading.global.DecisionManager
 import java.time.Duration
 
 open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval, bars) {
 
     val closePrice = XClosePriceIndicator(bars)
 
-    lateinit var calc: StandardInstrumentCalc
+    lateinit var calc: DecisionManager
 
     override fun newInitParams(): GustosBotLogicParams3 = GustosBotLogicParams3()
 
@@ -40,7 +40,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun prepareBarsImpl() {
 
         synchronized(this) {
-            calc = StandardInstrumentCalc(InstrumentData(null, instrument, bars, null),0, false, false,0)
+            calc = DecisionManager(null, InstrumentData(null, instrument, bars, null), 0, false, 0)
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")

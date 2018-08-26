@@ -89,7 +89,7 @@ public class TestUtils {
         IndicatorsLib lib = libfile==null?new IndicatorsLib():new IndicatorsLib(libfile);
 
         Sheet sheet = new Sheet(exch,instr,interval, lib);
-//        bars = BarsPacker.packBarsVolumeEma(bars,1000,8.1);
+        bars = BarsPacker.packBarsVolumeEma(bars,1000,8.1);
 //        bars = BarsPacker.packBarsVolumeAvg(bars,30);
         sheet.fromBars(bars);
         return sheet;

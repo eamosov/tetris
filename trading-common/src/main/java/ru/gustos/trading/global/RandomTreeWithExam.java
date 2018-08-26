@@ -1,6 +1,8 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import org.jetbrains.annotations.NotNull;
+import ru.gustos.trading.book.SheetUtils;
 import weka.classifiers.AbstractClassifier;
 import weka.classifiers.Classifier;
 import weka.classifiers.rules.ZeroR;
@@ -497,6 +499,11 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         return res.stream().map(i -> inst.attribute(i).name()).sorted().collect(Collectors.joining(","));
     }
 
+    public void findGoodBranches(double minWeight, PriorityQueue<Branch> collect, int count, int maxClass) {
+        m_Tree.findGoodBranches(minWeight, collect, count, maxClass, new Branch(m_Info));
+
+    }
+
     protected class Tree implements Serializable {
         private static final long serialVersionUID = 3549573538656522569L;
         protected RandomTreeWithExam.Tree[] m_Successors;
@@ -602,7 +609,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
 
 
 
-        public double[] distributionForInstance(Instance instance) throws Exception {
+        public double[] distributionForInstance(Instance instance)  {
             double[] returnedDist = null;
             if (this.m_Attribute > -1) {
                 if (instance.isMissing(this.m_Attribute)) {
@@ -1332,5 +1339,136 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
 
         }
 
+        public void findGoodBranches(double minWeight, PriorityQueue<Branch> collect, int count, int maxClass, Branch current) {
+            if (m_ClassDistribution!=null && m_ClassDistribution[0]+m_ClassDistribution[1]>minWeight && m_ClassDistribution[maxClass]>m_ClassDistribution[1-maxClass]) {
+                double p = 1-Math.min(m_ClassDistribution[0],m_ClassDistribution[1])/(m_ClassDistribution[0]+m_ClassDistribution[1]);
+                if (collect.size()>=count)
+                    collect.poll();
+                collect.add(new Branch(p,m_ClassDistribution[0],m_ClassDistribution[1],current));
+            }
+            if (m_Successors!=null)
+                for(int i = 0; i < m_Successors.length; ++i)
+                    if (m_Successors[i]!=null) {
+                        current.splits.add(new Condition(m_Attribute, i, m_SplitPoint));
+                        m_Successors[i].findGoodBranches(minWeight,collect, count, maxClass, current);
+                        current.splits.remove(current.splits.size()-1);
+                    }
+
+        }
+
+
+    }
+    public static class Branch implements Comparable{
+        public double p;
+        public double d0,d1;
+        public double tested_d0,tested_d1;
+        public double test_w0, test_w1;
+        public ArrayList<Condition> splits;
+        public Instances set;
+
+        public Branch(double p, double d0, double d1, Branch from){
+            this.p = p;
+            this.d0 = d0;
+            this.d1 = d1;
+            splits = (ArrayList<Condition>) from.splits.clone();
+            set = from.set;
+        }
+
+        public Branch(Instances set) {
+            this.set = set;
+            splits = new ArrayList<>();
+        }
+
+        private double coolness(){
+            return p;
+        }
+
+        @Override
+        public int compareTo(@NotNull Object o) {
+            if (o instanceof Branch){
+                Branch b = (Branch)o;
+                return coolness() > b.coolness() ? 1 : -1;
+            }
+            return 0;
+        }
+
+        public boolean ok(){
+            return (d0>d1 && tested_d0/test_w0*0.9>tested_d1/test_w1) || (d0<d1 && tested_d0/test_w0*1.1<tested_d1/test_w1);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (tested_d0+tested_d1>0){
+                if (ok())
+                    sb.append("+");
+                else
+                    sb.append("-");
+            }
+            sb.append(d0).append("/").append(d1);
+            if (tested_d0+tested_d1>0){
+                sb.append(" (");
+                sb.append(tested_d0).append("/").append(tested_d1).append(")");
+            }
+            sb.append(":");
+            for (Condition c : splits){
+                sb.append(" ");
+                Attribute att = set.attribute(c.attribute);
+                sb.append(att.name());
+                if (att.isNumeric()) {
+                    sb.append(c.succIndex==0?"<":">=").append(c.split);
+                } else {
+                    sb.append("=").append(c.succIndex);
+                }
+            }
+            return sb.toString();
+        }
+
+        public boolean test(Instances test) {
+            test_w0 = CalcUtils.weightWithValue(test,test.classIndex(),0);
+            test_w1 = CalcUtils.weightWithValue(test,test.classIndex(),1);
+            tested_d0 = 0;
+            tested_d1 = 0;
+            for (int i = 0;i<test.size();i++){
+                Instance ii = test.get(i);
+                boolean all = true;
+                for (Condition c : splits){
+                    if (!c.check(ii)) {
+                        all = false;
+                        break;
+                    }
+
+                }
+                if (all) {
+                    if (ii.value(ii.classIndex())==1)
+                        tested_d1 += ii.weight();
+                    else
+                        tested_d0 += ii.weight();
+                }
+            }
+            return ok();
+        }
+    }
+
+    public static class Condition {
+        public int attribute;
+        public int succIndex;
+        public double split;
+
+        public Condition(int attribute, int index, double splitPoint) {
+            this.attribute = attribute;
+            succIndex = index;
+            split = splitPoint;
+        }
+
+        public boolean check(Instance ii) {
+            double v = ii.value(attribute);
+            if (ii.attribute(attribute).isNominal())
+                return succIndex==(int)v;
+            if (succIndex==0)
+                return v<split;
+            else
+                return v>=split;
+        }
     }
 }

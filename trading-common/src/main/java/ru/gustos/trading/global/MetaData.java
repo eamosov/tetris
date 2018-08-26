@@ -10,6 +10,6 @@ public class MetaData{
     public int level;
     public boolean bool;
     public boolean data(HashSet<String> ignoreAttributes, int level){
-        return !future && !result && this.level<=level && !ignoreAttributes.contains(key);
+        return !future && !result && this.level<=level && (ignoreAttributes==null || !ignoreAttributes.contains(key));
     }
 }

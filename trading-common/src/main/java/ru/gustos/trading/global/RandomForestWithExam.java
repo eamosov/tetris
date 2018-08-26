@@ -8,10 +8,7 @@ import weka.classifiers.meta.Bagging;
 import weka.core.*;
 import weka.gui.ProgrammaticProperty;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import static weka.core.Capabilities.*;
 
@@ -203,6 +200,15 @@ public class RandomForestWithExam extends Bagging {
             c.computeCombPizdunstvo(inst);
         }
 
+    }
+
+    public void findGoodBranches(double minWeight, PriorityQueue<RandomTreeWithExam.Branch> collect, int count, int maxClass) {
+        Classifier[] classifiers = this.m_Classifiers;
+
+        for (int j = 0; j < classifiers.length; ++j) {
+            RandomTreeWithExam c = (RandomTreeWithExam) classifiers[j];
+            c.findGoodBranches(minWeight,collect,count, maxClass);
+        }
     }
 
     public void updateCorrectness(Instance instance, boolean result) throws Exception {

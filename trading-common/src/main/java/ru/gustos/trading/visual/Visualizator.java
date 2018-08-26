@@ -9,6 +9,7 @@ import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.IndicatorResultType;
 import ru.gustos.trading.book.indicators.IndicatorsData;
+import ru.gustos.trading.global.LevelsAtPoint;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -42,6 +43,7 @@ public class Visualizator {
     private double selectedPrice2 = 0;
 
     Extrapolation extrapolation = null;
+    LevelsAtPoint levels = null;
 
     public Visualizator(Sheet sheet){
         this.sheet = sheet;
@@ -386,6 +388,11 @@ public class Visualizator {
 
     public void setExtrapolation(Extrapolation e){
         extrapolation = e;
+        fireViewUpdated();
+    }
+
+    public void setLevels(LevelsAtPoint l){
+        levels = l;
         fireViewUpdated();
     }
 }
