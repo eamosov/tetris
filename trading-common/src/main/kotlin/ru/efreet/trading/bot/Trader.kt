@@ -163,7 +163,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                     lastBuy[advice.instrument] = advice.bar
 
                     try {
-                        telegram?.sendMessage("BUY ${trade.amount} ${trade.instrument} for ${trade.price}")
+                        val message = "BUY ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total=${deposit().round2()}$"
+                        log.info("telegram: {}", message)
+                        telegram?.sendMessage(message)
                     } catch (e: Exception) {
                         log.error("Error sending message to telegram", e)
                     }
@@ -199,7 +201,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
                     try {
-                        telegram?.sendMessage("SELL ${trade.amount} ${trade.instrument} for ${trade.price}")
+                        val message = "SELL ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total=${deposit().round2()}$"
+                        log.info("telegram: {}", message)
+
+                        telegram?.sendMessage(message)
                     } catch (e: Exception) {
                         log.error("Error sending message to telegram", e)
                     }
