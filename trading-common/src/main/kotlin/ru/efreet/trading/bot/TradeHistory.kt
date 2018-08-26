@@ -11,12 +11,12 @@ import java.time.ZonedDateTime
  * Created by fluder on 20/02/2018.
  */
 
-data class TradeHistory(val startUsd: Double,
-                        val startFunds: Double,
-                        val endUsd: Double,
-                        val endFunds: Double,
+data class TradeHistory(val startUsd: Float,
+                        val startFunds: Float,
+                        val endUsd: Float,
+                        val endFunds: Float,
                         val instruments: Map<Instrument, ITradeHistory>,
-                        val cash: List<Pair<ZonedDateTime, Double>>,
+                        val cash: List<Pair<ZonedDateTime, Float>>,
                         val start: ZonedDateTime,
                         val end: ZonedDateTime) : Serializable {
 
@@ -26,21 +26,21 @@ data class TradeHistory(val startUsd: Double,
         fun loadFromJson(path: String): TradeHistory = ru.efreet.trading.utils.loadFromJson(path)
     }
 
-    val profit: Double get() = endFunds / startFunds
+    val profit: Float get() = endFunds / startFunds
 
-    val profitPerDay: Double get() = pow(endFunds / startFunds, (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
+    val profitPerDay: Float get() = pow(endFunds.toDouble() / startFunds.toDouble(), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond())).toFloat()
 
-    val profitPerDayToGrow: Double get() = profitPerDayToGrow(instruments.keys.first())
+    val profitPerDayToGrow: Float get() = profitPerDayToGrow(instruments.keys.first())
 
-    fun profitPerDayToGrow(instrument: Instrument): Double {
-        return pow((endFunds / startFunds) / (instruments[instrument]!!.closePrice / instruments[instrument]!!.startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond()))
+    fun profitPerDayToGrow(instrument: Instrument): Float {
+        return pow((endFunds.toDouble() / startFunds.toDouble()) / (instruments[instrument]!!.closePrice / instruments[instrument]!!.startPrice), (3600.0 * 24.0) / (end.toEpochSecond() - start.toEpochSecond())).toFloat()
     }
 
-    fun profitBeforeExtended(time: ZonedDateTime): Double {
+    fun profitBeforeExtended(time: ZonedDateTime): Float {
         return profitBeforeExtended(instruments.keys.first(), time)
     }
 
-    fun profitBeforeExtended(instrument: Instrument, time: ZonedDateTime): Double {
+    fun profitBeforeExtended(instrument: Instrument, time: ZonedDateTime): Float {
         val start = startUsd
         var end = start
         val ih = instruments[instrument]
@@ -55,11 +55,11 @@ data class TradeHistory(val startUsd: Double,
         return end / start
     }
 
-    fun profitBefore(time: ZonedDateTime): Double {
+    fun profitBefore(time: ZonedDateTime): Float {
         return profitBefore(instruments.keys.first(), time)
     }
 
-    fun profitBefore(instrument: Instrument, time: ZonedDateTime): Double {
+    fun profitBefore(instrument: Instrument, time: ZonedDateTime): Float {
         val start = startUsd
         var end = start
         val ih = instruments[instrument]
@@ -97,31 +97,31 @@ data class TradeHistory(val startUsd: Double,
         return sb.toString()
     }
 
-    fun worstInterval(len: Int): Double {
+    fun worstInterval(len: Int): Float {
         return worstInterval(instruments.keys.first(), len)
     }
 
-    fun worstInterval(instrument: Instrument, len: Int): Double {
+    fun worstInterval(instrument: Instrument, len: Int): Float {
 
         val ih = instruments[instrument]
 
         return when {
             instruments.size > len -> return (len until instruments.size).map { ih!!.trades[it].after() / ih.trades[it - len].before() }.min()!!
             instruments.isNotEmpty() -> ih!!.trades[instruments.size - 1].after() / ih.trades[0].before()
-            else -> 1.0
+            else -> 1.0F
         }
     }
 
-    fun relWorstInterval(len: Int): Double {
+    fun relWorstInterval(len: Int): Float {
         return relWorstInterval(instruments.keys.first(), len)
     }
 
-    fun relWorstInterval(instrument: Instrument, len: Int): Double {
+    fun relWorstInterval(instrument: Instrument, len: Int): Float {
 
         val ih = instruments[instrument]
 
         if (instruments.isEmpty())
-            return 1.0
+            return 1.0F
 
         val y1 = 0.0
         val y2 = 3.0
@@ -129,10 +129,10 @@ data class TradeHistory(val startUsd: Double,
         val x2 = 1.0
         val exp = 5.0
 
-        val a = (y1 - y2) / (Math.pow(exp, x1) - Math.pow(exp, x2))
-        val b = y1 - a * Math.pow(exp, x1)
+        val a = (y1 - y2) / (Math.pow(exp.toDouble(), x1.toDouble()) - Math.pow(exp.toDouble(), x2.toDouble()))
+        val b = y1 - a * Math.pow(exp.toDouble(), x1.toDouble())
 
-        fun y(x: Double): Double = a * Math.pow(exp, x) + b
+        fun y(x: Double): Double = a * Math.pow(exp, x).toFloat() + b
 
         val endEpoch = ih!!.trades.last().time!!.toEpochSecond()
         val startEpoch = ih.trades.first().time!!.toEpochSecond()
@@ -141,7 +141,7 @@ data class TradeHistory(val startUsd: Double,
             instruments.size > len -> return (len until instruments.size).map {
                 val k = y((ih.trades[it].time!!.toEpochSecond() - startEpoch).toDouble() / (endEpoch - startEpoch).toDouble())
                 k * ih.trades[it].after() / ih.trades[it - len].before()
-            }.min()!!
+            }.min()!!.toFloat()
             else -> ih.trades[instruments.size - 1].after() / ih.trades[0].before()
         }
     }

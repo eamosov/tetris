@@ -1,5 +1,6 @@
 package ru.gustos.trading.visual;
 
+import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Exchange;
@@ -25,7 +26,7 @@ public class VisualizatorDemo{
 
         BarsCache cache = new BarsCache("cache.sqlite3");
         ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
-        List<XBaseBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
+        List<? extends XBar> bars = cache.getBars(exch.getName(), instr, interval, from, ZonedDateTime.now());
 
 // индикаторы
         IndicatorsLib lib = new IndicatorsLib();

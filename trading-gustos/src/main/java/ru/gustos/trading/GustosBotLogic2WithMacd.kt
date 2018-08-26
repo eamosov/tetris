@@ -4,19 +4,17 @@ import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.logic.AbstractBotLogic
+import ru.efreet.trading.logic.AbstractXExtBarBotLogic
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.ta.indicators.*
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent
 import java.time.Duration
 
-open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : AbstractBotLogic<GustosBotLogicParams2>(name, GustosBotLogicParams2::class, instrument, barInterval, bars) {
+open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInterval: BarInterval) : AbstractXExtBarBotLogic<GustosBotLogicParams2>(name, GustosBotLogicParams2::class, instrument, barInterval) {
     val closePrice = XClosePriceIndicator(bars)
 
     var prepared: Boolean = false
@@ -66,10 +64,8 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
 //        of(SimpleBotLogicParams::tStopLoss, "logic.gustos2.tStopLoss", 1.0, 15.0, 0.05, true)
     }
 
-    override var historyBars: Long
+    override val historyBars: Long
         get() = Duration.ofDays(14).toMillis() / barInterval.duration.toMillis()
-        set(value) {}
-
 
     override fun copyParams(src: GustosBotLogicParams2): GustosBotLogicParams2 = src.copy()
 
@@ -85,13 +81,13 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
         garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!)
-        bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice, it.volume); it.sma = sma;it.sd = sd; }
+        bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.sma = sma!!.toFloat();it.sd = sd!!.toFloat(); }
         garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!)
-        bars.forEach { val (sma, sd) = garSell.feed(it.closePrice, it.volume); it.smaSell = sma;it.sdSell = sd; }
+        bars.forEach { val (sma, sd) = garSell.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.smaSell = sma.toFloat();it.sdSell = sd.toFloat(); }
         garBuy2 = GustosAverageRecurrent(getParams().buyWindow2!!, getParams().buyVolumeWindow2!!, getParams().volumeShort2!!)
-        bars.forEach { val (sma, sd) = garBuy2.feed(it.closePrice, it.volume); it.sma2 = sma;it.sd2 = sd; }
+        bars.forEach { val (sma, sd) = garBuy2.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.sma2 = sma.toFloat();it.sd2 = sd.toFloat(); }
         garSell2 = GustosAverageRecurrent(getParams().sellWindow2!!, getParams().sellVolumeWindow2!!, getParams().volumeShort2!!)
-        bars.forEach { val (sma, sd) = garSell2.feed(it.closePrice, it.volume); it.smaSell2 = sma;it.sdSell2 = sd; }
+        bars.forEach { val (sma, sd) = garSell2.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.smaSell2 = sma.toFloat();it.sdSell2 = sd.toFloat(); }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
         lastDecisionIndicator.prepare()
@@ -113,8 +109,6 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     private fun upTrend(index: Int): Boolean {
         return macd.getValue(index) > signalEma.getValue(index)
     }
-
-
 
 
     private fun shouldBuy(i: Int): Boolean {
@@ -157,12 +151,12 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     override fun insertBar(bar: XBar) {
         synchronized(this) {
             val b = XExtBar(bar)
-            val (sma, sd) = garBuy.feed(bar.closePrice, bar.volume)
-            b.sma = sma
-            b.sd = sd
-            val (sma2, sd2) = garSell.feed(bar.closePrice, bar.volume)
-            b.smaSell = sma2
-            b.sdSell = sd2
+            val (sma, sd) = garBuy.feed(bar.closePrice.toDouble(), bar.volume.toDouble())
+            b.sma = sma!!.toFloat()
+            b.sd = sd!!.toFloat()
+            val (sma2, sd2) = garSell.feed(bar.closePrice.toDouble(), bar.volume.toDouble())
+            b.smaSell = sma2.toFloat()
+            b.sdSell = sd2.toFloat()
             bars.add(b)
         }
     }
@@ -176,18 +170,18 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
 //    }
 
 
-    override fun indicators(): Map<String, XIndicator<XExtBar>> {
+    override fun indicators(): Map<String, XIndicator> {
         return mapOf()
     }
 
     override fun metrica(params: GustosBotLogicParams2, stats: TradesStats): Metrica {
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 100.0, 4.0))
-                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0))
-                .add("fine_profit", BotLogic.fine(stats.profit, 4.0))
-                .add("profit", stats.relProfit/4.0)
-                .add("pearson", (stats.pearson - 0.96) * 40.0)
+                .add("fine_trades", BotLogic.fine(stats.trades.toFloat(), 100.0f, 4.0f))
+                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0f, 10.0f))
+                .add("fine_profit", BotLogic.fine(stats.profit, 4.0f))
+                .add("profit", stats.relProfit / 4.0f)
+                .add("pearson", (stats.pearson - 0.96f) * 40.0f)
     }
 
 

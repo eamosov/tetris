@@ -1,7 +1,6 @@
 package ru.efreet.trading.exchange.impl
 
 import com.cf.client.poloniex.PoloniexExchangeService
-import org.java_websocket.client.WebSocketClient
 import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
@@ -43,42 +42,42 @@ class Poloniex() : Exchange {
 
     private fun symbol(instrument: Instrument): String = "${instrument.base}_${instrument.asset}"
 
-    override fun getBalancesMap(): Map<String, Double> = service.returnBalance(true).mapValues { it.value.available!!.toDouble() }
+    override fun getBalancesMap(): Map<String, Float> = service.returnBalance(true).mapValues { it.value.available!!.toFloat() }
 
-    override fun buy(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
         val _price = if (type == OrderType.LIMIT) {
-            BigDecimal.valueOf(price).round()
+            BigDecimal.valueOf(price.toDouble()).round()
         } else {
             service.returnTicker(symbol(instrument)).lowestAsk
         }
 
-        val _amount = BigDecimal.valueOf(asset).round()
+        val _amount = BigDecimal.valueOf(asset.toDouble()).round()
         log.info("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
                 instrument,
-                _price.toDouble(),
-                _amount.toDouble(),
+                _price.toFloat(),
+                _amount.toFloat(),
                 type,
                 Decision.BUY,
                 now)
     }
 
-    override fun sell(instrument: Instrument, asset: Double, price: Double, type: OrderType, now:ZonedDateTime): Order {
+    override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
 
         val _price = if (type == OrderType.LIMIT) {
-            BigDecimal.valueOf(price).round()
+            BigDecimal.valueOf(price.toDouble()).round()
         } else {
             service.returnTicker(symbol(instrument)).highestBid
         }
 
-        val _amount = BigDecimal.valueOf(asset).round()
+        val _amount = BigDecimal.valueOf(asset.toDouble()).round()
         log.info("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
                 instrument,
-                _price.toDouble(),
-                _amount.toDouble(),
+                _price.toFloat(),
+                _amount.toFloat(),
                 type,
                 Decision.SELL,
                 now)
@@ -90,11 +89,11 @@ class Poloniex() : Exchange {
             XBaseBar(
                     interval.duration,
                     it.date,
-                    it.open.toDouble(),
-                    it.high.toDouble(),
-                    it.low.toDouble(),
-                    it.close.toDouble(),
-                    it.volume.toDouble())
+                    it.open.toFloat(),
+                    it.high.toFloat(),
+                    it.low.toFloat(),
+                    it.close.toFloat(),
+                    it.volume.toFloat())
         }
     }
 
@@ -114,7 +113,7 @@ class Poloniex() : Exchange {
 //                    for (frame in frames) {
 //                        if ((frame as JSONArray).getString(0) == "t") {
 //
-//                            consumer(AggTrade(frame.getLong(5) * 1000L, frame.getDouble(3), frame.getDouble(4)))
+//                            consumer(AggTrade(frame.getLong(5) * 1000L, frame.getFloat(3), frame.getFloat(4)))
 //                        }
 //                    }
 //                }
@@ -158,8 +157,8 @@ class Poloniex() : Exchange {
 //        webSocketClient = null
 //    }
 
-    override fun getFee(): Double {
-        return 0.4
+    override fun getFee(): Float {
+        return 0.4F
     }
 
     override fun getIntervals(): List<BarInterval> {
@@ -173,7 +172,7 @@ class Poloniex() : Exchange {
                 .stream()
                 .collect(Collectors.toMap(
                         { Instrument(it.key.split("_")[1], it.key.split("_")[0]) },
-                        { Ticker(Instrument(it.key.split("_")[1], it.key.split("_")[0]), it.value.highestBid.toDouble(), it.value.lowestAsk.toDouble()) }))
+                        { Ticker(Instrument(it.key.split("_")[1], it.key.split("_")[0]), it.value.highestBid.toFloat(), it.value.lowestAsk.toFloat()) }))
 
     }
 

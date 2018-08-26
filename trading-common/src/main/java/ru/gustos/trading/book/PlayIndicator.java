@@ -113,7 +113,7 @@ public class PlayIndicator{
 
                 int i = 0;
                 double v = history.getStartUsd();
-                for (Pair<ZonedDateTime, Double> z : history.getCash()) {
+                for (Pair<ZonedDateTime, Float> z : history.getCash()) {
                     double now = v;
                     double next = z.getSecond();
                     int from = i;

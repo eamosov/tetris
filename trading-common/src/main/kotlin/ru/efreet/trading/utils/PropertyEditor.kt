@@ -41,7 +41,7 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
     @Suppress("UNCHECKED_CAST")
     fun setRandom(obj: T): R = when {
         cls.isSubclassOf(Int::class) -> setValue(obj, rnd(getMin(obj) as Int, getMax(obj) as Int) as R)
-        cls.isSubclassOf(Double::class) -> setValue(obj, rnd(getMin(obj) as Double, getMax(obj) as Double) as R)
+        cls.isSubclassOf(Float::class) -> setValue(obj, rnd(getMin(obj) as Float, getMax(obj) as Float) as R)
         cls.isSubclassOf(Boolean::class) -> setValue(obj, (rnd(0, 1) != 0) as R)
         else -> throw RuntimeException("Couldn't get random of class ${cls}")
     }
@@ -72,16 +72,16 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
                 _n = 1
             }
             n = _n as R
-        } else if (cls.isSubclassOf(Double::class)) {
-            var _n = (value as Double) + (step as Double) * steps
+        } else if (cls.isSubclassOf(Float::class)) {
+            var _n = (value as Float) + (step as Float) * steps
             if (getHardBounds(obj)) {
-                if (_n < min as Double)
+                if (_n < min as Float)
                     _n = min
-                else if (_n > max as Double)
+                else if (_n > max as Float)
                     _n = max
 
             }else if (_n < 0.0){
-                _n = 0.0
+                _n = 0.0F
             }
             n = _n as R
         } else if (cls.isSubclassOf(Boolean::class)) {
@@ -96,7 +96,7 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun step2(obj: T, stepSizeP: Double) {
+    fun step2(obj: T, stepSizeP: Float) {
         var value = getValue(obj)
         if (value == null) {
             value = setRandom(obj)
@@ -126,22 +126,22 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
                 _n = 1
             }
             n = _n as R
-        } else if (cls.isSubclassOf(Double::class)) {
+        } else if (cls.isSubclassOf(Float::class)) {
 
-            var stepSize = (max as Double - min as Double) * stepSizeP
-            if (Math.abs(stepSize) < step as Double) {
-                stepSize = (step as Double) * if (stepSize > 0) 1 else -1
+            var stepSize = (max as Float - min as Float) * stepSizeP
+            if (Math.abs(stepSize) < step as Float) {
+                stepSize = (step as Float) * if (stepSize > 0) 1 else -1
             }
 
-            var _n = (value as Double) + stepSize
+            var _n = (value as Float) + stepSize
             if (getHardBounds(obj)) {
-                if (_n < min as Double)
+                if (_n < min as Float)
                     _n = min
-                else if (_n > max as Double)
+                else if (_n > max as Float)
                     _n = max
 
-            }else if (_n < 0.0){
-                _n = 0.0
+            }else if (_n < 0.0F){
+                _n = 0.0F
             }
             n = _n as R
         } else if (cls.isSubclassOf(Boolean::class)) {
@@ -154,14 +154,14 @@ data class PropertyEditor<T, R : Any?>(val cls: KClass<*>,
         setValue(obj, n)
     }
 
-    fun setMinMax(obj: T, p: Double, hardBounds: Boolean) {
+    fun setMinMax(obj: T, p: Float, hardBounds: Boolean) {
 
         if (cls.isSubclassOf(Int::class)) {
-            propRefMin.const = Math.floor((kprop.get(obj) as Int).toDouble() * (1.0 - p / 100.0)).toInt()
-            propRefMax.const = Math.ceil((kprop.get(obj) as Int).toDouble() * (1.0 + p / 100.0)).toInt()
-        } else if (cls.isSubclassOf(Double::class)) {
-            propRefMin.const = (kprop.get(obj) as Double) * (1.0 - p / 100.0)
-            propRefMax.const = (kprop.get(obj) as Double) * (1.0 + p / 100.0)
+            propRefMin.const = Math.floor((kprop.get(obj) as Int).toFloat() * (1.0 - p / 100.0)).toInt()
+            propRefMax.const = Math.ceil((kprop.get(obj) as Int).toFloat() * (1.0 + p / 100.0)).toInt()
+        } else if (cls.isSubclassOf(Float::class)) {
+            propRefMin.const = (kprop.get(obj) as Float) * (1.0 - p / 100.0)
+            propRefMax.const = (kprop.get(obj) as Float) * (1.0 + p / 100.0)
         }
         hardBoundsRef.const = hardBounds
         hardBoundsRef.propRef = null

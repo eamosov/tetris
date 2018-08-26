@@ -13,6 +13,7 @@ import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.ui.ApplicationFrame
 import org.jfree.ui.RefineryUtilities
 import org.slf4j.LoggerFactory
+import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.checkBars
 import ru.efreet.trading.bot.StatsCalculator
 import ru.efreet.trading.bot.TradeHistory
@@ -229,7 +230,7 @@ class Graph {
 
                 val exchange = Exchange.getExchange(cmd.exchange)
 
-                val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                val logic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
                 logic.loadState(cmd.settings!!)
 
                 val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))

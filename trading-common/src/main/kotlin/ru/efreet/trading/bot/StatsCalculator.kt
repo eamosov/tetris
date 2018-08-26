@@ -13,15 +13,15 @@ class StatsCalculator {
 
     fun stats(history: TradeHistory): TradesStats {
 
-        val profit = if (history.endFunds != 0.0 && history.startFunds != 0.0)
+        val profit = if (history.endFunds != 0.0F && history.startFunds != 0.0F)
             history.endFunds / history.startFunds
         else
-            0.0
+            0.0F
 
         var trades = 0
         var tradesWithProfit = 0
 
-        val profits = mutableListOf<Pair<ZonedDateTime, Double>>()
+        val profits = mutableListOf<Pair<ZonedDateTime, Float>>()
 
         for (itrades in history.instruments.values){
             for (i in 0 until itrades.trades.size) {
@@ -62,8 +62,8 @@ class StatsCalculator {
 //            pearson = 0.0
 //        }
 
-        val profitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0
-        val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - profitPerTrade).pow2() }.sum() / profits.size) else 0.0
+        val profitPerTrade = if (profits.size > 0) profits.map { it.second }.sum() / profits.size else 0.0F
+        val sdProfitPerTrade = if (profits.size > 0) Math.sqrt(profits.map { (it.second - profitPerTrade).pow2() }.sum().toDouble() / profits.size.toDouble()) else 0.0
 
         var relProfit = 0.0
         if (profits.size > 1){
@@ -93,17 +93,17 @@ class StatsCalculator {
 
         return TradesStats(
                 profits.size,
-                if (profits.size > 0) tradesWithProfit.toDouble() / profits.size else 0.0,
+                if (profits.size > 0) tradesWithProfit.toFloat() / profits.size else 0.0F,
                 profit,
                 profitPerTrade,
-                sdProfitPerTrade,
-                if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toDouble() / profits.size else 0.0,
-                1.0, //if (pearson.isNaN()) 0.0 else pearson,
+                sdProfitPerTrade.toFloat(),
+                if (profits.size > 0) profits.sma(5).count { it.second > 1.0 }.toFloat() / profits.size else 0.0F,
+                if (profits.size > 0) profits.sma(10).count { it.second > 1.0 }.toFloat() / profits.size else 0.0F,
+                1.0F, //if (pearson.isNaN()) 0.0 else pearson,
                 history.start,
                 history.end,
                 history.profitPerDay,
-                relProfit
+                relProfit.toFloat()
         )
     }
 }

@@ -7,12 +7,12 @@ public class BarGetterSetter<B> {
 
     @FunctionalInterface
     public interface Setter<B> {
-        void set(B bar, double value);
+        void set(B bar, float value);
     }
 
     @FunctionalInterface
     public interface Getter<B> {
-        double get(B bar);
+        float get(B bar);
     }
 
     final Setter set;
@@ -23,11 +23,11 @@ public class BarGetterSetter<B> {
         this.get = get;
     }
 
-    public void set(B bar, double value) {
+    public void set(B bar, float value) {
         set.set(bar, value);
     }
 
-    public double get(B bar) {
+    public float get(B bar) {
         return get.get(bar);
     }
 }

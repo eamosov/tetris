@@ -46,7 +46,7 @@ public class CandlesPane extends JPanel {
         });
     }
 
-    private XBaseBar minMax;
+    private XBar minMax;
     private int from;
     private int scale;
     private int bars;

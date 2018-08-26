@@ -1,11 +1,8 @@
 package ru.efreet.trading.logic
 
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XBaseBar
-import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bars.indexOf
 import ru.efreet.trading.bot.BotAdvice
-import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -20,16 +17,12 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.isSubclassOf
 
-/**
- * Created by fluder on 20/02/2018.
- */
-abstract class AbstractBotLogic<P : Any>(val name: String,
-                                         val paramsCls: KClass<P>,
-                                         override val instrument: Instrument,
-                                         val barInterval: BarInterval,
-                                         val bars: MutableList<XExtBar> = mutableListOf()) : BotLogic<P> {
+abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
+                                                   val paramsCls: KClass<P>,
+                                                   override val instrument: Instrument,
+                                                   val barInterval: BarInterval) : BotLogic<P, B> {
 
-    val propertyEditorFactory = PropertyEditorFactory<P>(paramsCls, { newInitParams() })
+    val propertyEditorFactory = PropertyEditorFactory(paramsCls, { newInitParams() })
 
     override val genes: List<PropertyEditor<P, Any?>>
         get() = propertyEditorFactory.genes
@@ -72,12 +65,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         barsIsPrepared = true
     }
 
-    private fun resetBars() {
-        for (i in 0 until bars.size) {
-            bars[i] = XExtBar(bars[i].bar)
-        }
-        barsIsPrepared = false
-    }
+    abstract protected fun resetBars()
 
     protected abstract fun getBotAdviceImpl(index: Int, fillIndicators: Boolean = false): BotAdvice
 
@@ -88,7 +76,7 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         return getBotAdviceImpl(index, fillIndicators);
     }
 
-    override var historyBars = 3000L
+    override val historyBars = 3000L
 
     inline fun <reified R : Any?> of(kprop: KMutableProperty1<P, R>, key: String, min: R, max: R, step: R, hardBounds: Boolean): PropertyEditor<P, R> =
             propertyEditorFactory.of(kprop, key, min, max, step, hardBounds)
@@ -129,10 +117,10 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
                 gene.setValue(proto, (gene.getMin(proto) as Int) + s * stepSize)
                 seedByCell(population, trainingSize, proto, propIndex + 1)
             }
-        } else if (gene.cls.isSubclassOf(Double::class)) {
-            val stepSize = (gene.getMax(proto) as Double - gene.getMin(proto) as Double) / (trainingSize + 1.0)
+        } else if (gene.cls.isSubclassOf(Float::class)) {
+            val stepSize = (gene.getMax(proto) as Float - gene.getMin(proto) as Float) / (trainingSize + 1.0)
             for (s in 1..(trainingSize)) {
-                gene.setValue(proto, (gene.getMin(proto) as Double) + s * stepSize)
+                gene.setValue(proto, (gene.getMin(proto) as Float) + s * stepSize)
                 seedByCell(population, trainingSize, proto, propIndex + 1)
             }
         }
@@ -152,21 +140,11 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         return population
     }
 
-    open protected fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(getParams())) } as MutableList<P>
+    protected open fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(getParams())) } as MutableList<P>
 
     override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 
-    override fun insertBar(bar: XBar) {
-        synchronized(this) {
-            bars.add(XExtBar(bar))
-
-            while (bars.size > historyBars) {
-                bars.removeAt(0)
-            }
-        }
-    }
-
-    override fun insertBars(bars: List<XBaseBar>) {
+    override fun insertBars(bars: List<XBar>) {
         bars.forEach { insertBar(it) }
     }
 
@@ -174,23 +152,23 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
 
     override fun setParams(properties: Properties) = setParams(propertyEditorFactory.newParams(properties))
 
-    override fun lastBar(): XExtBar = bars.last()
+    override fun lastBar(): B = bars.last()
 
-    override fun getBar(index: Int): XExtBar = bars[index]
+    override fun getBar(index: Int): B = bars[index]
 
-    override fun firstBar(): XExtBar = bars.first()
+    override fun firstBar(): B = bars.first()
 
     override fun barsCount(): Int = bars.size
 
-    protected fun getIndicators(index: Int): Map<String, Double> = indicators().mapValues { it.value.getValue(index) }
+    protected fun getIndicators(index: Int): Map<String, Float> = indicators().mapValues { it.value.getValue(index) }
 
     override fun metrica(params: P, stats: TradesStats): Metrica {
 
         return Metrica()
-                .add("fine_trades", BotLogic.fine(stats.trades.toDouble(), 50.0, 2.0))
-                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0, 10.0)*2+1)
-                .add("fine_profit", BotLogic.fine(stats.profit, 1.0))
-                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0))
+                .add("fine_trades", BotLogic.fine(stats.trades.toFloat(), 50.0F, 2.0F))
+                .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0F, 10.0F) * 2 + 1)
+                .add("fine_profit", BotLogic.fine(stats.profit, 1.0F))
+                .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0F))
     }
 
     override fun getBarIndex(time: ZonedDateTime): Int {
@@ -207,10 +185,9 @@ abstract class AbstractBotLogic<P : Any>(val name: String,
         propertyEditorFactory.setMinMax(settings)
     }
 
-    override fun setMinMax(obj: P, p: Double, hardBounds: Boolean) {
+    override fun setMinMax(obj: P, p: Float, hardBounds: Boolean) {
         propertyEditorFactory.setMinMax(obj, p, hardBounds)
     }
 
     override fun getMinMax(): Properties = propertyEditorFactory.newMinMaxProperties()
-
 }

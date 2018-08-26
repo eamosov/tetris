@@ -2,7 +2,7 @@ package ru.gustos.trading.agents;
 
 import kotlin.Pair;
 import ru.efreet.trading.trainer.GdmBotTrainer;
-import ru.efreet.trading.trainer.DoubleBotMetrica;
+import ru.efreet.trading.trainer.FloatBotMetrica;
 import ru.efreet.trading.utils.PropertyEditorFactory;
 import ru.gustos.trading.book.SheetUtils;
 
@@ -32,7 +32,7 @@ public class SimpleAgent extends AgentBase{
         List<SimpleAgentProperties> origin = new ArrayList<>();
         origin.add(new SimpleAgentProperties(properties));
 
-        GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica> trainer = new GdmBotTrainer<SimpleAgentProperties, Double, DoubleBotMetrica>();
+        GdmBotTrainer<SimpleAgentProperties, Double, FloatBotMetrica> trainer = new GdmBotTrainer<SimpleAgentProperties, Double, FloatBotMetrica>();
         trainer.logs = false;
 //        Pair<SimpleAgentProperties, Double> best = trainer.getBestParams(
 //                pp.getGenes(),

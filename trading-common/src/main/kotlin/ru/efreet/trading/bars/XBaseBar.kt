@@ -8,14 +8,14 @@ import java.time.ZonedDateTime
  */
 data class XBaseBar(override var timePeriod: Duration,
                     override var endTime: ZonedDateTime,
-                    override var openPrice: Double = 0.0,
-                    override var maxPrice: Double = 0.0,
-                    override var minPrice: Double = Double.MAX_VALUE,
-                    override var closePrice: Double = 0.0,
-                    override var volume: Double = 0.0,
-                    override var volumeBase: Double = 0.0,
-                    override var volumeQuote: Double = 0.0,
-                    override var trades:Int = 0) : XBar {
+                    override var openPrice: Float = 0.0F,
+                    override var maxPrice: Float = 0.0F,
+                    override var minPrice: Float = Float.MAX_VALUE,
+                    override var closePrice: Float = 0.0F,
+                    override var volume: Float = 0.0F,
+                    override var volumeBase: Float = 0.0F,
+                    override var volumeQuote: Float = 0.0F,
+                    override var trades: Short = 0) : XBar {
 
     /** Begin time of the bar  */
     override var beginTime: ZonedDateTime = endTime.minus(timePeriod)
@@ -30,11 +30,11 @@ data class XBaseBar(override var timePeriod: Duration,
      * @param volume the volume of the bar period
      */
     constructor(endTime: ZonedDateTime, openPrice: String, highPrice: String, lowPrice: String, closePrice: String, volume: String) :
-            this(endTime, openPrice.toDouble(),
-                    highPrice.toDouble(),
-                    lowPrice.toDouble(),
-                    closePrice.toDouble(),
-                    volume.toDouble())
+            this(endTime, openPrice.toFloat(),
+                    highPrice.toFloat(),
+                    lowPrice.toFloat(),
+                    closePrice.toFloat(),
+                    volume.toFloat())
 
 
     /**
@@ -46,7 +46,7 @@ data class XBaseBar(override var timePeriod: Duration,
      * @param closePrice the close price of the bar period
      * @param volume the volume of the bar period
      */
-    constructor(endTime: ZonedDateTime, openPrice: Double, highPrice: Double, lowPrice: Double, closePrice: Double, volume: Double) :
+    constructor(endTime: ZonedDateTime, openPrice: Float, highPrice: Float, lowPrice: Float, closePrice: Float, volume: Float) :
             this(Duration.ofDays(1), endTime, openPrice, highPrice, lowPrice, closePrice, volume)
 
 
@@ -60,35 +60,15 @@ data class XBaseBar(override var timePeriod: Duration,
      * @param closePrice the close price of the bar period
      * @param volume the volume of the bar period
      */
-    constructor(timePeriod: Duration, endTime: ZonedDateTime, openPrice: Double, highPrice: Double, lowPrice: Double, closePrice: Double, volume: Double) :
-            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0.0,0.0,0)
+    constructor(timePeriod: Duration, endTime: ZonedDateTime, openPrice: Float, highPrice: Float, lowPrice: Float, closePrice: Float, volume: Float) :
+            this(timePeriod, endTime, openPrice, highPrice, lowPrice, closePrice, volume, 0.0F,0.0F,0)
 
     constructor(bar: XBar) :
             this(bar.timePeriod, bar.endTime, bar.openPrice, bar.maxPrice, bar.minPrice, bar.closePrice, bar.volume, bar.volumeBase, bar.volumeQuote,bar.trades)
 
 
-    /**
-     * Adds a trade at the end of bar period.
-     * @param tradeVolume the traded volume
-     * @param tradePrice the price
-     */
-    override fun addTrade(tradeVolume: Double, tradePrice: Double) {
-        if (openPrice == 0.0) {
-            openPrice = tradePrice
-        }
-        closePrice = tradePrice
-
-
-        maxPrice = if (maxPrice < tradePrice) tradePrice else maxPrice
-
-        minPrice = if (minPrice > tradePrice) tradePrice else minPrice
-
-        volume = volume + tradeVolume
-        trades++
-    }
-
     fun addBar(bar:XBar){
-        if  (openPrice == 0.0){
+        if  (openPrice == 0.0F){
             openPrice = bar.openPrice
         }
         closePrice = bar.closePrice
@@ -96,16 +76,16 @@ data class XBaseBar(override var timePeriod: Duration,
         minPrice = if (minPrice > bar.minPrice) bar.minPrice else minPrice
 
         volume = volume + bar.volume
-        trades += minOf(bar.trades, 1)
+        trades = (trades + minOf(bar.trades, 1)).toShort()
         volumeBase += bar.volumeBase
         volumeQuote += bar.volumeQuote
     }
 
     fun invert(){
-        openPrice = 100000000.0/openPrice
-        closePrice = 100000000.0/closePrice
-        val mm = 100000000.0/minPrice
-        minPrice = 100000000.0/maxPrice
+        openPrice = 100000000.0F/openPrice
+        closePrice = 100000000.0F/closePrice
+        val mm = 100000000.0F/minPrice
+        minPrice = 100000000.0F/maxPrice
         maxPrice = mm
     }
 

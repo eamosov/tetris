@@ -13,42 +13,42 @@ interface XBar {
     /**
      * @return the open price of the period
      */
-    var openPrice: Double
+    var openPrice: Float
 
     /**
      * @return the min price of the period
      */
-    var minPrice: Double
+    var minPrice: Float
 
     /**
      * @return the max price of the period
      */
-    var maxPrice: Double
+    var maxPrice: Float
 
     /**
      * @return the close price of the period
      */
-    var closePrice: Double
+    var closePrice: Float
 
     /**
      * @return the whole traded volume in the period
      */
-    var volume: Double
+    var volume: Float
 
     /**
      * @return volume made by takers of base asset
      */
-    var volumeBase: Double
+    var volumeBase: Float
 
     /**
      * @return volume made by takers of quote asset
      */
-    var volumeQuote: Double
+    var volumeQuote: Float
 
     /**
      * @return the number of trades in the period
      */
-    var trades: Int
+    var trades: Short
 
     /**
      * @return the time period of the bar
@@ -105,23 +105,23 @@ interface XBar {
         return openPrice < closePrice
     }
 
-    fun middlePrice() : Double {
+    fun middlePrice(): Float {
         return (minPrice+maxPrice)/2
     }
 
-    fun deltaMaxMin() : Double {
+    fun deltaMaxMin(): Float {
         return maxPrice-minPrice;
     }
 
-    fun delta() : Double {
+    fun delta(): Float {
         return closePrice-openPrice;
     }
 
-    fun minOpenClose() : Double {
+    fun minOpenClose(): Float {
         return minOf(openPrice,closePrice)
     }
 
-    fun maxOpenClose() : Double {
+    fun maxOpenClose(): Float {
         return maxOf(openPrice,closePrice)
     }
 
@@ -151,7 +151,7 @@ interface XBar {
      * @param tradePrice the price
      */
     fun addTrade(tradeVolume: String, tradePrice: String) {
-        addTrade(tradeVolume.toDouble(), tradePrice.toDouble())
+        addTrade(tradeVolume.toFloat(), tradePrice.toFloat())
     }
 
     /**
@@ -159,7 +159,21 @@ interface XBar {
      * @param tradeVolume the traded volume
      * @param tradePrice the price
      */
-    fun addTrade(tradeVolume: Double, tradePrice: Double)
+    fun addTrade(tradeVolume: Float, tradePrice: Float) {
+        if (openPrice == 0.0F) {
+            openPrice = tradePrice
+        }
+        closePrice = tradePrice
+
+
+        maxPrice = if (maxPrice < tradePrice) tradePrice else maxPrice
+
+        minPrice = if (minPrice > tradePrice) tradePrice else minPrice
+
+        volume = volume + tradeVolume
+        trades++
+    }
+
 }
 
 fun <T : XBar> List<T>.checkBars() {

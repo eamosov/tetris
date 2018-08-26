@@ -31,13 +31,11 @@ public class EfreetIndicator extends Indicator {
     public void calcValues(Sheet sheet, double[][] values, int from, int to) {
 
         if (botLogic==null) {
-            botLogic = LogicFactory.Companion.getLogic(data.logic,
-                    Instrument.Companion.getBTC_USDT(),
-                    BarInterval.ONE_MIN,
-                    sheet.moments.stream()
-                            .map(m -> new XExtBar(m.bar))
-                            .collect(Collectors.toList()), false);
+            botLogic = LogicFactory.getLogic(data.logic,
+                    Instrument.getBTC_USDT(),
+                    BarInterval.ONE_MIN,false);
 
+            sheet.moments.forEach( m-> botLogic.insertBar(m.bar));
             botLogic.loadState(data.state);
         }
 

@@ -4,7 +4,7 @@ import ru.efreet.trading.utils.round2
 import ru.efreet.trading.utils.round5
 
 class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
-                   var value: Double = 0.0) : Comparable<Metrica>, BotMetrica {
+                   var value: Float = 0.0F) : Comparable<Metrica>, BotMetrica {
 
     fun add(term: MetricaTerm): Metrica {
         elements.add(term)
@@ -12,13 +12,13 @@ class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
         return this
     }
 
-    fun add(name: String, value: Double): Metrica {
+    fun add(name: String, value: Float): Metrica {
         return add(MetricaTerm(name, value))
     }
 
-    fun get(name: String) : Double{
+    fun get(name: String) : Float{
         elements.forEach { if (it.name.equals(name)) return it.value; }
-        return 0.0;
+        return 0.0F;
     }
 
     override fun compareTo(other: Metrica): Int {
@@ -36,7 +36,7 @@ class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
         return sb.toString()
     }
 
-    override fun toDouble(): Double {
+    override fun toFloat(): Float {
         return value
     }
 }

@@ -6,7 +6,7 @@ import ru.efreet.trading.ta.indicators.BarGetterSetter2
 import java.time.Duration
 import java.time.ZonedDateTime
 
-fun List<XExtBar>.indexOf(endTime: ZonedDateTime): Int {
+fun List<XBar>.indexOf(endTime: ZonedDateTime): Int {
     var startIndex = this.binarySearchBy(endTime, selector = { it.endTime })
     if (startIndex < 0)
         startIndex = -startIndex - 1
@@ -19,42 +19,42 @@ fun List<XExtBar>.indexOf(endTime: ZonedDateTime): Int {
  */
 data class XExtBar(val bar: XBar) : XBar {
 
-    override var openPrice: Double
+    override var openPrice: Float
         get() = bar.openPrice
         set(value) {
             bar.openPrice = value
         }
-    override var minPrice: Double
+    override var minPrice: Float
         get() = bar.minPrice
         set(value) {
             bar.minPrice = value
         }
-    override var maxPrice: Double
+    override var maxPrice: Float
         get() = bar.maxPrice
         set(value) {
             bar.maxPrice = value
         }
-    override var closePrice: Double
+    override var closePrice: Float
         get() = bar.closePrice
         set(value) {
             bar.closePrice = value
         }
-    override var volume: Double
+    override var volume: Float
         get() = bar.volume
         set(value) {
             bar.volume = value
         }
-    override var volumeBase: Double
+    override var volumeBase: Float
         get() = bar.volumeBase
         set(value) {
             bar.volumeBase = value
         }
-    override var volumeQuote: Double
+    override var volumeQuote: Float
         get() = bar.volumeQuote
         set(value) {
             bar.volumeQuote = value
         }
-    override var trades: Int
+    override var trades: Short
         get() = bar.trades
         set(value) {
             bar.trades = value
@@ -75,7 +75,7 @@ data class XExtBar(val bar: XBar) : XBar {
             bar.endTime = value
         }
 
-    override fun addTrade(tradeVolume: Double, tradePrice: Double) {
+    override fun addTrade(tradeVolume: Float, tradePrice: Float) {
         bar.addTrade(tradeVolume, tradePrice)
     }
 
@@ -134,56 +134,56 @@ data class XExtBar(val bar: XBar) : XBar {
         var _soldBySLIndicator = BarGetterSetter2<XExtBar, Boolean>({ o, v -> o.soldBySLIndicator = v }, { it.soldBySLIndicator })
     }
 
-    var shortEma1: Double = Double.MAX_VALUE
-    var shortEma2: Double = Double.MAX_VALUE
-    var shortEma: Double = Double.MAX_VALUE
+    var shortEma1: Float = Float.MAX_VALUE
+    var shortEma2: Float = Float.MAX_VALUE
+    var shortEma: Float = Float.MAX_VALUE
 
-    var longEma1: Double = Double.MAX_VALUE
-    var longEma2: Double = Double.MAX_VALUE
-    var longEma: Double = Double.MAX_VALUE
+    var longEma1: Float = Float.MAX_VALUE
+    var longEma2: Float = Float.MAX_VALUE
+    var longEma: Float = Float.MAX_VALUE
 
-    var shortEma1Sell: Double = Double.MAX_VALUE
-    var shortEma2Sell: Double = Double.MAX_VALUE
-    var shortEmaSell: Double = Double.MAX_VALUE
+    var shortEma1Sell: Float = Float.MAX_VALUE
+    var shortEma2Sell: Float = Float.MAX_VALUE
+    var shortEmaSell: Float = Float.MAX_VALUE
 
-    var longEma1Sell: Double = Double.MAX_VALUE
-    var longEma2Sell: Double = Double.MAX_VALUE
-    var longEmaSell: Double = Double.MAX_VALUE
+    var longEma1Sell: Float = Float.MAX_VALUE
+    var longEma2Sell: Float = Float.MAX_VALUE
+    var longEmaSell: Float = Float.MAX_VALUE
 
-    var signalEma1: Double = Double.MAX_VALUE
-    var signalEma2: Double = Double.MAX_VALUE
-    var signalEma: Double = Double.MAX_VALUE
+    var signalEma1: Float = Float.MAX_VALUE
+    var signalEma2: Float = Float.MAX_VALUE
+    var signalEma: Float = Float.MAX_VALUE
 
-    var signal2Ema1: Double = Double.MAX_VALUE
-    var signal2Ema2: Double = Double.MAX_VALUE
-    var signal2Ema: Double = Double.MAX_VALUE
+    var signal2Ema1: Float = Float.MAX_VALUE
+    var signal2Ema2: Float = Float.MAX_VALUE
+    var signal2Ema: Float = Float.MAX_VALUE
 
-    var sma: Double = Double.MAX_VALUE
-    var sd: Double = Double.MAX_VALUE
-    var avrVolume: Double = Double.MAX_VALUE
+    var sma: Float = Float.MAX_VALUE
+    var sd: Float = Float.MAX_VALUE
+    var avrVolume: Float = Float.MAX_VALUE
 
-    var smaSell: Double = Double.MAX_VALUE
-    var sdSell: Double = Double.MAX_VALUE
-    var avrVolumeSell: Double = Double.MAX_VALUE
+    var smaSell: Float = Float.MAX_VALUE
+    var sdSell: Float = Float.MAX_VALUE
+    var avrVolumeSell: Float = Float.MAX_VALUE
 
-    var sma2: Double = Double.MAX_VALUE
-    var sd2: Double = Double.MAX_VALUE
-    var avrVolume2: Double = Double.MAX_VALUE
+    var sma2: Float = Float.MAX_VALUE
+    var sd2: Float = Float.MAX_VALUE
+    var avrVolume2: Float = Float.MAX_VALUE
 
-    var smaSell2: Double = Double.MAX_VALUE
-    var sdSell2: Double = Double.MAX_VALUE
-    var avrVolumeSell2: Double = Double.MAX_VALUE
+    var smaSell2: Float = Float.MAX_VALUE
+    var sdSell2: Float = Float.MAX_VALUE
+    var avrVolumeSell2: Float = Float.MAX_VALUE
 
 
-    var dayShortEma: Double = Double.MAX_VALUE
-    var dayLongEma: Double = Double.MAX_VALUE
-    var daySignalEma: Double = Double.MAX_VALUE
-    var daySignal2Ema: Double = Double.MAX_VALUE
+    var dayShortEma: Float = Float.MAX_VALUE
+    var dayLongEma: Float = Float.MAX_VALUE
+    var daySignalEma: Float = Float.MAX_VALUE
+    var daySignal2Ema: Float = Float.MAX_VALUE
 
     var stohastic: Decision = Decision.NONE
 
     var lastDecision: Pair<Decision, Map<String, String>>? = null
     var decisionStart: XExtBar? = null
-    var tslIndicator: Double = Double.MAX_VALUE
+    var tslIndicator: Float = Float.MAX_VALUE
     var soldBySLIndicator: Boolean? = null
 }

@@ -9,7 +9,7 @@ import ru.efreet.trading.ta.indicators.*
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.ForkJoinTask
 
-open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : Sd3Logic(name, instrument, barInterval, bars) {
+open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterval) : Sd3Logic(name, instrument, barInterval) {
 
     override fun newInitParams(): SimpleBotLogicParams = SimpleBotLogicParams()
 
@@ -41,7 +41,7 @@ open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterv
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { longEma.prepare() })
-        tasks.add(ForkJoinPool.commonPool().submit { (sma as XCachedIndicator).prepare() })
+        tasks.add(ForkJoinPool.commonPool().submit { (sma as XCachedIndicator<*>).prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { sd.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayShortEma.prepare() })
         tasks.add(ForkJoinPool.commonPool().submit { dayLongEma.prepare() })

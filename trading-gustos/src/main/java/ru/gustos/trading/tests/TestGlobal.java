@@ -97,7 +97,7 @@ public class TestGlobal{
         if (StandardInstrumentCalc.LOGS)
             System.out.println("Loading instrument: "+ii.toString());
         BarsCache cache = new BarsCache("cache.sqlite3");
-        List<XBaseBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
+        List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
 //            bars = BarsPacker.packBars(bars,5);
         global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
 

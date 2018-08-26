@@ -2,9 +2,9 @@ package ru.efreet.trading.bot
 
 import ru.efreet.trading.exchange.Instrument
 
-data class BotConfig(val instruments: Map<Instrument, Double> = mapOf(Pair(Instrument.ETH_USDT, 0.5)),
-                     val usdLimit:Double = 0.1,
+data class BotConfig(val instruments: Map<Instrument, Float> = mapOf(Pair(Instrument.ETH_USDT, 0.5F)),
+                     val usdLimit:Float = 0.1F,
                      val telegram:Boolean=false,
-                     val keepBnb:Double = 1.0) {
+                     val keepBnb:Float = 1.0F) {
 
 }

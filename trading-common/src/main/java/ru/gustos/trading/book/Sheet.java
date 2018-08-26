@@ -125,7 +125,7 @@ public class Sheet implements BarsSource {
         BarsCache cache = new BarsCache("cache.sqlite3");
         String exchName = exch.getName();
         ZonedDateTime from = ZonedDateTime.of(2017,11,1,0,0,0,0, ZoneId.systemDefault());
-        List<XBaseBar> bars = cache.getBars(exchName, instr, interval, from, ZonedDateTime.now());
+        List<? extends XBar> bars = cache.getBars(exchName, instr, interval, from, ZonedDateTime.now());
         if (packing>0)
             bars = BarsPacker.packBarsVolume(bars,packing);
         fromBars(bars);
@@ -204,7 +204,7 @@ public class Sheet implements BarsSource {
     private void InsertEmpty(int ind, ZonedDateTime time) {
         XBar bar = moments.get(ind).bar;
         XBar prev = moments.get(ind-1).bar;
-        double price = prev.getClosePrice();
+        float price = prev.getClosePrice();
 
         Moment m = new Moment(new XBaseBar(interval.getDuration(),time.plus(interval.getDuration()), price, price, price, price,0));
         moments.add(ind,m);

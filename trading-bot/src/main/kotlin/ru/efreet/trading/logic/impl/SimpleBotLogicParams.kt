@@ -19,11 +19,11 @@ data class SimpleBotLogicParams(var short: Int? = 5,
                                 var daySignal: Int? = null,
                                 var daySignal2: Int? = null,
 
-                                override var stopLoss: Double = 2.5,
-                                override var tStopLoss: Double = 50.0,
+                                override var stopLoss: Float = 2.5F,
+                                override var tStopLoss: Float = 50.0F,
 
-                                override var takeProfit: Double = 100.0,
-                                override var tTakeProfit: Double = 0.1,
+                                override var takeProfit: Float = 100.0F,
+                                override var tTakeProfit: Float = 0.1F,
 
                                 var persist1: Int? = 0,
                                 var persist2: Int? = 0,

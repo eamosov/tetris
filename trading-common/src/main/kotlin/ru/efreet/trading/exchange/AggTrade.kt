@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 /**
  * Created by fluder on 08/02/2018.
  */
-data class AggTrade(val timestampMillis: Long, val price: Double, val quantity: Double) {
+data class AggTrade(val timestampMillis: Long, val price: Float, val quantity: Float) {
 
     fun asSecondsBar(): XBar {
         val tradeTimeStamp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestampMillis), ZoneId.of("GMT"))

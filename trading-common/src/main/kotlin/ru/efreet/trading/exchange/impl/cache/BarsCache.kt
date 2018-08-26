@@ -2,12 +2,14 @@ package ru.efreet.trading.exchange.impl.cache
 
 import org.sqlite.SQLiteException
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -99,20 +101,20 @@ class BarsCache(val path: String) {
 
         return XBaseBar(interval.duration,
                 time,
-                resultSet.getDouble("open"),
-                resultSet.getDouble("high"),
-                resultSet.getDouble("low"),
-                resultSet.getDouble("close"),
-                resultSet.getDouble("volume"),
-                resultSet.getDouble("volumebase"),
-                resultSet.getDouble("volumequote"),
-                resultSet.getInt("trades")
+                resultSet.getFloat("open"),
+                resultSet.getFloat("high"),
+                resultSet.getFloat("low"),
+                resultSet.getFloat("close"),
+                resultSet.getFloat("volume"),
+                resultSet.getFloat("volumebase"),
+                resultSet.getFloat("volumequote"),
+                resultSet.getShort("trades")
         )
     }
 
-    fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBaseBar> {
+    fun getBars(exchange: String, instrument: Instrument, interval: BarInterval, start: ZonedDateTime, end: ZonedDateTime): List<XBar> {
         synchronized(this) {
-            val bars = mutableListOf<XBaseBar>()
+            val bars = XBarList((Duration.between(start, end).toMinutes() / interval.duration.toMinutes()).toInt())
             conn.createStatement().use { statement ->
                 statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time >=${start.toEpochSecond()} and time < ${end.toEpochSecond()} ORDER BY time").use { resultSet ->
                     while (resultSet.next()) {

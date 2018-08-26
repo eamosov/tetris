@@ -11,10 +11,10 @@ import ru.efreet.trading.trainer.Metrica
 /**
  * Created by fluder on 20/02/2018.
  */
-class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval, bars: MutableList<XExtBar>) : Sd3Logic(name, instrument, barInterval, bars) {
+class Sd4Logic(name: String, instrument: Instrument, barInterval: BarInterval) : Sd3Logic(name, instrument, barInterval) {
 
     override fun metrica(params: SimpleBotLogicParams, stats: TradesStats): Metrica {
-        return super.metrica(params, stats).add("trades", stats.trades * 0.0175)
+        return super.metrica(params, stats).add("trades", (stats.trades * 0.0175).toFloat())
     }
 
 }

@@ -36,7 +36,7 @@ public class GustosIndicator2<B> extends XCachedIndicator<B> {
      * @return
      */
     @Override
-    public double calculate(int index, B bar) {
+    public float calculate(int index, B bar) {
 
         if (index == 0) {
             avrVolume.set(bar, volume.get(bar));
@@ -80,11 +80,11 @@ public class GustosIndicator2<B> extends XCachedIndicator<B> {
         d = d * d;
         double avgDisp = (d - prevDisp) * 2 / (1 + timeframe/volumek) + prevDisp;
 
-        avrVolume.set(bar, avgVolume);
-        avrPrice.set(bar, avgPrice);
+        avrVolume.set(bar, (float)avgVolume);
+        avrPrice.set(bar, (float)avgPrice);
 
         //Возвращаем текущее значение индикатора на баре index (размер коридора)
-        return Math.sqrt(avgDisp);
+        return (float)Math.sqrt(avgDisp);
     }
 
 }
