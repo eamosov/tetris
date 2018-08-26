@@ -87,6 +87,17 @@ public class MomentDataHelper {
         put(m,key+"_delta"+lag,valuen-value,false);
     }
 
+    public void putLagged(MomentData to, MomentData from, int lag) {
+        for (int i = 0;i<metas.size();i++) {
+            MetaData m = metas.get(i);
+            if (m.data(null, 9) && m.key.indexOf('_') < 0) {
+                putLagged(to, m.key, from, lag);
+                putDelta(to, m.key, from, lag);
+            }
+        }
+    }
+
+
     public void put(MomentData m, String key, double value, boolean bool){
         if (ignore.contains(key)) return;
         if (!map.containsKey(key))
@@ -156,9 +167,12 @@ public class MomentDataHelper {
         return set;
     }
 
-    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int index, long endtime, int futureAttribute, int level){
+    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level){
+        return makeSet(data,ignoreAttributes,from,to,endtime,futureAttribute,level,0);
+    }
+    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level, double weightFrom){
         Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
-        for (int i = from;i<Math.min(index,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime)
+        for (int i = from;i<Math.min(to,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime && data.get(i).getMomentData().weight>weightFrom)
             set.add(makeInstance(data.get(i).getMomentData(),ignoreAttributes, futureAttribute, level));
 
         return set;
@@ -185,4 +199,5 @@ public class MomentDataHelper {
             return rf.predict(CalcUtils.smileInstance(instance))==1;
         }
     }
+
 }

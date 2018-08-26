@@ -5,6 +5,7 @@ import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.Decision;
 import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.IndicatorResultType;
+import ru.gustos.trading.global.InstrumentData;
 
 import java.util.ArrayList;
 
@@ -208,25 +209,30 @@ public class SheetUtils {
     }
 
     public static double upCandles(BarsSource sheet,  int from, int bars){
-        double upper = 0;
-        double total = 0;
+        double r = 0;
+        int cc = 0;
         for (int i = 0;i<bars;i++)if (from-i>=0){
             XBar bar = sheet.bar(from - i);
-            upper+=bar.getMaxPrice()-Math.max(bar.getOpenPrice(),bar.getClosePrice());
-            total+=bar.getMaxPrice()-bar.getMinPrice();
+            double upper=bar.getMaxPrice()-Math.max(bar.getOpenPrice(),bar.getClosePrice());
+            double total=bar.getMaxPrice()-bar.getMinPrice();
+            r+= total<0.0000001?0:upper/total;
+            cc++;
         }
-        return upper/Math.max(1,total);
+
+        return r/cc;
     }
 
     public static double downCandles(BarsSource sheet,  int from, int bars){
-        double lower = 0;
-        double total = 0;
+        double r = 0;
+        int cc = 0;
         for (int i = 0;i<bars;i++)if (from-i>=0){
             XBar bar = sheet.bar(from - i);
-            lower+=Math.min(bar.getOpenPrice(),bar.getClosePrice())-bar.getMinPrice();
-            total+=bar.getMaxPrice()-bar.getMinPrice();
+            double lower =Math.min(bar.getOpenPrice(),bar.getClosePrice())-bar.getMinPrice();
+            double total =bar.getMaxPrice()-bar.getMinPrice();
+            r+=total<0.0000001?0:lower/total;
+            cc++;
         }
-        return lower/Math.max(1,total);
+        return r/cc;
     }
 
     public static double volumesAroundLevel(BarsSource sheet, double price, int from, int bars){
@@ -294,9 +300,42 @@ public class SheetUtils {
         return result;
     }
 
+    public static double avgPrice(BarsSource data, int from, int cnt) {
+        double s = 0;
+        for (int i = from;i<from+cnt;i++)
+            s+=data.bar(i).getClosePrice();
+        return s/cnt;
+
+    }
+
     interface FindHelper {
         int find(BarsSource sheet, int from, int to);
     }
+
+    public static boolean isMinimum(BarsSource sheet, int index, int window){
+        double here = sheet.bar(index).getMinPrice();
+        for (int i = 1;i<=window;i++){
+            if (index-i>=0 && sheet.bar(index-i).getMinPrice()<here) return false;
+            if (index+i<sheet.size() && sheet.bar(index+i).getMinPrice()<here) return false;
+        }
+        return true;
+    }
+
+    public static boolean isMaximum(BarsSource sheet, int index, int window){
+        double here = sheet.bar(index).getMaxPrice();
+        for (int i = 1;i<=window;i++){
+            if (index-i>=0 && sheet.bar(index-i).getMaxPrice()>here) return false;
+            if (index+i<sheet.size() && sheet.bar(index+i).getMaxPrice()>here) return false;
+        }
+        return true;
+    }
+
+    public static boolean isOptimum(BarsSource sheet, int index, int window, int code){
+        if (code==1) return isMaximum(sheet, index,window);
+        if (code==-1) return isMinimum(sheet, index,window);
+        throw new NullPointerException("unknown code "+code);
+    }
+
 }
 
 

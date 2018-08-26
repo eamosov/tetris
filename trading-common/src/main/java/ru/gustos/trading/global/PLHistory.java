@@ -319,18 +319,20 @@ public class PLHistory {
         }
 
         public CriticalMoment criticalMoment(){
-            CriticalMoment m = new CriticalMoment();
-            m.timeBuy = timeBuy;
-            m.timeSell = timeSell;
-            m.profit = profit;
-            return m;
+            return new CriticalMoment(timeBuy, timeSell, profit);
         }
     }
 
-    public class CriticalMoment {
+    public static class CriticalMoment {
         public long timeBuy;
         public long timeSell;
         public double profit;
+
+        public CriticalMoment(long timeBuy, long timeSell, double profit){
+            this.timeBuy = timeBuy;
+            this.timeSell = timeSell;
+            this.profit = profit;
+        }
 
         public long time(boolean buy) {
             return buy?timeBuy:timeSell;

@@ -70,27 +70,15 @@ public class Sheet implements BarsSource {
     }
 
     public boolean isMinimum(int index, int window){
-        double here = bar(index).getMinPrice();
-        for (int i = 1;i<=window;i++){
-            if (index-i>=0 && bar(index-i).getMinPrice()<here) return false;
-            if (index+i<size() && bar(index+i).getMinPrice()<here) return false;
-        }
-        return true;
+        return SheetUtils.isMinimum(this,index,window);
     }
 
     public boolean isMaximum(int index, int window){
-        double here = bar(index).getMaxPrice();
-        for (int i = 1;i<=window;i++){
-            if (index-i>=0 && bar(index-i).getMaxPrice()>here) return false;
-            if (index+i<size() && bar(index+i).getMaxPrice()>here) return false;
-        }
-        return true;
+        return SheetUtils.isMaximum(this,index,window);
     }
 
     public boolean isOptimum(int index, int window, int code){
-        if (code==1) return isMaximum(index,window);
-        if (code==-1) return isMinimum(index,window);
-        throw new NullPointerException("unknown code "+code);
+        return SheetUtils.isOptimum(this,index,window, code);
     }
 
     public Volumes volumes(){

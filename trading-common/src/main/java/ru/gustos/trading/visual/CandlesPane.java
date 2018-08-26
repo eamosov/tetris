@@ -106,9 +106,33 @@ public class CandlesPane extends JPanel {
         paintPriceAtLine(g);
         paintRegression(g);
         paintExtrapolation(g);
+        paintLevels(g);
         minMax = null;
 
         super.paint(g);
+    }
+
+    private void paintLevels(Graphics g) {
+        if (vis.levels!=null){
+            ArrayList<SimpleRegression> ll = vis.levels.minlevels;
+            g.setColor(Color.green);
+            for (SimpleRegression reg : ll){
+                int x1 = 0;
+                int x2 = vis.getSheet().size();
+                double y1 = reg.predict(x1);
+                double y2 = reg.predict(x2);
+                g.drawLine(ind2screen(x1),price2screen(y1), ind2screen(x2),price2screen(y2));
+            }
+            ll = vis.levels.maxlevels;
+            g.setColor(Color.red);
+            for (SimpleRegression reg : ll){
+                int x1 = 0;
+                int x2 = vis.getSheet().size();
+                double y1 = reg.predict(x1);
+                double y2 = reg.predict(x2);
+                g.drawLine(ind2screen(x1),price2screen(y1), ind2screen(x2),price2screen(y2));
+            }
+        }
     }
 
     private void paintExtrapolation(Graphics g) {

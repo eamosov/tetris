@@ -18,6 +18,7 @@ public class InstrumentData implements BarsSource{
     public Instrument instrument;
     public Exchange exchange;
     public MomentDataHelper helper;
+    public MomentDataHelper helper2;
     public Global global;
 
     XBaseBar totalBar;
@@ -32,6 +33,7 @@ public class InstrumentData implements BarsSource{
             addBar(bars.get(i));
 
         helper = new MomentDataHelper();
+        helper2 = new MomentDataHelper();
     }
 
     public InstrumentData(InstrumentData data, int count){
@@ -77,6 +79,7 @@ public class InstrumentData implements BarsSource{
     }
 
     public List<InstrumentMoment> moments(){return bars.direct();}
+    public List<MomentData> data2(){return bars.direct().stream().map(b->b.mldata2).collect(Collectors.toList());}
 
     @Override
     public XBar totalBar() {
@@ -101,21 +104,6 @@ public class InstrumentData implements BarsSource{
 
 interface MomentDataProvider {
     MomentData getMomentData();
-}
-class InstrumentMoment implements  MomentDataProvider{
-    XBar bar;
-    MomentData mldata;
-
-    public InstrumentMoment(XBar bar) {
-        this.bar = bar;
-        mldata = new MomentData(160);
-    }
-
-
-    @Override
-    public MomentData getMomentData() {
-        return mldata;
-    }
 }
 
 interface PlayStrategy{
@@ -200,3 +188,4 @@ class GustosLogicStrategy implements PlayStrategy{
         return Integer.MAX_VALUE;
     }
 }
+
