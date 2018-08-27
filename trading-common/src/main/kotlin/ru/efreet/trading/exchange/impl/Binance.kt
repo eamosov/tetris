@@ -10,7 +10,8 @@ import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.*
-import ru.efreet.trading.utils.round
+import ru.efreet.trading.utils.round4
+import ru.efreet.trading.utils.round5
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
@@ -68,8 +69,8 @@ class Binance() : Exchange {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.BUY)
         placement.setType(orderType(type))
-        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round())
-        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round())
+        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round4())
+        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round5())
 
         try {
             val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
@@ -91,8 +92,8 @@ class Binance() : Exchange {
 
         val placement = BinanceOrderPlacement(symbol(instrument), BinanceOrderSide.SELL)
         placement.setType(orderType(type))
-        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round())
-        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round())
+        placement.setPrice(BigDecimal.valueOf(price.toDouble()).round4())
+        placement.setQuantity(BigDecimal.valueOf(asset.toDouble()).round5())
 
         try {
             val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)

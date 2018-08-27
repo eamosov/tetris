@@ -40,7 +40,8 @@ fun <T : Any> String.parseNumberOrBool(cls: KClass<T>): T = when {
 
 inline fun <reified T : Any> String.parseNumberOrBool(): T = parseNumberOrBool(T::class)
 
-fun BigDecimal.round(): BigDecimal = BigDecimal.valueOf(Math.floor(this.toDouble() * 100000.0) / 100000.0)
+fun BigDecimal.round5(): BigDecimal = BigDecimal.valueOf(Math.floor(this.toDouble() * 100000.0) / 100000.0)
+fun BigDecimal.round4(): BigDecimal = BigDecimal.valueOf(Math.floor(this.toDouble() * 10000.0) / 10000.0)
 
 fun Double.pow2(): Double = this * this
 
