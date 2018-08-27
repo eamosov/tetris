@@ -140,7 +140,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             //val asset = minOf(maxBet - myBet, availableUsd, maxBet * 0.5) / advice.price
             val asset = minOf(maxBet - myBet, availableUsd) / advice.price
 
-            if (balance(advice.instrument) < 10 && asset * advice.price >= 10) {
+            if (asset * advice.price >= 10) {
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
