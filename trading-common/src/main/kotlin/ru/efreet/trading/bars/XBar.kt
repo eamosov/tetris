@@ -197,3 +197,60 @@ fun <T : XBar> List<T>.checkBars() {
         prevBar = bar
     }
 }
+
+fun <T : XBar> List<T>.setDeltaXX(index: Int): T {
+    val bar = get(index)
+
+    getWithDelta(index, -5)?.let {
+        bar.delta5m = bar.closePrice - it.closePrice
+    }
+
+    getWithDelta(index, -15)?.let {
+        bar.delta15m = bar.closePrice - it.closePrice
+    }
+
+    getWithDelta(index, -60)?.let {
+        bar.delta1h = bar.closePrice - it.closePrice
+    }
+
+    getWithDelta(index, -60 * 24)?.let {
+        bar.delta1d = bar.closePrice - it.closePrice
+    }
+
+    getWithDelta(index, -60 * 24 * 7)?.let {
+        bar.delta7d = bar.closePrice - it.closePrice
+    }
+
+    return bar
+}
+
+fun List<XBar>.setDeltaXX() {
+    for (index in 0 until size) {
+        setDeltaXX(index)
+    }
+}
+
+fun List<XBar>.getWithDelta(index: Int, deltaMinutes: Long): XBar? {
+    val bar = get(index)
+    val n = deltaMinutes / bar.timePeriod.toMinutes()
+    val i = index + n
+
+    if (i < 0 || i >= size)
+        return null
+
+    val r = get(i.toInt())
+    if (Duration.between(bar.endTime, r.endTime).toMinutes() == deltaMinutes)
+        return r
+
+    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes), 0, index, selector = { it.endTime })
+    return if (bs >= 0) {
+        get(bs)
+    } else {
+        val nearest = get(-bs - 1)
+        if (Math.abs(Duration.between(bar.endTime, nearest.endTime).toMinutes() - deltaMinutes) <= 2)
+            nearest
+        else
+            null
+    }
+}
+

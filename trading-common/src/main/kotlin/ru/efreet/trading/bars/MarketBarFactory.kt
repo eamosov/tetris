@@ -27,7 +27,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
 
         for (index in 0 until btcBars.bars.size) {
 
-            val btcBar = btcBars.bars.fillDelta(index)
+            val btcBar = btcBars.bars.setDeltaXX(index)
             val endTime = btcBar.endTime
 
             val delta = MarketBar(endTime)
@@ -59,7 +59,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
                 }
 
                 if (bar != null) {
-                    bar = holder.bars.fillDelta(holder.index)
+                    bar = holder.bars.setDeltaXX(holder.index)
                     delta.addBar(bar)
                     //println("${instrument} $bar")
                 } else {

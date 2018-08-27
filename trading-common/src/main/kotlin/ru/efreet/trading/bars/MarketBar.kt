@@ -1,15 +1,27 @@
 package ru.efreet.trading.bars
 
+import it.unimi.dsi.fastutil.floats.FloatArrayList
+import it.unimi.dsi.fastutil.floats.FloatList
 import java.time.ZonedDateTime
 
-fun List<Float>.gtZero(): Float = this.count { it > 0 }.toFloat() / this.size.toFloat()
+fun FloatList.gtZero(): Float {
+    var k = 0
+
+    for (i in 0 until this.size) {
+        if (this.getFloat(i) > 0) {
+            k++
+        }
+    }
+
+    return k.toFloat() / this.size
+}
 
 data class MarketBar(val endTime: ZonedDateTime,
-                     val delta5m: MutableList<Float> = arrayListOf(),
-                     val delta15m: MutableList<Float> = arrayListOf(),
-                     val delta1h: MutableList<Float> = arrayListOf(),
-                     val delta1d: MutableList<Float> = arrayListOf(),
-                     val delta7d: MutableList<Float> = arrayListOf()) {
+                     val delta5m: FloatList = FloatArrayList(),
+                     val delta15m: FloatList = FloatArrayList(),
+                     val delta1h: FloatList = FloatArrayList(),
+                     val delta1d: FloatList = FloatArrayList(),
+                     val delta7d: FloatList = FloatArrayList()) {
 
     fun addBar(b: XBar) {
         if (b.delta5m != 0f)

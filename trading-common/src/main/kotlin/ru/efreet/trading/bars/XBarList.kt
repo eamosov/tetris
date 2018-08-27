@@ -2,6 +2,7 @@ package ru.efreet.trading.bars
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList
 import ru.efreet.trading.exchange.BarInterval
+import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -10,77 +11,6 @@ import java.util.*
 
 val gmt = ZoneId.of("GMT")
 
-fun ByteArrayList.getByteAsInt(index: Int): Int {
-    return getByte(index).toInt() and 0x000000FF
-}
-
-fun ByteArrayList.setByteAsInt(index: Int, value: Int) {
-    set(index, value.toByte())
-}
-
-
-fun ByteArrayList.setShort(index: Int, v: Int): Int {
-    setByteAsInt(index, v.ushr(8))
-    setByteAsInt(index + 1, v.ushr(0))
-    return 2
-}
-
-fun ByteArrayList.getShort(index: Int): Short {
-    val ch1 = getByteAsInt(index)
-    val ch2 = getByteAsInt(index + 1)
-    return ((ch1 shl 8) + (ch2 shl 0)).toShort()
-}
-
-
-fun ByteArrayList.setInt(index: Int, v: Int): Int {
-    setByteAsInt(index, v.ushr(24))
-    setByteAsInt(index + 1, v.ushr(16))
-    setByteAsInt(index + 2, v.ushr(8))
-    setByteAsInt(index + 3, v.ushr(0))
-    return 4
-}
-
-fun ByteArrayList.getInt(index: Int): Int {
-    val ch1 = getByteAsInt(index)
-    val ch2 = getByteAsInt(index + 1)
-    val ch3 = getByteAsInt(index + 2)
-    val ch4 = getByteAsInt(index + 3)
-    return (ch1 shl 24) + (ch2 shl 16) + (ch3 shl 8) + (ch4 shl 0)
-}
-
-
-fun ByteArrayList.setLong(index: Int, v: Long): Int {
-    set(index, v.ushr(56).toByte())
-    set(index + 1, v.ushr(48).toByte())
-    set(index + 2, v.ushr(40).toByte())
-    set(index + 3, v.ushr(32).toByte())
-    set(index + 4, v.ushr(24).toByte())
-    set(index + 5, v.ushr(16).toByte())
-    set(index + 6, v.ushr(8).toByte())
-    set(index + 7, v.ushr(0).toByte())
-    return 8
-}
-
-fun ByteArrayList.getLong(index: Int): Long {
-    val ch1 = getByteAsInt(index).toLong()
-    val ch2 = getByteAsInt(index + 1).toLong()
-    val ch3 = getByteAsInt(index + 2).toLong()
-    val ch4 = getByteAsInt(index + 3).toLong()
-    val ch5 = getByteAsInt(index + 4).toLong()
-    val ch6 = getByteAsInt(index + 5).toLong()
-    val ch7 = getByteAsInt(index + 6).toLong()
-    val ch8 = getByteAsInt(index + 7).toLong()
-    return (ch1 shl 56) + (ch2 shl 48) + (ch3 shl 40) + (ch4 shl 32) + (ch5 shl 24) + (ch6 shl 16) + (ch7 shl 8) + (ch8 shl 0)
-}
-
-
-fun ByteArrayList.setFloat(index: Int, v: Float): Int {
-    return setInt(index, java.lang.Float.floatToIntBits(v))
-}
-
-fun ByteArrayList.getFloat(index: Int): Float {
-    return java.lang.Float.intBitsToFloat(getInt(index))
-}
 
 fun ByteArrayList.setXBar(index: Int, v: XBar): Int {
     var i = index
@@ -211,69 +141,6 @@ class XBarRef(val b: ByteArrayList, val index: Int) : XBar {
 
 fun ByteArrayList.getXBar(index: Int): XBar {
     return XBarRef(this, index)
-}
-
-
-fun ByteArrayList.expand(addSize: Int) {
-    ensureCapacity(size + addSize)
-    for (i in 0 until addSize)
-        add(0)
-}
-
-fun List<XBar>.findDelta(index: Int, deltaMinutes: Long): XBar? {
-    val bar = get(index)
-    val n = deltaMinutes / bar.timePeriod.toMinutes()
-    val i = index + n
-
-    if (i < 0 || i >= size)
-        return null
-
-    val r = get(i.toInt())
-    if (Duration.between(bar.endTime, r.endTime).toMinutes() == deltaMinutes)
-        return r
-
-    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes), 0, index, selector = { it.endTime })
-    return if (bs >= 0) {
-        get(bs)
-    } else {
-        val nearest = get(-bs - 1)
-        if (Math.abs(Duration.between(bar.endTime, nearest.endTime).toMinutes() - deltaMinutes) <= 2)
-            nearest
-        else
-            null
-    }
-}
-
-fun <T : XBar> List<T>.fillDelta(index: Int): T {
-    val bar = get(index)
-
-    findDelta(index, -5)?.let {
-        bar.delta5m = bar.closePrice - it.closePrice
-    }
-
-    findDelta(index, -15)?.let {
-        bar.delta15m = bar.closePrice - it.closePrice
-    }
-
-    findDelta(index, -60)?.let {
-        bar.delta1h = bar.closePrice - it.closePrice
-    }
-
-    findDelta(index, -60 * 24)?.let {
-        bar.delta1d = bar.closePrice - it.closePrice
-    }
-
-    findDelta(index, -60 * 24 * 7)?.let {
-        bar.delta7d = bar.closePrice - it.closePrice
-    }
-
-    return bar
-}
-
-fun List<XBar>.fillDelta() {
-    for (index in 0 until size) {
-        fillDelta(index)
-    }
 }
 
 class XBarList : java.util.AbstractList<XBar>, RandomAccess {
