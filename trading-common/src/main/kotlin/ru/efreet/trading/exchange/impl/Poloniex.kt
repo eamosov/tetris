@@ -6,8 +6,8 @@ import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.*
+import ru.efreet.trading.utils.BigDecimal
 import ru.efreet.trading.utils.round5
-import java.math.BigDecimal
 import java.time.ZonedDateTime
 import java.util.stream.Collectors
 
@@ -46,12 +46,12 @@ class Poloniex() : Exchange {
 
     override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
         val _price = if (type == OrderType.LIMIT) {
-            BigDecimal.valueOf(price.toDouble()).round5()
+            BigDecimal(price).round5()
         } else {
             service.returnTicker(symbol(instrument)).lowestAsk
         }
 
-        val _amount = BigDecimal.valueOf(asset.toDouble()).round5()
+        val _amount = BigDecimal(asset).round5()
         log.info("TRY BUY ORDER: $instrument $_price $_amount $type")
         val result = service.buy(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
@@ -66,12 +66,12 @@ class Poloniex() : Exchange {
     override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now: ZonedDateTime): Order {
 
         val _price = if (type == OrderType.LIMIT) {
-            BigDecimal.valueOf(price.toDouble()).round5()
+            BigDecimal(price).round5()
         } else {
             service.returnTicker(symbol(instrument)).highestBid
         }
 
-        val _amount = BigDecimal.valueOf(asset.toDouble()).round5()
+        val _amount = BigDecimal(asset).round5()
         log.info("TRY SELL ORDER: $instrument $_price $_amount $type")
         val result = service.sell(symbol(instrument), _price, _amount, false, false, false)
         return Order(result.orderNumber.toString(),
