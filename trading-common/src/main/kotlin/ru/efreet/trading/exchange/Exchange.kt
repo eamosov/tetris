@@ -3,8 +3,6 @@ package ru.efreet.trading.exchange
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.exchange.impl.Binance
 import ru.efreet.trading.exchange.impl.Poloniex
-import ru.efreet.trading.utils.round2
-import ru.efreet.trading.utils.round5
 import java.time.ZonedDateTime
 
 /**

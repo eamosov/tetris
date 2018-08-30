@@ -1,6 +1,5 @@
 package ru.efreet.trading.trainer
 
-import ru.efreet.trading.utils.round2
 import ru.efreet.trading.utils.round5
 
 class Metrica(val elements: MutableList<MetricaTerm> = mutableListOf(),
