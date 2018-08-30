@@ -15,6 +15,8 @@ public class PLHistory {
 
     public String instrument;
     double buyCost = 0;
+    double minCost = 0;
+    double maxCost = 0;
     boolean testedBuy;
     long timeBuy;
 
@@ -49,6 +51,8 @@ public class PLHistory {
     public boolean buyMoment(double cost, long time){
         if (buyCost==0) {
             buyCost = cost;
+            minCost = cost;
+            maxCost = cost;
             testedBuy = shouldBuy();
             timeBuy = time;
             return true;
@@ -62,13 +66,51 @@ public class PLHistory {
             if (testedBuy)
                 tested.add(profit);
             all.add(profit);
-            profitHistory.add(new PLTrade(buyCost,profit,timeBuy, timeSell,testedBuy));
+            profitHistory.add(new PLTrade(buyCost,profit,minCost,maxCost, timeBuy, timeSell,testedBuy));
             buyCost = 0;
             if (analyzer!=null)
                 analyzer.newHistoryEvent(this);
             return true;
         }
         return false;
+    }
+
+    public void minCost(double cost, long time){
+        if (buyCost!=0){
+            if (minCost>cost)
+                minCost = cost;
+        }
+    }
+
+    public void maxCost(double cost, long time){
+        if (buyCost!=0){
+            if (maxCost<cost)
+                maxCost = cost;
+        }
+    }
+
+    public double profitWithStoploss(double stopLoss){
+        double m = 1;
+        for (int i = 0;i<profitHistory.size();i++){
+            PLTrade t = profitHistory.get(i);
+            if (t.minCost/t.buyCost<1-stopLoss){
+                m*=(1-stopLoss);
+            } else
+                m*=t.profit;
+        }
+        return m;
+    }
+
+    public double profitWithTakeprofit(double takeProfit){
+        double m = 1;
+        for (int i = 0;i<profitHistory.size();i++){
+            PLTrade t = profitHistory.get(i);
+            if (t.maxCost/t.buyCost>1+takeProfit){
+                m*=(1+takeProfit);
+            } else
+                m*=t.profit;
+        }
+        return m;
     }
 
     public String toPlusMinusString() {
@@ -249,6 +291,8 @@ public class PLHistory {
         public double max = 1;
         public int count = 0;
         public int goodcount = 0;
+        public double worst = 1;
+        public double best = 1;
 
         void add(double p){
             count++;
@@ -258,6 +302,8 @@ public class PLHistory {
                 goodcount++;
             }else
                 bad*=p;
+            if (worst>p) worst = p;
+            if (best<p) best = p;
             if (profit>max)
                 max = profit;
             drawdown = Math.min(drawdown,profit/max);
@@ -265,7 +311,7 @@ public class PLHistory {
 
         @Override
         public String toString() {
-            return String.format("profit %.3g, good %.3g, bad %.3g, drawdown %.3g, pertrade %.3g%%(*%d)", profit,good,bad, drawdown, (Math.pow(profit,1.0/count)-1)*100,count);
+            return String.format("profit %.4g, good %.3g(*%d), bad %.3g(*%d), drawdown %.3g, pertrade %.3g%%(*%d, worst %.3g%%, best %.3g%%)", profit,good, goodcount,bad, count-goodcount, drawdown, (Math.pow(profit,1.0/count)-1)*100,count,(worst-1)*100,(best-1)*100);
         }
 
         void save(DataOutputStream out) throws IOException {
@@ -293,13 +339,17 @@ public class PLHistory {
         public long timeBuy;
         public long timeSell;
         public boolean tested;
+        public double minCost;
+        public double maxCost;
 
-        public PLTrade(double buyCost, double profit, long timeBuy, long timeSell, boolean testedBuy) {
+        public PLTrade(double buyCost, double profit, double minCost, double maxCost, long timeBuy, long timeSell, boolean testedBuy) {
             this.buyCost = buyCost;
             this.profit = profit;
             this.timeBuy = timeBuy;
             this.timeSell = timeSell;
             this.tested = testedBuy;
+            this.minCost = minCost;
+            this.maxCost = maxCost;
         }
 
         public PLTrade(DataInputStream in) throws IOException {

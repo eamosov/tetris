@@ -1342,9 +1342,9 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         public void findGoodBranches(double minWeight, PriorityQueue<Branch> collect, int count, int maxClass, Branch current) {
             if (m_ClassDistribution!=null && m_ClassDistribution[0]+m_ClassDistribution[1]>minWeight && m_ClassDistribution[maxClass]>m_ClassDistribution[1-maxClass]) {
                 double p = 1-Math.min(m_ClassDistribution[0],m_ClassDistribution[1])/(m_ClassDistribution[0]+m_ClassDistribution[1]);
+                collect.add(new Branch(p,m_ClassDistribution[0],m_ClassDistribution[1],current));
                 if (collect.size()>=count)
                     collect.poll();
-                collect.add(new Branch(p,m_ClassDistribution[0],m_ClassDistribution[1],current));
             }
             if (m_Successors!=null)
                 for(int i = 0; i < m_Successors.length; ++i)
@@ -1365,6 +1365,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         public double test_w0, test_w1;
         public ArrayList<Condition> splits;
         public Instances set;
+        public boolean penaltied = false;
 
         public Branch(double p, double d0, double d1, Branch from){
             this.p = p;
@@ -1424,6 +1425,15 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             return sb.toString();
         }
 
+        public boolean check(Instance ii, int canBeWrong) {
+            for (Condition c : splits){
+                if (!c.check(ii) && (canBeWrong--)<=0)
+                    return false;
+            }
+            return true;
+
+        }
+
         public boolean test(Instances test) {
             test_w0 = CalcUtils.weightWithValue(test,test.classIndex(),0);
             test_w1 = CalcUtils.weightWithValue(test,test.classIndex(),1);
@@ -1431,15 +1441,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             tested_d1 = 0;
             for (int i = 0;i<test.size();i++){
                 Instance ii = test.get(i);
-                boolean all = true;
-                for (Condition c : splits){
-                    if (!c.check(ii)) {
-                        all = false;
-                        break;
-                    }
-
-                }
-                if (all) {
+                if (check(ii,0)) {
                     if (ii.value(ii.classIndex())==1)
                         tested_d1 += ii.weight();
                     else
@@ -1447,6 +1449,11 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
                 }
             }
             return ok();
+        }
+
+        public void collectPizdunstvo(double[] atts, double weight) {
+            for (int i = 0;i<splits.size();i++)
+                atts[splits.get(i).attribute]+=weight;
         }
     }
 

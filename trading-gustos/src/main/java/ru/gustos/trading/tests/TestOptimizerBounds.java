@@ -9,7 +9,7 @@ import ru.gustos.trading.visual.SimpleCharts;
 public class TestOptimizerBounds {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(TestGlobal.instruments);
+        Global global = TestGlobal.init(TestGlobal.instruments,false);
         for (InstrumentData data : global.sheets.values()) {
             System.out.println(data.instrument);
             GustosLogicOptimizator[] ops = new GustosLogicOptimizator[10];

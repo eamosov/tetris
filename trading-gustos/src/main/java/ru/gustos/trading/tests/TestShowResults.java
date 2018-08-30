@@ -46,7 +46,7 @@ public class TestShowResults {
 
 //        planalyzer1 = planalyzers[0];
         ArrayList<PLHistory> hh = planalyzer1.histories;
-        global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new));
+        global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new),false);
 //        System.out.println(planalyzer3.histories.get(0).profitHistory.size());
 //        System.out.println(planalyzer3.histories.get(1).profitHistory.size());
 

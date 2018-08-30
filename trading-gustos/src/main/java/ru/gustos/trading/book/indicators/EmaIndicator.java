@@ -1,7 +1,6 @@
 package ru.gustos.trading.book.indicators;
 
 import ru.gustos.trading.book.Sheet;
-import ru.gustos.trading.book.ml.DataPlayer;
 
 public class EmaIndicator extends NumberIndicator{
 

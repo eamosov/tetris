@@ -13,7 +13,7 @@ import java.util.Arrays;
 public class TestLogicParamsImprover {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(new Instrument[]{new Instrument("BTC","USDT")});
+        Global global = TestGlobal.init(new Instrument[]{new Instrument("BTC","USDT")},false);
         for (InstrumentData data : global.sheets.values()) {
             System.out.println(data.instrument);
 

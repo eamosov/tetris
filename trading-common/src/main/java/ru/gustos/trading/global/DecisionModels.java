@@ -75,7 +75,8 @@ public class DecisionModels{
             model.clear();
             makeGoodBadModel(model, calcIndex, endtime, 9);
             correctNewModel(model);
-            makeBuySellModel(model, calcIndex, endtime, 9);
+            if (data.buydata!=null)
+                makeBuySellModel(model, calcIndex, endtime, 9);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,7 +112,7 @@ public class DecisionModels{
                 int toIndex = Math.min(manager.calc.targetCalcedTo, index + period);
                 if (toIndex > maxTrainIndex)
                     maxTrainIndex = toIndex;
-                Instances settemp = data.helper.makeSet(data.bars.direct(), ignore, fromIndex, toIndex, endtime, futureAttribute, level);
+                Instances settemp = data.helper.makeSet(data.data, ignore, fromIndex, toIndex, endtime, futureAttribute, level);
                 set1.addAll(settemp);
             }
         }
@@ -120,9 +121,9 @@ public class DecisionModels{
 
 
     private void makeBuySellModel(DecisionModel model, int calcIndex, long endtime, int level) throws Exception {
-        for (int i = 0; i < data.helper2.futureAttributes(); i++) {
-//            Instances set = helper2.makeEmptySet(null, i, level);
-            Instances set = data.helper2.makeSet(data.data2(), null, calcIndex - 60 * 24 * 14, calcIndex - 60 * 12, endtime, i, level);
+        for (int i = 0; i < data.buyhelper.futureAttributes(); i++) {
+//            Instances set = buyhelper.makeEmptySet(null, i, level);
+            Instances set = data.buyhelper.makeSet(data.buydata(), null, calcIndex - 60 * 24 * 14, calcIndex - 60 * 12, endtime, i, level);
 
             RandomForestWithExam rf = new RandomForestWithExam();
             rf.setNumExecutionSlots(manager.cpus);
@@ -194,7 +195,7 @@ public class DecisionModels{
             System.out.println(String.format("checking for correction: %d bars", manager.calc.targetCalcedTo - maxTrainIndex));
             int ind = Math.max(manager.calcAllFrom, maxTrainIndex);
             while (ind < manager.calc.targetCalcedTo) {
-                MomentData mldata = data.bars.get(ind).mldata;
+                MomentData mldata = data.data.get(ind);
 
                 correctModelForMoment(mldata);
 

@@ -40,7 +40,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun prepareBarsImpl() {
 
         synchronized(this) {
-            calc = DecisionManager(null, InstrumentData(null, instrument, bars, null), 0, false, 0)
+            calc = DecisionManager(null, InstrumentData(null, instrument, bars, null,true,false), 0, false, 0)
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")

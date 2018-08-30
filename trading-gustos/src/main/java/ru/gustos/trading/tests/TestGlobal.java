@@ -25,12 +25,12 @@ public class TestGlobal{
     static Instrument[] instruments = new Instrument[]{
             new Instrument("BTC","USDT"),
             new Instrument("ETH","USDT"),
-            new Instrument("BCC","USDT"),
             new Instrument("BNB","USDT"),
             new Instrument("LTC","USDT"),
+            new Instrument("BCC","USDT"),
             new Instrument("NEO","USDT"),
-            new Instrument("XLM","USDT"),
             new Instrument("XRP","USDT"),
+            new Instrument("XLM","USDT"),
             new Instrument("ICX","USDT"),
             new Instrument("ONT","USDT"),
             new Instrument("NULS","USDT"),
@@ -71,23 +71,26 @@ public class TestGlobal{
         return result;
     }
 
-    public static Global init(Instrument[] instruments){
+    public static Global init(Instrument[] instruments, boolean withml){
+        return init(instruments,withml,false);
+    }
+    public static Global init(Instrument[] instruments, boolean withml, boolean withbuysell){
         Global global = new Global();
 
 
 
         for (Instrument ii : instruments) {
             System.gc();
-            addInstrument(global,ii);
+            addInstrument(global,ii,withml,withbuysell);
         }
         System.out.println("Calc global data "+Arrays.deepToString(instruments));
         global.calcData();
         return global;
     }
 
-    public static void addInstrument(Global global, Instrument ii){
+    public static void addInstrument(Global global, Instrument ii, boolean withml, boolean withbuysell){
         ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,26,15,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime to = ZonedDateTime.of(2018,8,29,18,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
         if (DecisionManager.LOGS)
@@ -95,7 +98,7 @@ public class TestGlobal{
         BarsCache cache = new BarsCache("cache.sqlite3");
         List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
 //            bars = BarsPacker.packBars(bars,5);
-        global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global));
+        global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global, withml,withbuysell));
 
     }
 
@@ -161,7 +164,7 @@ public class TestGlobal{
 //        ZonedDateTime dontRenewAfter = ZonedDateTime.of(2018,6,20,0,0,0,0, ZoneId.systemDefault());
         double[] kappas = new double[instruments.length];
         for (int i = 0;i<instruments.length;i++) {
-            addInstrument(global,instruments[i]);
+            addInstrument(global,instruments[i],true,false);
             InstrumentData data = global.getInstrument(instruments[i].toString());
             int bars = DecisionManager.calcAllFrom;
             int fromIndex = data.getBarIndex(from);

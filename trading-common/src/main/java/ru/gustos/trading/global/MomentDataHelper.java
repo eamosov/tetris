@@ -159,20 +159,13 @@ public class MomentDataHelper {
         set.setClassIndex(set.numAttributes()-1);
         return set;
     }
-    public Instances makeSet(MomentDataProvider[] data, HashSet<String> ignoreAttributes, int from, int index, int futureAttribute, int level){
-        Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
-        for (int i = from;i<Math.min(index,data.length);i++) if (data[i]!=null && data[i].getMomentData().whenWillKnow<index)
-            set.add(makeInstance(data[i].getMomentData(),ignoreAttributes, futureAttribute, level));
-
-        return set;
-    }
 
     public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level){
         return makeSet(data,ignoreAttributes,from,to,endtime,futureAttribute,level,0);
     }
     public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level, double weightFrom){
         Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
-        for (int i = from;i<Math.min(to,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime && data.get(i).getMomentData().weight>weightFrom)
+        for (int i = from;i<Math.min(to,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime && data.get(i).getMomentData().weight>=weightFrom)
             set.add(makeInstance(data.get(i).getMomentData(),ignoreAttributes, futureAttribute, level));
 
         return set;

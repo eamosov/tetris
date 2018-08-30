@@ -31,7 +31,7 @@ public class DecisionManager {
     }
 
 
-    InstrumentData data;
+    public InstrumentData data;
 
     public InstrumentData futuredata; // for pizdunstvo check
 
@@ -93,7 +93,7 @@ public class DecisionManager {
 
     @NotNull
     public Decision decision() {
-        MomentData mldata = data.bars.get(calc.calcIndex - 1).mldata;
+        MomentData mldata = data.data.get(calc.calcIndex - 1);
         boolean classifiedBuy = data.helper.get(mldata, "@goodBuy|main") > 0.5;
         boolean classifiedSell = data.helper.get(mldata, "@goodSell|main") > 0.5;
 
