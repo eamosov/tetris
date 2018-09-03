@@ -13,10 +13,7 @@ import ru.efreet.trading.exchange.impl.Binance
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.Periodical
-import ru.efreet.trading.utils.loadFromJson
-import ru.efreet.trading.utils.storeAsJson
+import ru.efreet.trading.utils.*
 import java.io.FileNotFoundException
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -153,7 +150,7 @@ class MlBot {
             startTrade(bot)
         }
 
-        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}")
+        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}, total: ${trader.deposit().round2()}$, BNB: ${trader.balances["BNB"]?.round2() ?: 0.0F})")
         while (true) {
             Thread.sleep(1000)
 

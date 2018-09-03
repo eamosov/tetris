@@ -35,7 +35,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     val usd: Float get() = balance("USDT")
 
     private lateinit var ticker: Map<Instrument, Ticker>
-    private lateinit var balances: Map<String, Float>
+    lateinit var balances: Map<String, Float>
 
     private val lastBuy = mutableMapOf<Instrument, XBar>()
 
@@ -163,7 +163,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                     lastBuy[advice.instrument] = advice.bar
 
                     try {
-                        val message = "BUY ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total=${deposit().round2()}$"
+                        val message = "BUY ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit().round2()}$, BNB: ${balances["BNB"]?.round2() ?: 0.0F}"
                         log.info("telegram: {}", message)
                         telegram?.sendMessage(message)
                     } catch (e: Exception) {
@@ -201,7 +201,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
                     iTradeHistory(advice.instrument).trades.add(trade)
                     tradeRecordDao?.create(trade)
                     try {
-                        val message = "SELL ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total=${deposit().round2()}$"
+                        val message = "SELL ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit().round2()}$, BNB: ${balances["BNB"]?.round2() ?: 0.0F}"
                         log.info("telegram: {}", message)
 
                         telegram?.sendMessage(message)
@@ -262,7 +262,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), getOpenOrders(i))
         }
 
-        log.info("total: {} + {} BNB", deposit().round2(), balances["BNB"]?.round2() ?: 0.0F)
+        log.info("total: {}$, BNB: {}", deposit().round2(), balances["BNB"]?.round2() ?: 0.0F)
     }
 
     companion object {
