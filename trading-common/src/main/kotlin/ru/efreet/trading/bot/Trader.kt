@@ -262,7 +262,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), getOpenOrders(i))
         }
 
-        log.info("total: {}", deposit().round2())
+        log.info("total: {} + {} BNB", deposit().round2(), balances["BNB"]?.round2() ?: 0.0F)
     }
 
     companion object {
