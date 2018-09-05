@@ -35,6 +35,7 @@ public class TestGlobal{
             new Instrument("ONT","USDT"),
             new Instrument("NULS","USDT"),
             new Instrument("VET","USDT"),
+
 //            new Instrument("QTUM","USDT"),
 //            new Instrument("IOTA","USDT"),
 //            new Instrument("ADA","USDT"),
@@ -126,9 +127,9 @@ public class TestGlobal{
         TimeSeriesDouble h3 = global.planalyzer3.makeHistory(false, moneyPart, null);
         System.out.println(h2.lastOrZero());
         System.out.println(h3.lastOrZero());
-//        String res = name+" ignores "+ignorestring+"\n";
+        String res = name+"\n";
         String out = ZonedDateTime.now().toLocalDateTime().toString()+"\n";
-//        out+=res;
+        out+=res;
         out+=TestGlobalConfig.config.toString()+"\n";
         out+=h2.lastOrZero()+"\n";
         out+=h3.lastOrZero()+"\n";
@@ -171,13 +172,14 @@ public class TestGlobal{
             DecisionManager c = new DecisionManager(config,new InstrumentData(data, bars), cpus, false, fromIndex);
 //            c.dontRenewAfter = data.getBarIndex(dontRenewAfter);
             data.global = null;
-            new DecisionManager(config, data, cpus, true,0); // calc future
-            c.futuredata = data;
+//            new DecisionManager(config, data, cpus, true,0); // calc future
+//            c.futuredata = data;
             for (;bars<data.size();bars++){
                 c.checkNeedRenew(false);
                 c.addBar(data.bar(bars));
             }
-            kappas[i] = c.models.kappas/Math.max(1,c.models.kappascnt);
+            kappas[i] = c.models.model.kappas/Math.max(1,c.models.model.kappascnt);
+            System.out.println(global.planalyzer2.profits());
         }
 //        long toTime = ZonedDateTime.now().toEpochSecond();
 //        long time = global.minTime;

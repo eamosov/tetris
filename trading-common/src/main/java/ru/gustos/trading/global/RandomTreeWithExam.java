@@ -499,6 +499,10 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         return res.stream().map(i -> inst.attribute(i).name()).sorted().collect(Collectors.joining(","));
     }
 
+    public void collectAttributes(HashSet<Integer> set){
+        m_Tree.collectAttributes(set);
+    }
+
     public void findGoodBranches(double minWeight, PriorityQueue<Branch> collect, int count, int maxClass) {
         m_Tree.findGoodBranches(minWeight, collect, count, maxClass, new Branch(m_Info));
 
@@ -1364,6 +1368,7 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         public double tested_d0,tested_d1;
         public double test_w0, test_w1;
         public ArrayList<Condition> splits;
+
         public Instances set;
         public boolean penaltied = false;
 
@@ -1425,6 +1430,14 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             return sb.toString();
         }
 
+        public boolean checkSkipping(Instance inst, int skipAttr) {
+            for (int i = 0;i<splits.size();i++){
+                if (splits.get(i).attribute!=skipAttr && !splits.get(i).check(inst))
+                    return false;
+            }
+            return true;
+        }
+
         public boolean check(Instance ii, int canBeWrong) {
             for (Condition c : splits){
                 if (!c.check(ii) && (canBeWrong--)<=0)
@@ -1432,6 +1445,10 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
             }
             return true;
 
+        }
+
+        public int[] attributes(){
+            return splits.stream().mapToInt(s->s.attribute).distinct().toArray();
         }
 
         public boolean test(Instances test) {
@@ -1454,6 +1471,14 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         public void collectPizdunstvo(double[] atts, double weight) {
             for (int i = 0;i<splits.size();i++)
                 atts[splits.get(i).attribute]+=weight;
+        }
+
+        public int size() {
+            return splits.size();
+        }
+
+        public void removeAttribute(Set<Integer> ignore) {
+            splits.removeIf(s->ignore.contains(s.attribute));
         }
     }
 
@@ -1479,3 +1504,5 @@ public class RandomTreeWithExam extends AbstractClassifier implements OptionHand
         }
     }
 }
+
+

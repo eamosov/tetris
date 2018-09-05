@@ -1,5 +1,6 @@
 package ru.gustos.trading.tests;
 
+import com.google.common.collect.Sets;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.*;
@@ -7,6 +8,8 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
 
 import static ru.gustos.trading.tests.TestGlobal.instruments;
 
@@ -14,6 +17,8 @@ public class TestBuySell {
 
     static PLHistory total;
     static int days = 1;
+    static HashSet<String> ignoreBuy = Sets.newHashSet();//,"sd_lag1","sd_delta1","sd_lag2","sd_delta2","macd0","macd1","macd2","macd3");
+    
 
     public static void main(String[] args) throws Exception {
         for (Instrument instr : instruments) {
@@ -38,12 +43,12 @@ public class TestBuySell {
             System.out.println("profit with sl 3:" + total.profitWithStoploss(0.03));
             System.out.println("profit with sl 4:" + total.profitWithStoploss(0.04));
             System.out.println("profit with sl 5:" + total.profitWithStoploss(0.05));
+            System.out.println("profit with tp 0.3:" + total.profitWithTakeprofit(0.003));
             System.out.println("profit with tp 0.5:" + total.profitWithTakeprofit(0.005));
+            System.out.println("profit with tp 0.75:" + total.profitWithTakeprofit(0.0075));
             System.out.println("profit with tp 1:" + total.profitWithTakeprofit(0.01));
+            System.out.println("profit with tp 1.25:" + total.profitWithTakeprofit(0.0125));
             System.out.println("profit with tp 1.5:" + total.profitWithTakeprofit(0.015));
-            System.out.println("profit with tp 2:" + total.profitWithTakeprofit(0.02));
-            System.out.println("profit with tp 3:" + total.profitWithTakeprofit(0.03));
-            System.out.println("profit with tp 4:" + total.profitWithTakeprofit(0.04));
         }
 
 //        fillBuySell(data, true);
@@ -79,11 +84,11 @@ public class TestBuySell {
 
 //        for (int i = 0; i < 5; i++) {
 //            System.out.println(i+")");
-        train = c.data.buyhelper.makeSet(c.data.buydata(), c.ignoreBuy, from, to - validPeriod, time, 0, 9, 0);
+        train = c.data.buyhelper.makeSet(c.data.buydata(), ignoreBuy, null, from, to /*- validPeriod*/, time, 0, 9, 0);
 //        System.out.println("before: " + test(c, from, train.size()).all.toString());
         buy = new GustosBranches();
-        buy.build(train, 10, 100);
-//        buy.buildSelectingAttributes(train, 5,10, 100);
+//        buy.build(train, 10, 100);
+        buy.buildSelectingAttributes(train, 3,4, 100);
 //        buy.limit = bestLimitBuy(c, train, from, buy,10000);
 
 
@@ -91,7 +96,7 @@ public class TestBuySell {
 
 //        System.out.println("after buy: " + test(c, from, train.size()).all.toString());
 //        c.calc.prepareGoodSell();
-//        train = c.data.helper.makeSet(c.data.data(), c.ignoreBuy, from, to, time, 1, 9, 0);
+//        train = c.data.helper.makeSet(c.data.data(), ignoreBuy, from, to, time, 1, 9, 0);
 //        sell = new GustosBranches();
 //        sell.build(train, 10, 100);
 //        sell.limit = bestLimitSell(c, train, from, sell);
@@ -103,8 +108,10 @@ public class TestBuySell {
 
 
         //      System.out.println("train: " + test(c, buy, sell, train, from).all.toString());
-        Instances valid = c.data.buyhelper.makeSet(c.data.buydata(), c.ignoreBuy, validFrom, to, Long.MAX_VALUE, 0, 9, 0);
-        Instances exam = c.data.buyhelper.makeSet(c.data.buydata(), c.ignoreBuy, examFrom, to + 24 * 60*days, Long.MAX_VALUE, 0, 9, 0);
+        Instances valid = c.data.buyhelper.makeSet(c.data.buydata(), ignoreBuy, null, validFrom, to, Long.MAX_VALUE, 0, 9, 0);
+        Instances exam = c.data.buyhelper.makeSet(c.data.buydata(), ignoreBuy, null, examFrom, to + 24 * 60*days, Long.MAX_VALUE, 0, 9, 0);
+        buy.printBranchStats("valid ",valid);
+        buy.printBranchStats("exam ",exam);
         examres = exam(c, buy, null, valid, validFrom, exam, examFrom);
 //        }
         return examres;
@@ -114,12 +121,16 @@ public class TestBuySell {
         int wasb = buy.limit;
 //        int wass = sell.limit;
 //        bestLimit(c, valid, validFrom, buy, sell);
-        int limit = bestLimitBuy(c, valid, validFrom, buy, 10);
+
+        int limit = bestLimitBuy(c, valid, validFrom, buy, 10,2);
         buy.limit = limit;
         System.out.println("possibilities:");
-        bestLimitBuy(c, exam, examFrom, buy, 10);
+        bestLimitBuy(c, exam, examFrom, buy, 10,1);
         if (limit == 1) return 1;
-        fill(c, buy, "gustosBuy");
+
+
+        fill(c, buy, c.data.buys);
+        c.calc.prepareGoodBuy();
 //        PLHistory h = test(c, examFrom, exam.size());
         PLHistory h = test(c, examFrom, exam.size(), total);
         System.out.println("EXAM: " + h.all.toString());
@@ -142,7 +153,7 @@ public class TestBuySell {
             XBar bar = c.data.bars.get(index);
             double close = bar.getClosePrice();
             long time = bar.getEndTime().toEpochSecond();
-            if (c.data.helper.get(c.data.data.get(index), "gustosSell") > 0) {
+            if (c.data.sells.get(index)) {
                 if (total != null)
                     total.sellMoment(close, time);
                 h.sellMoment(close, time);
@@ -169,8 +180,8 @@ public class TestBuySell {
             int ind = buys.get(i);
             double buyCost = c.data.bars.get(ind).getClosePrice();
             if (buyCost > sellCost) {
-                Instance inst = c.data.buyhelper.makeInstance(c.data.buydata.get(ind), c.ignoreBuy, 0, 9);
-                inst.setDataset(c.data.buyhelper.makeEmptySet(c.ignoreBuy, 0, 9));
+                Instance inst = c.data.buyhelper.makeInstance(c.data.buydata.get(ind), ignoreBuy, null,0, 9);
+                inst.setDataset(c.data.buyhelper.makeEmptySet(ignoreBuy, null, 0, 9));
                 buy.correctBad(inst);
             }
         }
@@ -180,17 +191,27 @@ public class TestBuySell {
 
     private static PLHistory test(DecisionManager c, int from, int count, PLHistory total) {
         PLHistory h = new PLHistory(c.data.instrument.toString(), null);
+        int goodBuy = 0, gustosBuy = 0, goodGustosBuy = 0, gustosSell = 0;
+        StringBuilder buyIndexes =  new StringBuilder();
         for (int j = 0; j < count; j++) {
             int index = from + j;
             XBar bar = c.data.bars.get(index);
             double close = bar.getClosePrice();
             long time = bar.getEndTime().toEpochSecond();
-            if (c.data.helper.get(c.data.data.get(index), "gustosSell") > 0) {
+            boolean good = c.data.helper.get(c.data.data.get(index), "_goodBuy") > 0 && c.data.data.get(index).weight > 0.3;
+            if (good)
+                goodBuy ++;
+            if (c.data.sells.get(index)) {
+                gustosSell++;
                 h.sellMoment(close, time);
                 if (total!=null)
                     total.sellMoment(close, time);
-            }else if (c.data.helper.get(c.data.data.get(index), "gustosBuy") > 0) {
-                h.buyMoment(close, time);
+            }else if (c.data.buys.get(index)) {
+                gustosBuy++;
+                if (good)
+                    goodGustosBuy++;
+                if (h.buyMoment(close, time))
+                    buyIndexes.append(" ").append(j).append(good?"+":"-");
                 if (total!=null)
                     total.buyMoment(close, time);
             } else if (total!=null) {
@@ -198,32 +219,32 @@ public class TestBuySell {
                 total.maxCost(bar.getMaxPrice(), time);
             }
         }
+        System.out.println(String.format("goodbuys: %.3g%%, gustosbuys: %.3g%%, good gustosbuys: %.3g%%, gustosSells: %.3g%% %s", goodBuy*100.0/count, gustosBuy*100.0/count, goodGustosBuy*100.0/count,gustosSell*100.0/count,buyIndexes.toString()));
         return h;
     }
 
     private static boolean checkBuy(DecisionManager c, GustosBranches br, int index) {
-        Instance inst = c.data.buyhelper.makeInstance(c.data.buydata.get(index), c.ignoreBuy, 0, 9);
-        inst.setDataset(c.data.buyhelper.makeEmptySet(c.ignoreBuy, 0, 9));
+        Instance inst = c.data.buyhelper.makeInstance(c.data.buydata.get(index), ignoreBuy, null, 0, 9);
+        inst.setDataset(c.data.buyhelper.makeEmptySet(ignoreBuy, null, 0, 9));
         return br.check(inst);
     }
 
-    private static void fill(DecisionManager c, GustosBranches br, String key) {
-        for (int i = 0; i < c.data.size(); i++) {
-            MomentData md = c.data.data.get(i);
-            c.data.helper.put(md, key, checkBuy(c, br, i) ? 1 : 0, true);
-        }
+    private static void fill(DecisionManager c, GustosBranches br, BitSet bits) {
+        for (int i = 0; i < c.data.size(); i++)
+            bits.set(i,checkBuy(c, br, i));
+
     }
 
-    private static int bestLimitBuy(DecisionManager c, Instances set, int from, GustosBranches buy, int maxtrades) {
+    private static int bestLimitBuy(DecisionManager c, Instances set, int from, GustosBranches buy, int maxtrades, int fromCount) {
         int best = 1;
         double profit = 1;
         System.out.println("find limit for buy:");
-        for (int i = 2; i < 200; i++) {
+        for (int i = Math.max(1,fromCount); i < 200; i++) {
             PLHistory h = new PLHistory(c.data.instrument.toString(), null);
             for (int j = 0; j < set.size(); j++) {
                 int index = from + j;
                 XBar bar = c.data.bars.get(index);
-                if (c.data.helper.get(c.data.data.get(index), "gustosSell") > 0) {
+                if (c.data.sells.get(index)) {
                     h.sellMoment(bar.getClosePrice(), bar.getEndTime().toEpochSecond());
                 } else if (buy.check(set.get(j), 0, i, 1))
                     h.buyMoment(bar.getClosePrice(), bar.getEndTime().toEpochSecond());
@@ -249,7 +270,7 @@ public class TestBuySell {
             for (int j = 0; j < train.size(); j++) {
                 int index = from + j;
                 XBar bar = c.data.bars.get(index);
-                if (c.data.helper.get(c.data.data.get(index), "gustosBuy") > 0) {
+                if (c.data.buys.get(index)) {
                     h.buyMoment(bar.getClosePrice(), bar.getEndTime().toEpochSecond());
                 } else {
                     boolean check = sell.check(train.get(j), 0, i, 1);

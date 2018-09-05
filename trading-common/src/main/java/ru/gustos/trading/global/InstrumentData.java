@@ -10,6 +10,7 @@ import ru.gustos.trading.global.timeseries.TimeSeries;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,8 @@ public class InstrumentData implements BarsSource{
     public ArrayList<MomentData> data;
     public ArrayList<MomentData> buydata;
     public ArrayList<MomentData> selldata;
+    public BitSet buys = new BitSet();
+    public BitSet sells = new BitSet();
 
     public Instrument instrument;
     public Exchange exchange;
@@ -35,7 +38,6 @@ public class InstrumentData implements BarsSource{
         instrument = instr;
         this.withml = withml;
         this.withbuysell = withbuysell;
-
         this.global = global;
         this.bars = new TimeSeries<>(bars.size());
         totalBar = null;
@@ -56,7 +58,7 @@ public class InstrumentData implements BarsSource{
     }
 
     public InstrumentData(InstrumentData data, int count){
-        this(data.exchange,data.instrument, data.getBars(count),data.global, true, false);
+        this(data.exchange,data.instrument, data.getBars(count),data.global, data.withml, data.withbuysell);
     }
 
     private List<XBar> getBars(int count) {
@@ -72,7 +74,7 @@ public class InstrumentData implements BarsSource{
         if (withml) {
             data.add(new MomentData(100));
             if (withbuysell) {
-                buydata.add(new MomentData(300));
+                buydata.add(new MomentData(600));
                 selldata.add(new MomentData(10));
             }
         }
@@ -91,7 +93,7 @@ public class InstrumentData implements BarsSource{
             for (int i = 0;i<bars.size();i++){
                 data.add(new MomentData(100));
                 if (withbuysell) {
-                    buydata.add(new MomentData(300));
+                    buydata.add(new MomentData(600));
                     selldata.add(new MomentData(10));
                 }
             }
@@ -213,16 +215,16 @@ class GustosLogicStrategy implements PlayStrategy{
     public Pair<Double, Integer> calcProfit(InstrumentData data, int from) {
         double buy = data.bar(from).getClosePrice();
         for (int i = from+1;i<data.size();i++){
-            if (data.helper.get(data.data.get(i),"gustosSell")==1.0 ){
-                return new Pair<>(data.bars.get(i).getClosePrice()/buy,i);
-            }
+            if (data.sells.get(i))
+                return new Pair<>(data.bars.get(i).getClosePrice()/buy-0.002,i);
+
         }
         return new Pair<>(1.0, Integer.MAX_VALUE);
     }
 
     public int nextSell(InstrumentData data, int from){
         for (int i = from+1;i<data.size();i++)
-            if (data.helper.get(data.data.get(i),"gustosSell")==1.0 )
+            if (data.sells.get(i))
                 return i;
 
         return Integer.MAX_VALUE;
