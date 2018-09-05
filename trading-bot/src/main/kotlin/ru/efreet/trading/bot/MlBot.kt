@@ -13,10 +13,7 @@ import ru.efreet.trading.exchange.impl.Binance
 import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.Periodical
-import ru.efreet.trading.utils.loadFromJson
-import ru.efreet.trading.utils.storeAsJson
+import ru.efreet.trading.utils.*
 import java.io.FileNotFoundException
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -39,7 +36,21 @@ class MlBot {
 
     private val balanceTimer = Periodical(Duration.ofMinutes(5))
 
+    private inline fun <T> logDuration(comment: String, block: () -> T): T {
+        val start = System.currentTimeMillis()
+        try {
+            return block()
+        } finally {
+            val end = System.currentTimeMillis()
+            if (end - start > 1000) {
+                log.warn("{}: {}ms", comment, end - start)
+            }
+        }
+    }
+
     private fun onBar(instrument: Instrument, bar: XBar, isFinal: Boolean) {
+
+        val start = System.currentTimeMillis()
 
         try {
             val bot = bots[instrument]!!
@@ -52,28 +63,37 @@ class MlBot {
 
                 log.info("Receive final bar for {}: {}", instrument, bar)
 
-                cache.saveBar(exchange.getName(), instrument, bar)
-
-                bot.logic.insertBar(bar)
-                val advice = bot.logic.getAdvice(true)
-
-                if (advice.decision != Decision.NONE) {
-                    log.info("ADVICE: {}", advice)
+                logDuration("Saving bar ${bar}") {
+                    cache.saveBar(exchange.getName(), instrument, bar)
                 }
 
-                val trade = try {
-                    tryMultipleTimes(5) { trader.executeAdvice(advice) }
-                } catch (e: Throwable) {
+                logDuration("logic.insertBar ${bar}") {
+                    bot.logic.insertBar(bar)
+                }
+
+                if (Duration.between(bar.endTime, ZonedDateTime.now()).toMinutes() > 1) {
+                    log.error("Skip bar {}", bar)
+                    telegram?.sendMessage("Skip bar $bar")
+                } else {
+                    val advice = logDuration("getAdvice") { bot.logic.getAdvice(true) }
+
                     if (advice.decision != Decision.NONE) {
-                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                        log.info("ADVICE: {}", advice)
                     }
-                    throw e
-                }
 
-                if (trade != null) {
-                    log.info("TRADE: $trade")
-                }
+                    val trade = try {
+                        logDuration("Executing advise") { tryMultipleTimes(5) { trader.executeAdvice(advice) } }
+                    } catch (e: Throwable) {
+                        if (advice.decision != Decision.NONE) {
+                            telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                        }
+                        throw e
+                    }
 
+                    if (trade != null) {
+                        log.info("TRADE: $trade")
+                    }
+                }
             }
 
             balanceTimer.invoke({
@@ -85,6 +105,11 @@ class MlBot {
 
         } catch (e: Throwable) {
             log.error("Error in onBar", e)
+        } finally {
+            val end = System.currentTimeMillis()
+            if (end - start > 1000) {
+                log.warn("Processing bar {} with {}ms", bar.toString(), end - start)
+            }
         }
     }
 
@@ -153,7 +178,8 @@ class MlBot {
             startTrade(bot)
         }
 
-        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}")
+        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}, total: ${trader.deposit().round2()}$, BNB: ${trader.balances["BNB"]?.round2()
+                ?: 0.0F})")
         while (true) {
             Thread.sleep(1000)
 

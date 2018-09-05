@@ -55,7 +55,7 @@ class Telegram(val tocken: String, val proxyHost: String, val proxyPort: Int, va
     companion object {
         fun create(): Telegram {
             val prop = Properties()
-            prop.load(this.javaClass.classLoader.getResourceAsStream("application.properties"))
+            prop.load(this::class.java.classLoader.getResourceAsStream("application.properties"))
             return Telegram(prop.getProperty("TELEGRAM_TOCKEN"),
                     prop.getProperty("TELEGRAM_PROXY_HOST"),
                     prop.getProperty("TELEGRAM_PROXY_PORT").toInt(),
