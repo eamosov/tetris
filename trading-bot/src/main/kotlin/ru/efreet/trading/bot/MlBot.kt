@@ -38,6 +38,8 @@ class MlBot {
 
     private fun onBar(instrument: Instrument, bar: XBar, isFinal: Boolean) {
 
+        val start = System.currentTimeMillis()
+
         try {
             val bot = bots[instrument]!!
 
@@ -52,25 +54,30 @@ class MlBot {
                 cache.saveBar(exchange.getName(), instrument, bar)
 
                 bot.logic.insertBar(bar)
-                val advice = bot.logic.getAdvice(true)
 
-                if (advice.decision != Decision.NONE) {
-                    log.info("ADVICE: {}", advice)
-                }
+                if (Duration.between(bar.endTime, ZonedDateTime.now()).toMinutes() > 1) {
+                    log.error("Skip bar {}", bar)
+                    telegram?.sendMessage("Skip bar $bar")
+                } else {
+                    val advice = bot.logic.getAdvice(true)
 
-                val trade = try {
-                    tryMultipleTimes(5) { trader.executeAdvice(advice) }
-                } catch (e: Throwable) {
                     if (advice.decision != Decision.NONE) {
-                        telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                        log.info("ADVICE: {}", advice)
                     }
-                    throw e
-                }
 
-                if (trade != null) {
-                    log.info("TRADE: $trade")
-                }
+                    val trade = try {
+                        tryMultipleTimes(5) { trader.executeAdvice(advice) }
+                    } catch (e: Throwable) {
+                        if (advice.decision != Decision.NONE) {
+                            telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                        }
+                        throw e
+                    }
 
+                    if (trade != null) {
+                        log.info("TRADE: $trade")
+                    }
+                }
             }
 
             balanceTimer.invoke({
@@ -82,6 +89,11 @@ class MlBot {
 
         } catch (e: Throwable) {
             log.error("Error in onBar", e)
+        } finally {
+            val end = System.currentTimeMillis()
+            if (end - start > 1000) {
+                log.warn("Processing bar {} with {}ms", bar.toString(), end - start)
+            }
         }
     }
 
@@ -150,7 +162,8 @@ class MlBot {
             startTrade(bot)
         }
 
-        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}, total: ${trader.deposit().round2()}$, BNB: ${trader.balances["BNB"]?.round2() ?: 0.0F})")
+        telegram?.sendMessage("Bot have been started with config: ${botConfig.toString()}, total: ${trader.deposit().round2()}$, BNB: ${trader.balances["BNB"]?.round2()
+                ?: 0.0F})")
         while (true) {
             Thread.sleep(1000)
 
