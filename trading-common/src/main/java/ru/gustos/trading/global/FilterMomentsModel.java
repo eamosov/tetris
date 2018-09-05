@@ -105,6 +105,11 @@ public class FilterMomentsModel {
             attFilter = new J48AttributeFilter(5, 0.3);
             attFilter.prepare(set1);
             set1 = attFilter.filter(set1);
+            if (set1.numAttributes()<=1){
+                model.full = false;
+                System.out.println("all attributes removed after filtering");
+                return;
+            }
 
             RandomForestWithExam rf = new RandomForestWithExam();
             rf.setNumExecutionSlots(manager.cpus);

@@ -17,7 +17,7 @@ public class CalcConfig{
     public int learnIntervalBuy = 180;
     public int learnIntervalSell = 180;
     public int maxDepth = 10;
-    
+
 
     public static CalcConfig load(String path) throws IOException {
         return new Gson().fromJson(FileUtils.readFileToString(new File(path)),CalcConfig.class);

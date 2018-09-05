@@ -91,7 +91,7 @@ public class DecisionManager {
     public Decision decision() {
         MomentData mldata = data.data.get(calc.calcIndex - 1);
         boolean classifiedBuy = data.helper.get(mldata, "@goodBuy|main") > 0.5;
-        boolean classifiedSell = data.helper.get(mldata, "@goodSell|main") > 0.5;
+        boolean classifiedSell = true;//data.helper.get(mldata, "@goodSell|main") > 0.5;
 
         boolean gbuy = data.buys.get(calc.calcIndex - 1);//data.helper.get(mldata, "gustosBuy") > 0.5;
         boolean gsell = data.sells.get(calc.calcIndex - 1);//data.helper.get(mldata, "gustosSell") > 0.5;
