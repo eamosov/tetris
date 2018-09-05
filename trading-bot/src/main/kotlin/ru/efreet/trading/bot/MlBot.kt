@@ -36,6 +36,18 @@ class MlBot {
 
     private val balanceTimer = Periodical(Duration.ofMinutes(5))
 
+    private inline fun <T> logDuration(comment: String, block: () -> T): T {
+        val start = System.currentTimeMillis()
+        try {
+            return block()
+        } finally {
+            val end = System.currentTimeMillis()
+            if (end - start > 1000) {
+                log.warn("{}: {}ms", comment, end - start)
+            }
+        }
+    }
+
     private fun onBar(instrument: Instrument, bar: XBar, isFinal: Boolean) {
 
         val start = System.currentTimeMillis()
@@ -51,22 +63,26 @@ class MlBot {
 
                 log.info("Receive final bar for {}: {}", instrument, bar)
 
-                cache.saveBar(exchange.getName(), instrument, bar)
+                logDuration("Saving bar ${bar}") {
+                    cache.saveBar(exchange.getName(), instrument, bar)
+                }
 
-                bot.logic.insertBar(bar)
+                logDuration("logic.insertBar ${bar}") {
+                    bot.logic.insertBar(bar)
+                }
 
                 if (Duration.between(bar.endTime, ZonedDateTime.now()).toMinutes() > 1) {
                     log.error("Skip bar {}", bar)
                     telegram?.sendMessage("Skip bar $bar")
                 } else {
-                    val advice = bot.logic.getAdvice(true)
+                    val advice = logDuration("getAdvice") { bot.logic.getAdvice(true) }
 
                     if (advice.decision != Decision.NONE) {
                         log.info("ADVICE: {}", advice)
                     }
 
                     val trade = try {
-                        tryMultipleTimes(5) { trader.executeAdvice(advice) }
+                        logDuration("Executing advise") { tryMultipleTimes(5) { trader.executeAdvice(advice) } }
                     } catch (e: Throwable) {
                         if (advice.decision != Decision.NONE) {
                             telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")

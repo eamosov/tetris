@@ -67,7 +67,7 @@ class Simulator(val cmd: CmdArgs) {
 
         exchange.setBalance("USDT", state.usd)
 
-        val trader = Trader(null, exchange, state.usdLimit, state.instruments.stream().collect(Collectors.toMap({ it }, { state.betLimit })))
+        val trader = Trader(null, exchange, state.usdLimit, state.instruments.stream().collect(Collectors.toMap({ it }, { state.betLimit })), updateBalancesTimeout = -1, updateTickerTimeout = -1)
 
         val simulateData = arrayListOf<SimulateData>()
 
