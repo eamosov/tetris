@@ -95,8 +95,8 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             exchange.setTicker(advice.instrument, advice.bar)
         }
 
-        updateTicker()
-        updateBalance()
+        updateTicker(logicAdvice.decision != Decision.NONE)
+        updateBalance(logicAdvice.decision != Decision.NONE)
 
         val td = iTradeHistory(advice.instrument)
 
