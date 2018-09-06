@@ -10,38 +10,59 @@ import ru.gustos.trading.global.timeseries.TimeSeries;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class InstrumentData implements BarsSource{
-    public TimeSeries<InstrumentMoment> bars;
+    public TimeSeries<XBar> bars;
+    public ArrayList<MomentData> data;
+    public ArrayList<MomentData> buydata;
+    public ArrayList<MomentData> selldata;
+    public BitSet buys = new BitSet();
+    public BitSet sells = new BitSet();
+
     public Instrument instrument;
     public Exchange exchange;
     public MomentDataHelper helper;
-    public MomentDataHelper helper2;
+    public MomentDataHelper buyhelper;
+    public MomentDataHelper sellhelper;
     public Global global;
 
     XBaseBar totalBar;
 
-    public InstrumentData(Exchange exch, Instrument instr, List<? extends XBar> bars, Global global){
+    boolean withml, withbuysell;
+
+    public InstrumentData(Exchange exch, Instrument instr, List<? extends XBar> bars, Global global, boolean withml, boolean withbuysell){
         exchange = exch;
         instrument = instr;
+        this.withml = withml;
+        this.withbuysell = withbuysell;
         this.global = global;
         this.bars = new TimeSeries<>(bars.size());
         totalBar = null;
+        if (withml) {
+            data = new ArrayList<>();
+            helper = new MomentDataHelper();
+            if (withbuysell) {
+                buydata = new ArrayList<>();
+                selldata = new ArrayList<>();
+                buyhelper = new MomentDataHelper();
+                sellhelper = new MomentDataHelper();
+            }
+        }
+
         for (int i = 0;i<bars.size();i++)
             addBar(bars.get(i));
 
-        helper = new MomentDataHelper();
-        helper2 = new MomentDataHelper();
     }
 
     public InstrumentData(InstrumentData data, int count){
-        this(data.exchange,data.instrument, data.getBars(count),data.global);
+        this(data.exchange,data.instrument, data.getBars(count),data.global, data.withml, data.withbuysell);
     }
 
     private List<XBar> getBars(int count) {
-        return bars.direct().stream().limit(count).map(d->d.bar).collect(Collectors.toList());
+        return bars.direct().stream().limit(count).collect(Collectors.toList());
     }
 
     public void addBar(XBar bar){
@@ -49,9 +70,35 @@ public class InstrumentData implements BarsSource{
             totalBar = new XBaseBar(bar);
         else
             totalBar.addBar(bar);
-        bars.add(new InstrumentMoment(bar), bar.getEndTime().toEpochSecond());
+        bars.add(bar, bar.getEndTime().toEpochSecond());
+        if (withml) {
+            data.add(new MomentData(100));
+            if (withbuysell) {
+                buydata.add(new MomentData(600));
+                selldata.add(new MomentData(10));
+            }
+        }
     }
 
+    public void resetMlData() {
+        if (withml) {
+            data = new ArrayList<>();
+            helper = new MomentDataHelper();
+            if (withbuysell) {
+                buydata = new ArrayList<>();
+                selldata = new ArrayList<>();
+                buyhelper = new MomentDataHelper();
+                sellhelper = new MomentDataHelper();
+            }
+            for (int i = 0;i<bars.size();i++){
+                data.add(new MomentData(100));
+                if (withbuysell) {
+                    buydata.add(new MomentData(600));
+                    selldata.add(new MomentData(10));
+                }
+            }
+        }
+    }
 
     public long getBeginTime() {
         return bars.getBeginTime();
@@ -61,13 +108,6 @@ public class InstrumentData implements BarsSource{
         return bars.getEndTime();
     }
 
-    public double getChange(long time, int interval) {
-        InstrumentMoment m1 = bars.getAt(time);
-        InstrumentMoment m2 = bars.getAt(time-interval);
-        if (m1==null || m2==null) return 1;
-        return m1.bar.getClosePrice()/m2.bar.getClosePrice();
-    }
-
     @Override
     public int size() {
         return bars.size();
@@ -75,11 +115,12 @@ public class InstrumentData implements BarsSource{
 
     @Override
     public XBar bar(int index) {
-        return bars.get(index).bar;
+        return bars.get(index);
     }
 
-    public List<InstrumentMoment> moments(){return bars.direct();}
-    public List<MomentData> data2(){return bars.direct().stream().map(b->b.mldata2).collect(Collectors.toList());}
+    public List<MomentData> data(){return data;}
+    public List<MomentData> buydata(){return buydata;}
+    public List<MomentData> selldata(){return selldata;}
 
     @Override
     public XBar totalBar() {
@@ -99,6 +140,7 @@ public class InstrumentData implements BarsSource{
         if (index<0) return null;
         return bar(index);
     }
+
 }
 
 
@@ -173,16 +215,16 @@ class GustosLogicStrategy implements PlayStrategy{
     public Pair<Double, Integer> calcProfit(InstrumentData data, int from) {
         double buy = data.bar(from).getClosePrice();
         for (int i = from+1;i<data.size();i++){
-            if (data.helper.get(data.bars.get(i).mldata,"gustosSell")==1.0 ){
-                return new Pair<>(data.bars.get(i).bar.getClosePrice()/buy,i);
-            }
+            if (data.sells.get(i))
+                return new Pair<>(data.bars.get(i).getClosePrice()/buy-0.002,i);
+
         }
         return new Pair<>(1.0, Integer.MAX_VALUE);
     }
 
     public int nextSell(InstrumentData data, int from){
         for (int i = from+1;i<data.size();i++)
-            if (data.helper.get(data.bars.get(i).mldata,"gustosSell")==1.0 )
+            if (data.sells.get(i))
                 return i;
 
         return Integer.MAX_VALUE;

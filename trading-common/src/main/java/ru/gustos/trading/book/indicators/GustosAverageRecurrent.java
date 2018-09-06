@@ -10,6 +10,8 @@ public class GustosAverageRecurrent {
     private int window;
     private final EmaRecurrent volumeEma;
     private final EmaRecurrent volumeEmaShort;
+    private double pvalue2;
+    private double pdisp2;
     private double pvalue;
     private double pdisp;
     private double value;
@@ -31,6 +33,8 @@ public class GustosAverageRecurrent {
         window = g.window;
         pvalue = g.pvalue;
         pdisp = g.pdisp;
+        pvalue2 = g.pvalue2;
+        pdisp2 = g.pdisp2;
         value = g.value;
         disp = g.disp;
         pow1 = g.pow1;
@@ -65,6 +69,8 @@ public class GustosAverageRecurrent {
             pdisp = disp = 0;
             return;
         }
+        pvalue2 = pvalue;
+        pdisp2 = pdisp;
         pvalue = value;
         pdisp = disp;
         double oldValue = value;
@@ -114,6 +120,10 @@ public class GustosAverageRecurrent {
         return pvalue;
     }
 
+    public double pvalue2(){
+        return pvalue2;
+    }
+
     public double value(){
         return value;
     }
@@ -124,6 +134,10 @@ public class GustosAverageRecurrent {
 
     public double psd(){
         return Math.sqrt(pdisp);
+    }
+
+    public double psd2(){
+        return Math.sqrt(pdisp2);
     }
 
 

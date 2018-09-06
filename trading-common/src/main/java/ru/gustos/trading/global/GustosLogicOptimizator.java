@@ -1,6 +1,7 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.indicators.GustosAverageRecurrent;
 
 import java.util.Arrays;
@@ -23,10 +24,10 @@ public class GustosLogicOptimizator {
 
     public GustosLogicOptimizator(InstrumentData data, int from, int to) {
         this.from = from;
-        prices = data.moments().stream().skip(from).limit(to - from).mapToDouble(m -> m.bar.getClosePrice()).toArray();
-        minprices = data.moments().stream().skip(from).limit(to - from).mapToDouble(m -> m.bar.getMinPrice()).toArray();
-        maxprices = data.moments().stream().skip(from).limit(to - from).mapToDouble(m -> m.bar.getMaxPrice()).toArray();
-        volumes = data.moments().stream().skip(from).limit(to - from).mapToDouble(m -> m.bar.getVolume()).toArray();
+        prices = data.bars.direct().stream().skip(from).limit(to - from).mapToDouble(XBar::getClosePrice).toArray();
+        minprices = data.bars.direct().stream().skip(from).limit(to - from).mapToDouble(XBar::getMinPrice).toArray();
+        maxprices = data.bars.direct().stream().skip(from).limit(to - from).mapToDouble(XBar::getMaxPrice).toArray();
+        volumes = data.bars.direct().stream().skip(from).limit(to - from).mapToDouble(XBar::getVolume).toArray();
     }
 
     public void setCalcFrom(int calcFrom){

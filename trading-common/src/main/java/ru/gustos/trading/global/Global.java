@@ -53,32 +53,6 @@ public class Global {
 
     static int intervals[] = new int[]{600, 3600, 4 * 3600, 24 * 3600, 7 * 24 * 3600};
 
-    private void calcChange(InstrumentData[] ss, GlobalMoment m, long time) {
-
-        double[][] ch = new double[intervals.length][];
-        for (int j = 0; j < intervals.length; j++) {
-            ArrayList<Double> ll = new ArrayList<>();
-            for (int i = 0; i < ss.length; i++) {
-                if (ss[i].getBeginTime()+intervals[j]<time)
-                    ll.add(ss[i].getChange(time, intervals[j]));
-            }
-            ch[j] = ll.stream().mapToDouble(d->d).toArray();
-        }
-
-        for (int j = 0; j < intervals.length; j++) {
-            Arrays.sort(ch[j]);
-            int positive = 0;
-            for (int i = 0;i<ch[j].length;i++)
-               if (ch[j][i]>0) positive++;
-            m.mins[j] = ch[j][0];
-            int n = ch[j].length;
-            m.maxes[j] = ch[j][n-1];
-            m.perc50[j] = ch[j][n/2];
-            m.perc20[j] = ch[j][n/5];
-            m.perc80[j] = ch[j][n*4/5];
-            m.positive[j] = ((double)positive)/ch[j].length;
-        }
-    }
 }
 
 class GlobalMoment {

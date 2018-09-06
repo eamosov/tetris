@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class TestBacktesting {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(TestGlobal.instruments);
+        Global global = TestGlobal.init(TestGlobal.instruments,false);
         for (InstrumentData data : global.sheets.values()) {
             System.out.println(data.instrument);
             SimpleCharts charts = new SimpleCharts(data.instrument.toString(),3);

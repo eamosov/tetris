@@ -3,6 +3,7 @@ package ru.gustos.trading.global;
 import java.util.*;
 
 import kotlin.Pair;
+import ru.gustos.trading.ml.J48AttributeFilter;
 import smile.classification.RandomForest;
 import weka.classifiers.Classifier;
 import weka.core.Attribute;
@@ -39,10 +40,10 @@ public class MomentDataHelper {
         metas.add(md);
     }
 
-    public int dataAttributes(HashSet<String> ignoreAttributes, int level){
+    public int dataAttributes(HashSet<String> ignoreAttributes, J48AttributeFilter filter, int level){
         int cc = 0;
         for (int i = 0;i<metas.size();i++)
-            if (metas.get(i).data(ignoreAttributes, level))
+            if (metas.get(i).data(ignoreAttributes, filter, level))
                 cc++;
         return cc;
     }
@@ -90,7 +91,7 @@ public class MomentDataHelper {
     public void putLagged(MomentData to, MomentData from, int lag) {
         for (int i = 0;i<metas.size();i++) {
             MetaData m = metas.get(i);
-            if (m.data(null, 9) && m.key.indexOf('_') < 0) {
+            if (m.data(null, null,9) && m.key.indexOf('_') < 0) {
                 putLagged(to, m.key, from, lag);
                 putDelta(to, m.key, from, lag);
             }
@@ -124,10 +125,11 @@ public class MomentDataHelper {
         return metas.size();
     }
 
-    public ArrayList<Attribute> makeAttributes(HashSet<String> ignoreAttributes, int futureAttribute, int level) {
+    public ArrayList<Attribute> makeAttributes(HashSet<String> ignoreAttributes, J48AttributeFilter filter, int futureAttribute, int level) {
         ArrayList<Attribute> attributes = new ArrayList<>();
+
         for (MetaData meta : metas) {
-            if (meta.data(ignoreAttributes, level)) {
+            if (meta.data(ignoreAttributes, filter, level) && (filter==null || filter.isGood(meta.index))) {
                 if (meta.bool)
                     attributes.add(new Attribute(meta.key, Arrays.asList("false", "true")));
                 else
@@ -143,49 +145,49 @@ public class MomentDataHelper {
         return attributes;
     }
 
-    public Instance makeInstance(MomentData data, HashSet<String> ignoreAttributes, int futureAttribute, int level){
+    public Instance makeInstance(MomentData data, HashSet<String> ignoreAttributes, J48AttributeFilter filter, int futureAttribute, int level){
         double[] vv = data.values;
-        double[] v = new double[dataAttributes(ignoreAttributes, level)+1];
+        double[] v = new double[dataAttributes(ignoreAttributes, filter, level)+1];
         int p = 0;
         for (int j = 0;j<metas.size();j++)
-            if (metas.get(j).data(ignoreAttributes, level))
+            if (metas.get(j).data(ignoreAttributes, filter, level))
                 v[p++] = vv[metas.get(j).index];
         v[p] = vv[metas.get(futureAttributePos(futureAttribute)).index];
         return new DenseInstance(data.weight,v);
     }
 
-    public Instances makeEmptySet(HashSet<String> ignoreAttributes, int futureAttribute, int level){
-        Instances set = new Instances("data", makeAttributes(ignoreAttributes, futureAttribute, level), 10);
+    public Instances makeEmptySet(HashSet<String> ignoreAttributes, J48AttributeFilter filter, int futureAttribute, int level){
+        Instances set = new Instances("data", makeAttributes(ignoreAttributes, filter, futureAttribute, level), 10);
         set.setClassIndex(set.numAttributes()-1);
         return set;
     }
-    public Instances makeSet(MomentDataProvider[] data, HashSet<String> ignoreAttributes, int from, int index, int futureAttribute, int level){
-        Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
-        for (int i = from;i<Math.min(index,data.length);i++) if (data[i]!=null && data[i].getMomentData().whenWillKnow<index)
-            set.add(makeInstance(data[i].getMomentData(),ignoreAttributes, futureAttribute, level));
+
+    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, J48AttributeFilter filter, int from, int to, long endtime, int futureAttribute, int level){
+        return makeSet(data,ignoreAttributes, filter,from,to,endtime,futureAttribute,level,0);
+    }
+    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, J48AttributeFilter filter, int from, int to, long endtime, int futureAttribute, int level, double weightFrom){
+        Instances set = makeEmptySet(ignoreAttributes, filter, futureAttribute, level);
+        for (int i = from;i<Math.min(to,data.size());i++) {
+            MomentDataProvider d = data.get(i);
+            if (d!=null) {
+                MomentData md = d.getMomentData();
+                if (!md.ignore && md.whenWillKnow < endtime && md.weight >= weightFrom)
+                    set.add(makeInstance(md, ignoreAttributes, filter, futureAttribute, level));
+            }
+        }
 
         return set;
     }
 
-    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level){
-        return makeSet(data,ignoreAttributes,from,to,endtime,futureAttribute,level,0);
-    }
-    public Instances makeSet(List<? extends MomentDataProvider> data, HashSet<String> ignoreAttributes, int from, int to, long endtime, int futureAttribute, int level, double weightFrom){
-        Instances set = makeEmptySet(ignoreAttributes, futureAttribute, level);
-        for (int i = from;i<Math.min(to,data.size());i++) if (data.get(i)!=null && data.get(i).getMomentData().whenWillKnow<endtime && data.get(i).getMomentData().weight>weightFrom)
-            set.add(makeInstance(data.get(i).getMomentData(),ignoreAttributes, futureAttribute, level));
+    public Instance prepareInstance(MomentData mldata, HashSet<String> ignoreAttributes, J48AttributeFilter filter, int futureAttribute, int level){
+        Instance instance = makeInstance(mldata, ignoreAttributes, filter, futureAttribute, level);
+        instance.setDataset(makeEmptySet(ignoreAttributes, filter, futureAttribute,level));
 
-        return set;
-    }
-
-    public Instance prepareInstance(MomentData mldata, HashSet<String> ignoreAttributes, int futureAttribute, int level){
-        Instance instance = makeInstance(mldata, ignoreAttributes, futureAttribute, level);
-        instance.setDataset(makeEmptySet(ignoreAttributes, futureAttribute,level));
         return instance;
     }
 
-    public boolean classify(MomentData mldata, HashSet<String> ignoreAttributes, Object classifier, int futureAttribute, int level) {
-        Instance instance = prepareInstance(mldata, ignoreAttributes, futureAttribute, level);
+    public boolean classify(MomentData mldata, HashSet<String> ignoreAttributes, J48AttributeFilter filter, Object classifier, int futureAttribute, int level) {
+        Instance instance = prepareInstance(mldata, ignoreAttributes, filter, futureAttribute, level);
         if (classifier instanceof Classifier) {
             try {
                 double v = ((Classifier)classifier).classifyInstance(instance);
