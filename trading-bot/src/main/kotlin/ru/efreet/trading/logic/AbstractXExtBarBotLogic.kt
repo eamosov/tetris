@@ -1,5 +1,6 @@
 package ru.efreet.trading.logic
 
+import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.exchange.BarInterval
@@ -24,7 +25,7 @@ abstract class AbstractXExtBarBotLogic<P : Any>(name: String,
     }
 
 
-    override fun insertBar(bar: XBar) {
+    override fun insertBar(bar: XBar, marketBar: MarketBar?) {
         synchronized(this) {
             bars.add(XExtBar(bar))
 

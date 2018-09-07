@@ -126,6 +126,19 @@ class BarsCache(val path: String) {
         }
     }
 
+    fun getBar(exchange: String, instrument: Instrument, interval: BarInterval, time: ZonedDateTime): XBar? {
+        synchronized(this) {
+            conn.createStatement().use { statement ->
+                statement.executeQuery("SELECT time, open, high, low, close, volume, volumebase, volumequote, trades FROM ${tableName(exchange, instrument, interval)} WHERE time =${time.toEpochSecond()}").use { resultSet ->
+                    while (resultSet.next()) {
+                        return mapToBar(resultSet, interval)
+                    }
+                }
+            }
+        }
+        return null
+    }
+
     fun tableName(exchange: String, instrument: Instrument, interval: BarInterval): String {
         return "${exchange}_${instrument.base.toLowerCase()}_${instrument.asset.toLowerCase()}_${interval.name.toLowerCase()}"
     }

@@ -3,6 +3,7 @@ package ru.gustos.trading.global;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import ru.efreet.trading.Decision;
+import ru.efreet.trading.bars.MarketBar;
 import ru.efreet.trading.bars.XBar;
 
 import java.util.*;
@@ -63,9 +64,9 @@ public class DecisionManager {
     }
 
 
-    public void addBar(XBar bar) {
+    public void addBar(XBar bar, MarketBar marketBar) {
         models.checkTakeNewModel();
-        data.addBar(bar);
+        data.addBar(bar, marketBar);
         calc.calcTillEnd();
 
     }

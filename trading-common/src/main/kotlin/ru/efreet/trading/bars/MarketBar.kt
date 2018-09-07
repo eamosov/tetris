@@ -3,7 +3,6 @@ package ru.efreet.trading.bars
 import it.unimi.dsi.fastutil.floats.FloatArrayList
 import it.unimi.dsi.fastutil.floats.FloatList
 import java.time.ZonedDateTime
-import kotlin.math.max
 
 fun FloatList.gtZero(): Float {
     var k = 0
@@ -56,4 +55,8 @@ data class MarketBar(val endTime: ZonedDateTime,
     fun min1h(): Float = delta1h.min()?:0.0f
     fun min1d(): Float = delta1d.min()?:0.0f
     fun min7d(): Float = delta7d.min()?:0.0f
+
+    override fun toString(): String {
+        return "MarketBar(endTime=$endTime, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 1d=${p1d()}, 7d=${p7d()})"
+    }
 }

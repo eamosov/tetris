@@ -351,7 +351,7 @@ public class DecisionCalc {
 //            helper().put(mldata, "prevProfit5Time", gustosProfit.lastProfitTime(4, time));
 
             if (calcIndex>0) {
-                MarketBar marketBar = data.global.marketBars.get(calcIndex - 1);
+                MarketBar marketBar = data.marketBars.get(calcIndex);
                 if (marketBar.getEndTime().isAfter(bar.getEndTime()))
                     System.out.println("market bar after!");
                 helper().put(mldata,"marketPos1",marketBar.p5m());
@@ -365,12 +365,12 @@ public class DecisionCalc {
 //                helper().put(mldata,"marketMax1",marketBar.max5m());
 //                helper().put(mldata,"marketMax2",marketBar.max15m());
 //                helper().put(mldata,"marketMax3",marketBar.max1h());
-                helper().put(mldata,"marketMax4",marketBar.max1d());
+//                helper().put(mldata,"marketMax4",marketBar.max1d());
 //                helper().put(mldata,"marketMax5",marketBar.max7d());
 //                helper().put(mldata,"marketMin1",marketBar.min5m());
 //                helper().put(mldata,"marketMin2",marketBar.min15m());
 //                helper().put(mldata,"marketMin3",marketBar.min1h());
-                helper().put(mldata,"marketMin4",marketBar.min1d());
+//                helper().put(mldata,"marketMin4",marketBar.min1d());
 //                helper().put(mldata,"marketMin5",marketBar.min7d());
             }
 //            helper().put(mldata, "prevProfitShouldBuy",gustosProfit.shouldBuy()?1:0,true);

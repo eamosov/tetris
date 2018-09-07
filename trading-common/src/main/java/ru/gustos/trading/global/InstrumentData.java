@@ -1,6 +1,7 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import ru.efreet.trading.bars.MarketBar;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.exchange.Exchange;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class InstrumentData implements BarsSource{
     public TimeSeries<XBar> bars;
+    public ArrayList<MarketBar> marketBars;
     public ArrayList<MomentData> data;
     public ArrayList<MomentData> buydata;
     public ArrayList<MomentData> selldata;
@@ -33,13 +35,14 @@ public class InstrumentData implements BarsSource{
 
     boolean withml, withbuysell;
 
-    public InstrumentData(Exchange exch, Instrument instr, List<? extends XBar> bars, Global global, boolean withml, boolean withbuysell){
+    public InstrumentData(Exchange exch, Instrument instr, List<? extends XBar> bars, List<? extends MarketBar> marketBars, Global global, boolean withml, boolean withbuysell){
         exchange = exch;
         instrument = instr;
         this.withml = withml;
         this.withbuysell = withbuysell;
         this.global = global;
         this.bars = new TimeSeries<>(bars.size());
+        this.marketBars = new ArrayList<>(marketBars);
         totalBar = null;
         if (withml) {
             data = new ArrayList<>();
@@ -53,23 +56,24 @@ public class InstrumentData implements BarsSource{
         }
 
         for (int i = 0;i<bars.size();i++)
-            addBar(bars.get(i));
+            addBar(bars.get(i), marketBars.get(i));
 
     }
 
     public InstrumentData(InstrumentData data, int count){
-        this(data.exchange,data.instrument, data.getBars(count),data.global, data.withml, data.withbuysell);
+        this(data.exchange,data.instrument, data.getBars(count), data.marketBars.subList(0,count),data.global, data.withml, data.withbuysell);
     }
 
     private List<XBar> getBars(int count) {
         return bars.direct().stream().limit(count).collect(Collectors.toList());
     }
 
-    public void addBar(XBar bar){
+    public void addBar(XBar bar, MarketBar marketBar){
         if (totalBar==null)
             totalBar = new XBaseBar(bar);
         else
             totalBar.addBar(bar);
+        marketBars.add(marketBar);
         bars.add(bar, bar.getEndTime().toEpochSecond());
         if (withml) {
             data.add(new MomentData(100));

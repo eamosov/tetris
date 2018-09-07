@@ -2,6 +2,7 @@ package ru.efreet.trading.simulate
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ru.efreet.trading.bars.MarketBarFactory
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.bot.Trader
@@ -71,6 +72,16 @@ class Simulator(val cmd: CmdArgs) {
 
         val simulateData = arrayListOf<SimulateData>()
 
+        val marketBarFactory = MarketBarFactory(cache, state.interval, realExchange.getName())
+
+
+        val tmpLogic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, Instrument.BTC_USDT, state.interval, simulate = true)
+        val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars))
+
+        log.info("Start building history of MarketBars")
+        val marketBars = marketBarFactory.build(historyStart, state.endTime).map { it.endTime.withSecond(59) to it }.toMap()
+        log.info("Ok building {} MarketBars", marketBars.size)
+
         for (instrument in state.instruments) {
 
             exchange.setBalance(instrument.asset, 0.0f)
@@ -83,11 +94,10 @@ class Simulator(val cmd: CmdArgs) {
             log.info("Logic state for $instrument:")
             log.info(logic.logState())
 
-            val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(logic.historyBars))
             val history = cache.getBars(exchange.getName(), logic.instrument, state.interval, historyStart, state.startTime)
             log.info("Loaded history ${history.size} bars from $historyStart to ${state.startTime} for ${logic.instrument}")
 
-            history.forEach { logic.insertBar(it) }
+            history.forEach { logic.insertBar(it, marketBars[it.endTime.withSecond(59)]) }
             logic.prepareBars()
 
             val bars = cache.getBars(exchange.getName(), instrument, state.interval, state.startTime, state.endTime)
@@ -113,7 +123,7 @@ class Simulator(val cmd: CmdArgs) {
 
                     val bar = sd.barIterator.next()
 
-                    sd.logic.insertBar(bar)
+                    sd.logic.insertBar(bar, marketBars[bar.endTime.withSecond(59)])
                     val advice = sd.logic.getAdvice(true)
 
                     val trade = trader.executeAdvice(advice)

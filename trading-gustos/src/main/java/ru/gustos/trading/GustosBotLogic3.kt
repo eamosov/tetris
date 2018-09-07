@@ -1,6 +1,8 @@
 package ru.gustos.trading
 
+import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
+import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bot.BotAdvice
@@ -18,7 +20,10 @@ import java.time.Duration
 
 open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3, XBar>(name, GustosBotLogicParams3::class, instrument, barInterval) {
 
+    private val log = LoggerFactory.getLogger(GustosBotLogic3::class.java)
+
     final override val bars: MutableList<XBar> = XBarList(historyBars.toInt())
+    val marketBars: MutableList<MarketBar> = ArrayList(historyBars.toInt())
 
     val closePrice = XClosePriceIndicator(bars)
 
@@ -40,7 +45,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun prepareBarsImpl() {
 
         synchronized(this) {
-            calc = DecisionManager(null, InstrumentData(null, instrument, bars, null,true,false), 0, false, 0)
+            calc = DecisionManager(null, InstrumentData(null, instrument, bars, marketBars,null,true,false), 0, false, 0)
             calc.checkNeedRenew(false)
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
@@ -48,11 +53,17 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
 
     }
 
-    override fun insertBar(bar: XBar) {
+    override fun insertBar(bar: XBar, marketBar: MarketBar?) {
         synchronized(this) {
+
+            if (marketBar == null){
+                log.warn("No MarketBar for {}", bar.endTime)
+            }
+
             bars.add(bar)
+            marketBars.add(marketBar!!)
             if (barsIsPrepared) {
-                calc.addBar(bar)
+                calc.addBar(bar, marketBar)
                 calc.checkNeedRenew(!simulate)
             }
         }

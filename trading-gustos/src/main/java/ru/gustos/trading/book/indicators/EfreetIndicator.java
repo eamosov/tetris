@@ -35,7 +35,7 @@ public class EfreetIndicator extends Indicator {
                     Instrument.getBTC_USDT(),
                     BarInterval.ONE_MIN,false);
 
-            sheet.moments.forEach( m-> botLogic.insertBar(m.bar));
+            sheet.moments.forEach( m-> botLogic.insertBar(m.bar, null));
             botLogic.loadState(data.state);
         }
 

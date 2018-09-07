@@ -100,13 +100,14 @@ public class TestGlobal{
         BarsCache cache = new BarsCache("cache.sqlite3");
         List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, loadFrom, loadTo);
 //            bars = BarsPacker.packBars(bars,5);
-        global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global, withml,withbuysell));
+        global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global.marketBars, global, withml,withbuysell));
     }
 
     private static List<MarketBar> initMarketBars() {
         BarsCache cache = new BarsCache("cache.sqlite3");
         MarketBarFactory market = new MarketBarFactory(cache, BarInterval.ONE_MIN, "binance");
         List<MarketBar> marketBars = market.build(loadFrom, loadTo);
+        marketBars.add(0, marketBars.get(0)); // simulate time lag
         return marketBars;
     }
 
@@ -186,7 +187,7 @@ public class TestGlobal{
 //            c.futuredata = data;
             for (;bars<data.size();bars++){
                 c.checkNeedRenew(false);
-                c.addBar(data.bar(bars));
+                c.addBar(data.bar(bars), global.marketBars.get(bars));
             }
             kappas[i] = c.models.model.kappas/Math.max(1,c.models.model.kappascnt);
             System.out.println(global.planalyzer2.profits());

@@ -37,7 +37,7 @@ public class GustosIndicator extends Indicator implements IIndicatorWithProperti
                     Instrument.getBTC_USDT(),
                     BarInterval.ONE_MIN,false);
 
-            sheet.moments.forEach(m -> botLogic.insertBar(m.bar));
+            sheet.moments.forEach(m -> botLogic.insertBar(m.bar, null));
             botLogic.loadState(data.state);
         }
 
