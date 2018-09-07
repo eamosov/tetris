@@ -1,10 +1,14 @@
 package ru.gustos.trading.global;
 
+import ru.efreet.trading.bars.MarketBar;
+import ru.efreet.trading.bars.MarketBarFactory;
+import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.timeseries.TimeSeries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 public class Global {
     public Hashtable<String, InstrumentData> sheets = new Hashtable<>();
@@ -15,10 +19,10 @@ public class Global {
     public PLHistoryAnalyzer planalyzer3 = new PLHistoryAnalyzer(false);
 
 
-
     public long minTime;
     public long maxTime;
     int timeStep;
+    public List<MarketBar> marketBars;
 
     public Global() {
         minTime = Long.MAX_VALUE;
@@ -53,6 +57,9 @@ public class Global {
 
     static int intervals[] = new int[]{600, 3600, 4 * 3600, 24 * 3600, 7 * 24 * 3600};
 
+    public void setMarket(List<MarketBar> marketBars) {
+        this.marketBars = marketBars;
+    }
 }
 
 class GlobalMoment {

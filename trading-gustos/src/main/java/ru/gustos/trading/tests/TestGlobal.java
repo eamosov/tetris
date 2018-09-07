@@ -1,8 +1,9 @@
 package ru.gustos.trading.tests;
 
 import org.apache.commons.io.FileUtils;
+import ru.efreet.trading.bars.MarketBar;
+import ru.efreet.trading.bars.MarketBarFactory;
 import ru.efreet.trading.bars.XBar;
-import ru.efreet.trading.bars.XBaseBar;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Exchange;
 import ru.efreet.trading.exchange.Instrument;
@@ -14,7 +15,6 @@ import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import java.io.*;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +35,7 @@ public class TestGlobal{
             new Instrument("ONT","USDT"),
             new Instrument("NULS","USDT"),
             new Instrument("VET","USDT"),
+            new Instrument("IOTA","USDT"),
 
 //            new Instrument("QTUM","USDT"),
 //            new Instrument("IOTA","USDT"),
@@ -88,20 +89,28 @@ public class TestGlobal{
         global.calcData();
         return global;
     }
+    static ZonedDateTime loadFrom = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
+    static ZonedDateTime loadTo = ZonedDateTime.of(2018,9,5,18,0,0,0, ZoneId.systemDefault());
 
     public static void addInstrument(Global global, Instrument ii, boolean withml, boolean withbuysell){
-        ZonedDateTime from = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-        ZonedDateTime to = ZonedDateTime.of(2018,8,29,18,0,0,0, ZoneId.systemDefault());
         Exchange exch = new Binance();
         BarInterval interval = BarInterval.ONE_MIN;
         if (DecisionManager.LOGS)
             System.out.println("Loading instrument: "+ii.toString());
         BarsCache cache = new BarsCache("cache.sqlite3");
-        List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, from, to);
+        List<? extends XBar> bars = cache.getBars(exch.getName(), ii, interval, loadFrom, loadTo);
 //            bars = BarsPacker.packBars(bars,5);
         global.addInstrumentData(ii.toString(),new InstrumentData(exch,ii,bars, global, withml,withbuysell));
-
     }
+
+    private static List<MarketBar> initMarketBars() {
+        BarsCache cache = new BarsCache("cache.sqlite3");
+        MarketBarFactory market = new MarketBarFactory(cache, BarInterval.ONE_MIN, "binance");
+        List<MarketBar> marketBars = market.build(loadFrom, loadTo);
+        return marketBars;
+    }
+
+
 
     public static void saveResults(Global global) throws IOException {
         String name = "pl/pl.out";
@@ -161,7 +170,8 @@ public class TestGlobal{
             MomentDataHelper.ignore.addAll(Arrays.stream(ss[0].trim().split(",")).collect(Collectors.toList()));
         }
 
-        ZonedDateTime from = ZonedDateTime.of(2018,5,15,0,0,0,0, ZoneId.systemDefault());
+        global.setMarket(initMarketBars());
+        ZonedDateTime from = ZonedDateTime.of(2018,2,15,0,0,0,0, ZoneId.systemDefault());
 //        ZonedDateTime dontRenewAfter = ZonedDateTime.of(2018,6,20,0,0,0,0, ZoneId.systemDefault());
         double[] kappas = new double[instruments.length];
         for (int i = 0;i<instruments.length;i++) {

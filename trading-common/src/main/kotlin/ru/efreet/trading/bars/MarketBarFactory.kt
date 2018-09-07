@@ -13,7 +13,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
 
         val map = mutableMapOf<Instrument, Holder>()
 
-        val instruments = cache.getInstruments(exchange, interval).filter { it.base == "USDT" }
+        val instruments = cache.getInstruments(exchange, interval).filter { it.base == "USDT" && it.asset != "TUSD" }
 
         //println("instruments: $instruments")
 

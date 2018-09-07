@@ -126,10 +126,28 @@ public class PLHistory {
         return profitHistory.get(index);
     }
 
+    public double lastProfitTime(int fromEnd, long time){
+        PLTrade p = lastTrade(fromEnd);
+        if (p==null)
+            return 10000;
+        else
+            return (time-p.timeSell)/3600.0;
+    }
+
     public double lastProfit(int fromEnd){
         PLTrade p = lastTrade(fromEnd);
         if (p==null) return 1;
-        return p.profit;
+        return (p.profit-1)*100;
+    }
+
+    public double lastProfits(int cnt){
+        double r = 1;
+        for (int i = 0;i<cnt;i++) {
+            PLTrade p = lastTrade(cnt);
+            if (p == null) break;
+            r*=p.profit;
+        }
+        return (r-1)*100;
     }
 
     public double totalProfit(){
@@ -341,6 +359,7 @@ public class PLHistory {
         public boolean tested;
         public double minCost;
         public double maxCost;
+        String instrument;
 
         public PLTrade(double buyCost, double profit, double minCost, double maxCost, long timeBuy, long timeSell, boolean testedBuy) {
             this.buyCost = buyCost;

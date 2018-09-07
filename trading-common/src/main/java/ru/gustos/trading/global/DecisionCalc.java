@@ -1,6 +1,7 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import ru.efreet.trading.bars.MarketBar;
 import ru.efreet.trading.bars.XBar;
 import ru.gustos.trading.book.RecurrentValues;
 import ru.gustos.trading.book.SheetUtils;
@@ -335,11 +336,43 @@ public class DecisionCalc {
         if (gsell)
             gustosProfit.sellMoment(price, time);
 
+//            helper().put(mldata, "prevProfits3", gustosProfit.lastProfits(3));
+//            helper().put(mldata, "prevProfits5", gustosProfit.lastProfits(5));
 //            helper().put(mldata, "prevProfit1", gustosProfit.lastProfit(0));
 //            helper().put(mldata, "prevProfit2", gustosProfit.lastProfit(1));
 //            helper().put(mldata, "prevProfit3", gustosProfit.lastProfit(2));
 //            helper().put(mldata, "prevProfit4", gustosProfit.lastProfit(3));
 //            helper().put(mldata, "prevProfit5", gustosProfit.lastProfit(4));
+//
+//            helper().put(mldata, "prevProfit1Time", gustosProfit.lastProfitTime(0, time));
+//            helper().put(mldata, "prevProfit2Time", gustosProfit.lastProfitTime(1, time));
+//            helper().put(mldata, "prevProfit3Time", gustosProfit.lastProfitTime(2, time));
+//            helper().put(mldata, "prevProfit4Time", gustosProfit.lastProfitTime(3, time));
+//            helper().put(mldata, "prevProfit5Time", gustosProfit.lastProfitTime(4, time));
+
+            if (calcIndex>0) {
+                MarketBar marketBar = data.global.marketBars.get(calcIndex - 1);
+                if (marketBar.getEndTime().isAfter(bar.getEndTime()))
+                    System.out.println("market bar after!");
+                helper().put(mldata,"marketPos1",marketBar.p5m());
+                helper().put(mldata,"marketPos2",marketBar.p15m());
+                helper().put(mldata,"marketPos3",marketBar.p1h());
+                helper().put(mldata,"marketPos4",marketBar.p1d());
+                helper().put(mldata,"marketPos5",marketBar.p7d());
+//                helper().putLagged(mldata,"marketPos1",prevmldata2,2);
+//                helper().putLagged(mldata,"marketPos2",prevmldata2,2);
+//                helper().putLagged(mldata,"marketPos3",prevmldata2,2);
+//                helper().put(mldata,"marketMax1",marketBar.max5m());
+//                helper().put(mldata,"marketMax2",marketBar.max15m());
+//                helper().put(mldata,"marketMax3",marketBar.max1h());
+                helper().put(mldata,"marketMax4",marketBar.max1d());
+//                helper().put(mldata,"marketMax5",marketBar.max7d());
+//                helper().put(mldata,"marketMin1",marketBar.min5m());
+//                helper().put(mldata,"marketMin2",marketBar.min15m());
+//                helper().put(mldata,"marketMin3",marketBar.min1h());
+                helper().put(mldata,"marketMin4",marketBar.min1d());
+//                helper().put(mldata,"marketMin5",marketBar.min7d());
+            }
 //            helper().put(mldata, "prevProfitShouldBuy",gustosProfit.shouldBuy()?1:0,true);
 //            helper().put(mldata, "prevProfitSimpleTest", gustosProfit.simpleTest() ? 1 : 0, true);
 

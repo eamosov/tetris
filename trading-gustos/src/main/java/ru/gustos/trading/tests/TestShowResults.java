@@ -28,10 +28,12 @@ public class TestShowResults {
     static HashSet<String> ignore = new HashSet<>();
     static SimpleProfitGraph graph = new SimpleProfitGraph();
     static Global global;
+    static JTextField moneyPartField;
+    static JTextField pauseField;
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl1769.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl2/pl515.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
@@ -49,27 +51,26 @@ public class TestShowResults {
         global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new),false);
 //        System.out.println(planalyzer3.histories.get(0).profitHistory.size());
 //        System.out.println(planalyzer3.histories.get(1).profitHistory.size());
-
         ApplicationFrame frame = graph.getFrame();
         JPanel options = new JPanel();
+        moneyPartField = new JTextField("0.3");
+        moneyPartField.setColumns(5);
+        options.add(moneyPartField);
+        moneyPartField.addActionListener(e -> SwingUtilities.invokeLater(TestShowResults::updateGraph));
+        pauseField = new JTextField("-1");
+        pauseField.setColumns(5);
+        options.add(pauseField);
+        pauseField.addActionListener(e -> SwingUtilities.invokeLater(TestShowResults::updateGraph));
         for (PLHistory h : hh){
             final PLHistory hc = h;
             final JCheckBox ch = new JCheckBox(h.instrument,true);
             options.add(ch);
-            ch.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (ch.isSelected())
-                        ignore.remove(hc.instrument);
-                    else
-                        ignore.add(hc.instrument);
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateGraph();
-                        }
-                    });
-                }
+            ch.addActionListener(e -> {
+                if (ch.isSelected())
+                    ignore.remove(hc.instrument);
+                else
+                    ignore.add(hc.instrument);
+                SwingUtilities.invokeLater(TestShowResults::updateGraph);
             });
         }
         frame.getContentPane().add(options, BorderLayout.NORTH);
@@ -77,24 +78,24 @@ public class TestShowResults {
     }
 
     private static void updateGraph() {
-        double moneyPart = 1.0/Math.max(1,planalyzer1.histories.size()-ignore.size());
+        double moneyPart = Double.parseDouble(moneyPartField.getText().trim());
+//        double moneyPart = 1.0/Math.max(1,planalyzer1.histories.size()-ignore.size());
         ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
-        TimeSeriesDouble h1 = planalyzer1.makeHistory(false, moneyPart, ignore);
-        graphs.add(h1);
+        TimeSeriesDouble h1 = planalyzer1.makeHistory(false, 1, ignore);
+//        graphs.add(h1);
 //        graphs.add(planalyzer1.makeHistory(false, moneyPart, ignore));
-        TimeSeriesDouble h2 = planalyzer2.makeHistory(false, moneyPart, ignore);
+        TimeSeriesDouble h2 = planalyzer2.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
         graphs.add(h2);
 //        graphs.add(planalyzer2.makeHistory(true, moneyPart,ignore));
-        TimeSeriesDouble h3 = planalyzer3.makeHistory(false, moneyPart, ignore);
-        graphs.add(h3);
+//        TimeSeriesDouble h3 = planalyzer3.makeHistory(false, moneyPart, ignore);
+//        graphs.add(h3);
         System.out.println(h2.lastOrZero());
-        System.out.println(h3.lastOrZero());
+//        System.out.println(h3.lastOrZero());
 //        for (int i = 0;i<planalyzers.length;i++)
 //            graphs.add(planalyzers[i].makeHistory(false, moneyPart,ignore));
 //        graphs.add(planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
         TimeSeriesDouble price = TestGlobal.makeMarketAveragePrice(global, planalyzer1, h1, ignore);
         ArrayList<Long> marks = planalyzer2.makeModelTimes(ignore);
-        System.out.println("marks: "+marks);
         graph.drawHistory(price, graphs, marks);
 //        exportToWeka();
 //        exportPriceToWeka("BNB_USDT");
