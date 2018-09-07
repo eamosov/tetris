@@ -45,4 +45,8 @@ data class MarketBar(val endTime: ZonedDateTime,
     fun p1h(): Float = delta1h.gtZero()
     fun p1d(): Float = delta1d.gtZero()
     fun p7d(): Float = delta7d.gtZero()
+
+    override fun toString(): String {
+        return "MarketBar(endTime=$endTime, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 1d=${p1d()}, 7d=${p7d()})"
+    }
 }

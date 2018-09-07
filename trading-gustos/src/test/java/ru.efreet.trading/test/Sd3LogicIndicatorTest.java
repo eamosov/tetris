@@ -29,7 +29,7 @@ public class Sd3LogicIndicatorTest {
 
         final Sd3Logic logic = new Sd3Logic("sd3", Instrument.getBTC_USDT(), BarInterval.ONE_MIN);
 
-        bars.forEach(logic::insertBar);
+        bars.forEach(bar -> logic.insertBar(bar, null));
         logic.prepareBars();
 
         double money = 1000;

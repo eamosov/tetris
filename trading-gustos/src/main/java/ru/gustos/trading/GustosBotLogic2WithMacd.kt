@@ -1,6 +1,7 @@
 package ru.gustos.trading
 
 import ru.efreet.trading.Decision
+import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.BotAdvice
@@ -148,7 +149,7 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     }
 
 
-    override fun insertBar(bar: XBar) {
+    override fun insertBar(bar: XBar, marketBar: MarketBar?) {
         synchronized(this) {
             val b = XExtBar(bar)
             val (sma, sd) = garBuy.feed(bar.closePrice.toDouble(), bar.volume.toDouble())

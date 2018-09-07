@@ -3,11 +3,46 @@ package ru.efreet.trading.bars
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
+import java.time.Duration
 import java.time.ZonedDateTime
+import kotlin.reflect.KMutableProperty1
 
 class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInterval.ONE_MIN, val exchange: String = "binance") {
 
     private data class Holder(val bars: List<XBar>, var index: Int = -1)
+
+    private val instruments = cache.getInstruments("binance", interval).filter { it.base == "USDT" }
+
+
+    fun setDeltaXX(bar: XBar, instrument: Instrument, interval: BarInterval, prop: KMutableProperty1<XBar, Float>, duration: Duration) {
+        cache.getBar(exchange, instrument, interval, bar.endTime.minus(duration))?.let {
+            prop.set(bar, bar.closePrice - it.closePrice)
+        }
+    }
+
+    fun setDeltaXX(bar: XBar, instrument: Instrument, interval: BarInterval) {
+        setDeltaXX(bar, instrument, interval, XBar::delta5m, Duration.ofMinutes(5))
+        setDeltaXX(bar, instrument, interval, XBar::delta15m, Duration.ofMinutes(15))
+        setDeltaXX(bar, instrument, interval, XBar::delta1h, Duration.ofHours(1))
+        setDeltaXX(bar, instrument, interval, XBar::delta1d, Duration.ofDays(1))
+        setDeltaXX(bar, instrument, interval, XBar::delta7d, Duration.ofDays(7))
+    }
+
+    fun build(time: ZonedDateTime): MarketBar {
+
+        val mb = MarketBar(time)
+        val time = time.withSecond(59)
+
+        for (instrument in instruments) {
+
+            cache.getBar("binance", instrument, interval, time)?.let {
+                setDeltaXX(it, instrument, interval)
+                mb.addBar(it)
+            }
+        }
+
+        return mb
+    }
 
     fun build(start: ZonedDateTime, end: ZonedDateTime): List<MarketBar> {
 

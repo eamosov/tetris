@@ -67,7 +67,7 @@ public class ProfitChecker {
 
         BarInterval barInterval = BarInterval.ONE_MIN;
         BotLogic<Object, XBar> botLogic = LogicFactory.Companion.getLogic(logic, instr, barInterval, false);
-        sheet.moments.forEach( m -> botLogic.insertBar(m.bar));
+        sheet.moments.forEach( m -> botLogic.insertBar(m.bar, null));
 
         botLogic.loadState(properties);
         ArrayList<Pair<ZonedDateTime,ZonedDateTime>> aa = new ArrayList<>();

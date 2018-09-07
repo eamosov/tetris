@@ -1,7 +1,6 @@
 package ru.efreet.trading.logic
 
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.bot.TradeHistory
 import ru.efreet.trading.bot.Trader
 import ru.efreet.trading.exchange.BarInterval

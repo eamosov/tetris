@@ -1,6 +1,7 @@
 package ru.efreet.trading.logic
 
 import org.slf4j.LoggerFactory
+import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
@@ -26,8 +27,7 @@ interface BotLogic<P, B> {
 
     fun indexOf(time: ZonedDateTime): Int
 
-    fun insertBar(bar: XBar)
-    fun insertBars(bars: List<XBar>)
+    fun insertBar(bar: XBar, marketBar: MarketBar? = null)
 
     fun firstBar(): B
 

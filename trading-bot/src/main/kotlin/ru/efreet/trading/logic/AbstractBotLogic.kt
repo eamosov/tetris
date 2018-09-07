@@ -144,10 +144,6 @@ abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
 
     override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
 
-    override fun insertBars(bars: List<XBar>) {
-        bars.forEach { insertBar(it) }
-    }
-
     override fun getParamsAsProperties(): Properties = propertyEditorFactory.newProperties(getParams())
 
     override fun setParams(properties: Properties) = setParams(propertyEditorFactory.newParams(properties))
