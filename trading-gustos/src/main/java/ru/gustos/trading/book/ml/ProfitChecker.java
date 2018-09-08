@@ -6,6 +6,7 @@ import ru.efreet.trading.bot.TradeHistory;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.TradeRecord;
+import ru.efreet.trading.logic.BarsAwareAbstractBotLogic;
 import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.ProfitCalculator;
 import ru.efreet.trading.logic.impl.LogicFactory;
@@ -66,7 +67,7 @@ public class ProfitChecker {
 //            return;
 
         BarInterval barInterval = BarInterval.ONE_MIN;
-        BotLogic<Object, XBar> botLogic = LogicFactory.Companion.getLogic(logic, instr, barInterval, false);
+        BarsAwareAbstractBotLogic botLogic = (BarsAwareAbstractBotLogic)LogicFactory.Companion.getLogic(logic, instr, barInterval, false);
         sheet.moments.forEach( m -> botLogic.insertBar(m.bar, null));
 
         botLogic.loadState(properties);

@@ -1,8 +1,5 @@
 package ru.efreet.trading.logic
 
-import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.indexOf
-import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
@@ -11,70 +8,26 @@ import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.PropertyEditorFactory
 import ru.efreet.trading.utils.SeedType
 import java.time.Duration
-import java.time.ZonedDateTime
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.isSubclassOf
 
-abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
-                                                   val paramsCls: KClass<P>,
-                                                   override val instrument: Instrument,
-                                                   val barInterval: BarInterval) : BotLogic<P, B> {
+abstract class AbstractBotLogic<P : Any>(val name: String,
+                                         val paramsCls: KClass<P>,
+                                         override val instrument: Instrument,
+                                         val barInterval: BarInterval) : BotLogic<P> {
 
-    val propertyEditorFactory = PropertyEditorFactory(paramsCls, { newInitParams() })
+    val propertyEditorFactory = PropertyEditorFactory(paramsCls) { newInitParams() }
 
     override val genes: List<PropertyEditor<P, Any?>>
         get() = propertyEditorFactory.genes
 
-    private var _params: P
-
     init {
-        _params = newInitParams()
-
-        onInit()
+        params = newInitParams()
     }
-
-    override fun setParams(params: P) {
-        synchronized(this) {
-            val oldP = _params
-            _params = params
-            if (_params != oldP) {
-                if (barsIsPrepared)
-                    resetBars()
-            }
-
-//            if (!barsIsPrepared) {
-//                prepareBars()
-//            }
-        }
-    }
-
-    override fun getParams(): P = _params
-
-    protected var barsIsPrepared = false
-
-    abstract fun prepareBarsImpl()
 
     abstract fun newInitParams(): P
-
-    abstract fun onInit()
-
-    final override fun prepareBars() {
-        prepareBarsImpl()
-        barsIsPrepared = true
-    }
-
-    abstract protected fun resetBars()
-
-    protected abstract fun getBotAdviceImpl(index: Int, fillIndicators: Boolean = false): BotAdvice
-
-    final override fun getBotAdvice(index: Int, fillIndicators: Boolean): BotAdvice {
-        if (!barsIsPrepared)
-            prepareBars()
-
-        return getBotAdviceImpl(index, fillIndicators);
-    }
 
     override val historyBars = 3000L
 
@@ -93,7 +46,7 @@ abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
     }
 
     override fun logState(): String {
-        return propertyEditorFactory.log(getParams())
+        return propertyEditorFactory.log(params)
     }
 
     fun resetGenes() {
@@ -127,36 +80,26 @@ abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
 
     }
 
-    override fun seed(seedType: SeedType, size: Int): MutableList<P> = when {
+    fun seed(seedType: SeedType, size: Int): MutableList<P> = when {
         seedType == SeedType.CELL -> seedByCell(size)
         seedType == SeedType.RANDOM -> seedRandom(size)
         else -> throw RuntimeException("Unknown seed method")
     }
 
-    protected fun seedByCell(size: Int): MutableList<P> {
+    fun seedByCell(size: Int): MutableList<P> {
 
         val population = mutableListOf<P>()
         seedByCell(population, size, paramsCls.java.newInstance(), 0)
         return population
     }
 
-    protected open fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(getParams())) } as MutableList<P>
+    protected open fun seedRandom(size: Int): MutableList<P> = (0 until size).map { propertyEditorFactory.randomParams(copyParams(params)) } as MutableList<P>
 
-    override fun indexOf(time: ZonedDateTime): Int = bars.indexOf(time)
+    override fun getParamsAsProperties(): Properties = propertyEditorFactory.newProperties(params)
 
-    override fun getParamsAsProperties(): Properties = propertyEditorFactory.newProperties(getParams())
-
-    override fun setParams(properties: Properties) = setParams(propertyEditorFactory.newParams(properties))
-
-    override fun lastBar(): B = bars.last()
-
-    override fun getBar(index: Int): B = bars[index]
-
-    override fun firstBar(): B = bars.first()
-
-    override fun barsCount(): Int = bars.size
-
-    protected fun getIndicators(index: Int): Map<String, Float> = indicators().mapValues { it.value.getValue(index) }
+    override fun setParams(properties: Properties) {
+        params = propertyEditorFactory.newParams(properties)
+    }
 
     override fun metrica(params: P, stats: TradesStats): Metrica {
 
@@ -165,16 +108,6 @@ abstract class AbstractBotLogic<P : Any, B : XBar>(val name: String,
                 .add("fine_sma10", BotLogic.fine(stats.sma10, 1.0F, 10.0F) * 2 + 1)
                 .add("fine_profit", BotLogic.fine(stats.profit, 1.0F))
                 .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0F))
-    }
-
-    override fun getBarIndex(time: ZonedDateTime): Int {
-
-        var startIndex = bars.binarySearchBy(time, selector = { it.endTime })
-
-        if (startIndex < 0)
-            startIndex = -startIndex - 1
-
-        return startIndex
     }
 
     override fun setMinMax(settings: Properties) {

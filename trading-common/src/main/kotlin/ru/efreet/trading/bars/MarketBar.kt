@@ -23,6 +23,8 @@ data class MarketBar(val endTime: ZonedDateTime,
                      val delta1d: FloatList = FloatArrayList(),
                      val delta7d: FloatList = FloatArrayList()) {
 
+    private var count = 0
+
     fun addBar(b: XBar) {
         if (b.delta5m != 0f)
             delta5m.add(b.delta5m / b.closePrice)
@@ -38,6 +40,8 @@ data class MarketBar(val endTime: ZonedDateTime,
 
         if (b.delta7d != 0f)
             delta7d.add(b.delta7d / b.closePrice)
+
+        count ++
     }
 
     fun p5m(): Float = delta5m.gtZero()
@@ -57,6 +61,6 @@ data class MarketBar(val endTime: ZonedDateTime,
     fun min7d(): Float = delta7d.min()?:0.0f
 
     override fun toString(): String {
-        return "MarketBar(endTime=$endTime, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 1d=${p1d()}, 7d=${p7d()})"
+        return "MarketBar(endTime=$endTime, count=${count}, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 1d=${p1d()}, 7d=${p7d()})"
     }
 }

@@ -13,9 +13,7 @@ import kotlin.reflect.KClass
 abstract class AbstractXExtBarBotLogic<P : Any>(name: String,
                                                 paramsCls: KClass<P>,
                                                 instrument: Instrument,
-                                                barInterval: BarInterval) : AbstractBotLogic<P, XExtBar>(name, paramsCls, instrument, barInterval) {
-
-    final override val bars: MutableList<XExtBar> = mutableListOf()
+                                                barInterval: BarInterval) : BarsAwareAbstractBotLogic<P, XExtBar>(name, paramsCls, instrument, barInterval) {
 
     override fun resetBars() {
         for (i in 0 until bars.size) {

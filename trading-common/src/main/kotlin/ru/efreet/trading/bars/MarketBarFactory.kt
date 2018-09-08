@@ -7,12 +7,15 @@ import java.time.Duration
 import java.time.ZonedDateTime
 import kotlin.reflect.KMutableProperty1
 
+fun List<Instrument>.marketBarList(): List<Instrument> {
+    return this.filter { it.base == "USDT" && it.asset != "TUSD" }
+}
+
 class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInterval.ONE_MIN, val exchange: String = "binance") {
 
     private data class Holder(val bars: List<XBar>, var index: Int = -1)
 
-    private val instruments = cache.getInstruments("binance", interval).filter { it.base == "USDT" }
-
+    private val instruments = cache.getInstruments(exchange, interval).marketBarList()
 
     fun setDeltaXX(bar: XBar, instrument: Instrument, interval: BarInterval, prop: KMutableProperty1<XBar, Float>, duration: Duration) {
         cache.getBar(exchange, instrument, interval, bar.endTime.minus(duration))?.let {
@@ -35,7 +38,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
 
         for (instrument in instruments) {
 
-            cache.getBar("binance", instrument, interval, time)?.let {
+            cache.getBar(exchange, instrument, interval, time)?.let {
                 setDeltaXX(it, instrument, interval)
                 mb.addBar(it)
             }
@@ -47,9 +50,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
     fun build(start: ZonedDateTime, end: ZonedDateTime): List<MarketBar> {
 
         val map = mutableMapOf<Instrument, Holder>()
-
-        val instruments = cache.getInstruments(exchange, interval).filter { it.base == "USDT" && it.asset != "TUSD" }
-
+        
         //println("instruments: $instruments")
 
         for (instrument in instruments) {

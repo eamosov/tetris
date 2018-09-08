@@ -4,7 +4,9 @@ import org.eclipse.jetty.websocket.api.Session
 import org.slf4j.LoggerFactory
 import ru.efreet.telegram.Telegram
 import ru.efreet.trading.Decision
+import ru.efreet.trading.bars.MarketBarFactory
 import ru.efreet.trading.bars.XBar
+import ru.efreet.trading.bars.marketBarList
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.exchange.Instrument
@@ -19,7 +21,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.concurrent.Executors
 
-data class MlBotData(val instrument: Instrument, var logic: BotLogic<Any, XBar>, var lastBar: ZonedDateTime = ZonedDateTime.now()) {
+data class MlBotData(val instrument: Instrument, var logic: BotLogic<Any>?, var lastBar: ZonedDateTime = ZonedDateTime.now()) {
     var session: Session? = null
 }
 
@@ -30,6 +32,7 @@ class MlBot {
     private lateinit var cache: BarsCache
     private lateinit var exchange: Exchange
     private lateinit var trader: Trader
+    private lateinit var marketBarFactory: MarketBarFactory
     private var telegram: Telegram? = null
 
     private val bots = mutableMapOf<Instrument, MlBotData>()
@@ -61,37 +64,43 @@ class MlBot {
                 log.debug("Receive bar for {}: {}", instrument, bar)
             } else {
 
-                log.info("Receive final bar for {}: {}", instrument, bar)
+                if (log.isDebugEnabled)
+                    log.debug("Receive final bar for {}: {}", instrument, bar)
+                else if (bot.logic != null)
+                    log.info("Receive final bar for {}: {}", instrument, bar)
 
                 logDuration("Saving bar ${bar}") {
                     cache.saveBar(exchange.getName(), instrument, bar)
                 }
 
-                logDuration("logic.insertBar ${bar}") {
-                    bot.logic.insertBar(bar)
-                }
+                if (bot.logic != null) {
+                    val marketBar = marketBarFactory.build(bar.endTime.withSecond(59).minus(interval.duration))
 
-                if (Duration.between(bar.endTime, ZonedDateTime.now()).toMinutes() > 1) {
-                    log.error("Skip bar {}", bar)
-                    telegram?.sendMessage("Skip bar $bar")
-                } else {
-                    val advice = logDuration("getAdvice") { bot.logic.getAdvice(true) }
+                    log.info("Market bar: {}", marketBar)
 
-                    if (advice.decision != Decision.NONE) {
-                        log.info("ADVICE: {}", advice)
-                    }
+                    val advice = bot.logic!!.getAdvice(bar, marketBar)
 
-                    val trade = try {
-                        logDuration("Executing advise") { tryMultipleTimes(5) { trader.executeAdvice(advice) } }
-                    } catch (e: Throwable) {
+                    if (Duration.between(bar.endTime, ZonedDateTime.now()).toMinutes() > 1) {
+                        log.error("Skip bar {}", bar)
+                        telegram?.sendMessage("Skip bar $bar")
+                    } else {
+
                         if (advice.decision != Decision.NONE) {
-                            telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                            log.info("ADVICE: {}", advice)
                         }
-                        throw e
-                    }
 
-                    if (trade != null) {
-                        log.info("TRADE: $trade")
+                        val trade = try {
+                            logDuration("Executing advise") { tryMultipleTimes(5) { trader.executeAdvice(advice) } }
+                        } catch (e: Throwable) {
+                            if (advice.decision != Decision.NONE) {
+                                telegram?.sendMessage("Couldn't execute advice \"${advice.log()}\": $e")
+                            }
+                            throw e
+                        }
+
+                        if (trade != null) {
+                            log.info("TRADE: $trade")
+                        }
                     }
                 }
             }
@@ -141,26 +150,42 @@ class MlBot {
 
         val startTime = ZonedDateTime.now()
 
-        for ((instrument, _) in botConfig.instruments) {
+        log.info("Refresh cache of bars for MarketBar")
+        for (instrument in exchange.getTicker().keys.toList().marketBarList()) {
+
+            cache.createTable(exchange.getName(), instrument, interval)
 
             val cacheStart = cache.getLast(exchange.getName(), instrument, interval)?.endTime?.minus(interval.duration)
                     ?: ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
+
             log.info("Fetching ${instrument}/${interval.duration} from ${exchange.getName()} between ${cacheStart} and ${startTime} ")
             val cacheBars = exchange.loadBars(instrument, interval, cacheStart, startTime)
+
             log.info("Saving ${cacheBars.size} bars from ${cacheBars.first().endTime} to ${cacheBars.last().endTime}")
             cache.saveBars(exchange.getName(), instrument, cacheBars.filter { it.timePeriod == interval.duration })
 
+            bots[instrument] = MlBotData(instrument, null)
+        }
 
-            val logic: BotLogic<Any, XBar> = LogicFactory.getLogic("ml", instrument, interval)
+        val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(logicName, Instrument.BTC_USDT, interval, simulate = true)
+        val historyStart = startTime.minus(interval.duration.multipliedBy(tmpLogic.historyBars))
 
-            val historyStart = startTime.minus(interval.duration.multipliedBy(logic.historyBars))
+        marketBarFactory = MarketBarFactory(cache, interval, exchange.getName())
+
+        log.info("Start building history of MarketBars")
+        val marketBarsList = marketBarFactory.build(historyStart, startTime)
+        log.info("Ok building {} MarketBars", marketBarsList.size)
+
+        for ((instrument, _) in botConfig.instruments) {
+
+            val logic: BotLogic<Any> = LogicFactory.getLogic(logicName, instrument, interval)
+
             val history = cache.getBars(exchange.getName(), logic.instrument, interval, historyStart, startTime)
             log.info("Loaded history ${history.size} bars from $historyStart to ${startTime} for ${logic.instrument}")
 
-            history.forEach { logic.insertBar(it) }
-
             log.info("Training model for {}", instrument)
-            logic.prepareBars()
+            logic.setHistory(history, marketBarsList)
+
             bots[instrument] = MlBotData(instrument, logic)
         }
 
@@ -217,6 +242,7 @@ class MlBot {
 
         val configPath = "bot.json"
         val interval = BarInterval.ONE_MIN
+        val logicName = "ml"
 
         @JvmStatic
         fun main(args: Array<String>) {

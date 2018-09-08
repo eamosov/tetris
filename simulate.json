@@ -1,19 +1,24 @@
 {
-  "startTime": "2018-08-04T00:00Z[GMT]",
-  "endTime": "2018-08-09T00:00Z[GMT]",
-  "instruments": [
-    "ETH_USDT",
-    "BNB_USDT",
-    "BTC_USDT",
-    "BCC_USDT",
-    "LTC_USDT"
-  ],
+  "startTime": "2018-08-01T00:00Z[GMT]",
+  "endTime": "2018-09-01T00:00Z[GMT]",
+  "instruments": {
+    "BNB_USDT":0.15,
+    "BCC_USDT":0.5,
+    "XRP_USDT":0.3,
+    "XLM_USDT":0.3,
+    "LTC_USDT":0.3,
+    "ICX_USDT":0.3,
+    "ONT_USDT":0.3,
+    "NULS_USDT":0.05,
+    "VET_USDT":0.3,
+    "IOTA_USDT":0.3,
+    "TRX_USDT":0.15
+  },
   "usd": 1000.0,
   "interval": "ONE_MIN",
   "feeFactor": 1.0,
   "historyPath": "simulate_history.json",
   "properties": "simulate.properties",
   "graph": true,
-  "usdLimit": 0.95,
-  "betLimit": 0.5
+  "usdLimit": 0.95
 }

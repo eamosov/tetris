@@ -230,14 +230,14 @@ class Graph {
 
                 val exchange = Exchange.getExchange(cmd.exchange)
 
-                val logic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
+                val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, cmd.instrument, cmd.barInterval)
                 logic.loadState(cmd.settings!!)
 
                 val historyStart = cmd.start!!.minus(cmd.barInterval.duration.multipliedBy(logic.historyBars))
                 val bars = cache.getBars(exchange.getName(), cmd.instrument, cmd.barInterval, historyStart, cmd.end!!)
                 bars.checkBars()
 
-                val sp = logic.getParams()
+                val sp = logic.params
 
                 log.info(sp.toJson())
 

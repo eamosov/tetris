@@ -1,6 +1,7 @@
 package ru.efreet.trading.exchange.impl.cache
 
 import org.slf4j.LoggerFactory
+import ru.efreet.trading.bars.marketBarList
 import ru.efreet.trading.exchange.Exchange
 import ru.efreet.trading.utils.CmdArgs
 import java.time.ZonedDateTime
@@ -26,11 +27,13 @@ class UpdateAll {
 
             val end = cmd.end ?: ZonedDateTime.now()
 
-            for (instrument in ticker.keys) if (instrument.base == "USDT"/* || instrument.base == "BTC"*/){
+            for (instrument in ticker.keys.toList().marketBarList()) {
 
                 cache.createTable(exchange.getName(), instrument, cmd.barInterval)
 
-                val start = (cmd.start ?: cache.getLast(exchange.getName(), instrument, cmd.barInterval)?.endTime?.minus(cmd.barInterval.duration)) ?: ZonedDateTime.parse("2017-01-01T00:00Z[GMT]")
+                val start = (cmd.start
+                        ?: cache.getLast(exchange.getName(), instrument, cmd.barInterval)?.endTime?.minus(cmd.barInterval.duration))
+                        ?: ZonedDateTime.parse("2017-01-01T00:00Z[GMT]")
 
                 log.info("Fetching ${instrument}/${cmd.barInterval.duration} from ${exchange.getName()} between ${start} and ${end} ")
 

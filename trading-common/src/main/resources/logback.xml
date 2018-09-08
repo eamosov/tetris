@@ -9,7 +9,7 @@
         <appender-ref ref="COLOR"/>
     </root>
 
-    <logger name="ru.efreet.trading" level="DEBUG" />
-    <logger name="ru.gustos.trading" level="DEBUG" />
+    <logger name="ru.efreet.trading" level="INFO" />
+    <logger name="ru.gustos.trading" level="INFO" />
     <logger name="com.webcerebrium.binance.datatype.BinanceEventKline" level="WARN" />
 </configuration>

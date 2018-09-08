@@ -4,73 +4,35 @@ import org.slf4j.LoggerFactory
 import ru.efreet.trading.Decision
 import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.XBar
-import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.logic.AbstractBotLogic
 import ru.efreet.trading.logic.BotLogic
-import ru.efreet.trading.ta.indicators.XClosePriceIndicator
-import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
 import ru.gustos.trading.global.DecisionManager
 import ru.gustos.trading.global.InstrumentData
 import java.time.Duration
 
-open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3, XBar>(name, GustosBotLogicParams3::class, instrument, barInterval) {
+open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: BarInterval, val simulate: Boolean) : AbstractBotLogic<GustosBotLogicParams3>(name, GustosBotLogicParams3::class, instrument, barInterval) {
 
     private val log = LoggerFactory.getLogger(GustosBotLogic3::class.java)
 
-    final override val bars: MutableList<XBar> = XBarList(historyBars.toInt())
-    val marketBars: MutableList<MarketBar> = ArrayList(historyBars.toInt())
-
-    val closePrice = XClosePriceIndicator(bars)
+    override var params: GustosBotLogicParams3 = newInitParams()
 
     lateinit var calc: DecisionManager
 
-    override fun newInitParams(): GustosBotLogicParams3 = GustosBotLogicParams3()
-
-
-    override fun onInit() {
-
-    }
+    final override fun newInitParams(): GustosBotLogicParams3 = GustosBotLogicParams3()
 
     final override val historyBars: Long
         get() = Duration.ofDays(180).toMillis() / barInterval.duration.toMillis()
 
     override fun copyParams(src: GustosBotLogicParams3): GustosBotLogicParams3 = src.copy()
 
-
-    override fun prepareBarsImpl() {
-
-        synchronized(this) {
-            calc = DecisionManager(null, InstrumentData(null, instrument, bars, marketBars,null,true,false), 0, false, 0)
-            calc.checkNeedRenew(false)
-
-//        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-        }
-
-    }
-
-    override fun insertBar(bar: XBar, marketBar: MarketBar?) {
-        synchronized(this) {
-
-            if (marketBar == null){
-                log.warn("No MarketBar for {}", bar.endTime)
-            }
-
-            bars.add(bar)
-            marketBars.add(marketBar!!)
-            if (barsIsPrepared) {
-                calc.addBar(bar, marketBar)
-                calc.checkNeedRenew(!simulate)
-            }
-        }
-    }
-
-    override fun resetBars() {
-        barsIsPrepared = false
+    override fun setHistory(bars: List<XBar>, marketBars: List<MarketBar>?) {
+        calc = DecisionManager(null, InstrumentData(null, instrument, bars, marketBars, null, true, false), 0, false, 0)
+        calc.checkNeedRenew(false)
     }
 
     override fun metrica(params: GustosBotLogicParams3, stats: TradesStats): Metrica {
@@ -80,55 +42,55 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
                 .add("relProfit", BotLogic.funXP(stats.relProfit, 1.0f))
     }
 
-    override fun indicators(): Map<String, XIndicator> {
-        return mapOf(Pair("price", closePrice))
-    }
+    override fun getAdvice(nextBar: XBar, nextMarketBar: MarketBar?): BotAdvice {
 
-    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
+        if (nextMarketBar == null) {
+            log.warn("No MarketBar for {}", nextBar.endTime)
+        }
 
-        synchronized(this) {
+        calc.addBar(nextBar, nextMarketBar)
+        calc.checkNeedRenew(!simulate)
 
-            val indicators = if (fillIndicators) getIndicators(index) else null
+        val indicators = listOf("price" to nextBar.closePrice).toMap()
 
-            val bar = getBar(index)
-            val decision = calc.decision()
-            val decisionArgs = emptyMap<String, String>()
-
-
-            //Если SELL, то безусловно продаем
-            if (decision == Decision.SELL) {
-
-                //println("${bar.endTime} SELL ${bar.closePrice}")
+        val decision = calc.decision()
+        val decisionArgs = emptyMap<String, String>()
 
 
-                return BotAdvice(bar.endTime,
-                        decision,
-                        decisionArgs,
-                        instrument,
-                        bar.closePrice,
-                        bar,
-                        indicators)
-            }
+        //Если SELL, то безусловно продаем
+        if (decision == Decision.SELL) {
 
-            if (decision == Decision.BUY) {
+            //println("${bar.endTime} SELL ${bar.closePrice}")
 
-                return BotAdvice(bar.endTime,
-                        decision,
-                        decisionArgs,
-                        instrument,
-                        bar.closePrice,
-                        bar,
-                        indicators)
-            }
 
-            return BotAdvice(bar.endTime,
-                    Decision.NONE,
+            return BotAdvice(nextBar.endTime,
+                    decision,
                     decisionArgs,
                     instrument,
-                    bar.closePrice,
-                    bar,
+                    nextBar.closePrice,
+                    nextBar,
                     indicators)
         }
+
+        if (decision == Decision.BUY) {
+
+            return BotAdvice(nextBar.endTime,
+                    decision,
+                    decisionArgs,
+                    instrument,
+                    nextBar.closePrice,
+                    nextBar,
+                    indicators)
+        }
+
+        return BotAdvice(nextBar.endTime,
+                Decision.NONE,
+                decisionArgs,
+                instrument,
+                nextBar.closePrice,
+                nextBar,
+                indicators)
+
 
     }
 

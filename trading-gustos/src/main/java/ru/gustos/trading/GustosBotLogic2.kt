@@ -28,7 +28,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
 
     override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
 
-    override fun onInit() {
+    init {
 
         of(GustosBotLogicParams::buyWindow, "buyWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
         of(GustosBotLogicParams::buyVolumeWindow, "buyVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
@@ -54,18 +54,18 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
     override fun copyParams(src: GustosBotLogicParams): GustosBotLogicParams = src.copy()
 
 
-    override fun prepareBarsImpl() {
-
+    override fun prepareBars() {
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
+        garBuy = GustosAverageRecurrent(params.buyWindow!!, params.buyVolumeWindow!!, params.volumeShort!!, params.volumePow1!! / 10.0, params.volumePow2!! / 10.0)
         bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.sma = sma!!.toFloat();it.sd = sd!!.toFloat(); }
-        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
+        garSell = GustosAverageRecurrent(params.sellWindow!!, params.sellVolumeWindow!!, params.volumeShort!!, params.volumePow1!! / 10.0, params.volumePow2!! / 10.0)
         bars.forEach { val (sma, sd) = garSell.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.smaSell = sma!!.toFloat();it.sdSell = sd!!.toFloat(); }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
         lastDecisionIndicator.prepare()
 
+        super.prepareBars()
     }
 
     private fun getTrendDecision(index: Int): Pair<Decision, Map<String, String>> {
@@ -83,14 +83,14 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
     private fun shouldBuy(i: Int): Boolean {
         val pbar = getBar(i - 1)
         val bar = getBar(i)
-        val p = pbar.sma - pbar.sd * getParams().buyDiv!! / 10
-        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * getParams().buyBoundDiv!! / 10 && !falling(i)
+        val p = pbar.sma - pbar.sd * params.buyDiv!! / 10
+        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * params.buyBoundDiv!! / 10 && !falling(i)
     }
 
     private fun shouldSell(i: Int): Boolean {
         val bar = getBar(i)
-        val p = bar.smaSell + bar.sdSell * getParams().sellDiv!! / 10
-        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().sellBoundDiv!! / 10 && !rising(i)
+        val p = bar.smaSell + bar.sdSell * params.sellDiv!! / 10
+        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * params.sellBoundDiv!! / 10 && !rising(i)
 
     }
 
@@ -131,7 +131,7 @@ open class GustosBotLogic2(name: String, instrument: Instrument, barInterval: Ba
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
+    override fun getAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 

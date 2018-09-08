@@ -160,7 +160,7 @@ class BarsCache(val path: String) {
         return synchronized(this) {
             conn.autoCommit = true
             val ret = conn.createStatement().use { statement ->
-                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
+                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.withSecond(59).toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
             }
             ret
         }
@@ -172,7 +172,7 @@ class BarsCache(val path: String) {
             conn.autoCommit = false
             conn.createStatement().use { statement ->
                 bars.forEach { bar ->
-                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
+                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.withSecond(59).toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
                 }
             }
             conn.commit()

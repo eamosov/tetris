@@ -29,7 +29,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
 
     override fun newInitParams(): LevelsLogicParams = LevelsLogicParams()
 
-    override fun onInit() {
+    init {
 
         of(LevelsLogicParams::descendK, "descendK", 1, 100, 1, true)
         of(LevelsLogicParams::substK, "substK", 1, 200, 1, true)
@@ -50,9 +50,9 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
     override fun copyParams(src: LevelsLogicParams): LevelsLogicParams = src.copy()
 
 
-    override fun prepareBarsImpl() {
-        levels = GustosVolumeLevel2(1 - getParams().descendK!! * 0.00001, 1 - getParams().substK!! * 0.001, getParams().fPow!! * 0.1)
-        levelsTrade = LevelsTrader(getParams().fixTime!!, getParams().sellSdTimeFrame!!, getParams().fixAmp!! * 0.0001)
+    override fun prepareBars() {
+        levels = GustosVolumeLevel2(1 - params.descendK!! * 0.00001, 1 - params.substK!! * 0.001, params.fPow!! * 0.1)
+        levelsTrade = LevelsTrader(params.fixTime!!, params.sellSdTimeFrame!!, params.fixAmp!! * 0.0001)
 
 
         bars.forEach { doBar(it) }
@@ -60,7 +60,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
         lastDecisionIndicator.prepare()
-
+        super.prepareBars()
     }
 
     private fun getTrendDecision(index: Int): Pair<Decision, Map<String, String>> {
@@ -132,7 +132,7 @@ open class LevelsBotLogic(name: String, instrument: Instrument, barInterval: Bar
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
+    override fun getAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 

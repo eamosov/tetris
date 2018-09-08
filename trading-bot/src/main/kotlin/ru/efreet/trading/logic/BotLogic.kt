@@ -6,7 +6,6 @@ import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.bot.TradesStats
 import ru.efreet.trading.exchange.Instrument
-import ru.efreet.trading.ta.indicators.XIndicator
 import ru.efreet.trading.trainer.Metrica
 import ru.efreet.trading.utils.PropertyEditor
 import ru.efreet.trading.utils.SeedType
@@ -14,38 +13,21 @@ import ru.efreet.trading.utils.SortedProperties
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
-import java.time.ZonedDateTime
 import java.util.*
 
-interface BotLogic<P, B> {
+interface BotLogic<P> {
 
     val instrument: Instrument
 
-    val bars: List<B>
-
     val genes: List<PropertyEditor<P, Any?>>
 
-    fun indexOf(time: ZonedDateTime): Int
-
-    fun insertBar(bar: XBar, marketBar: MarketBar? = null)
-
-    fun firstBar(): B
-
-    fun lastBar(): B
-
-    fun getBar(index: Int): B
-
-    fun getBarIndex(time: ZonedDateTime): Int
-
-    fun barsCount(): Int
+    fun setHistory(bars: List<XBar>, marketBars: List<MarketBar>?)
 
     fun copyParams(src: P): P
 
-    fun setParams(params: P)
+    var params: P
 
     fun setParams(properties: Properties)
-
-    fun getParams(): P
 
     fun getParamsAsProperties(): Properties
 
@@ -75,27 +57,17 @@ interface BotLogic<P, B> {
         }
     }
 
-    fun prepareBars()
-
-    fun getBotAdvice(index: Int, fillIndicators: Boolean = false): BotAdvice
-
-    fun getAdvice(fillIndicators: Boolean = false): BotAdvice {
-        return getBotAdvice(barsCount() - 1, fillIndicators)
-    }
+    fun getAdvice(nextBar: XBar, nextMarketBar: MarketBar? = null): BotAdvice
 
     fun metrica(params: P, stats: TradesStats): Metrica
 
     val historyBars: Long
-
-    fun indicators(): Map<String, XIndicator>
 
     fun setMinMax(settings: Properties)
 
     fun setMinMax(obj: P, p: Float, hardBounds: Boolean)
 
     fun getMinMax(): Properties
-
-    fun seed(seedType: SeedType, size: Int): MutableList<P>
 
     fun logState(): String
 

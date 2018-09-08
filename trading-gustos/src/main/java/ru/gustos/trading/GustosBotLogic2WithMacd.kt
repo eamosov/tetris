@@ -33,7 +33,7 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
 
     override fun newInitParams(): GustosBotLogicParams2 = GustosBotLogicParams2()
 
-    override fun onInit() {
+    init {
 
         of(GustosBotLogicParams2::buyWindow, "buyWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
         of(GustosBotLogicParams2::buyVolumeWindow, "buyVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
@@ -71,28 +71,28 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     override fun copyParams(src: GustosBotLogicParams2): GustosBotLogicParams2 = src.copy()
 
 
-    override fun prepareBarsImpl() {
-        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().macdShort!!)
-        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, getParams().macdLong!!)
+    override fun prepareBars() {
+        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, params.macdShort!!)
+        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, params.macdLong!!)
         macd = XMACDIndicator(shortEma, longEma)
-        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, getParams().macdSignal!!)
+        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, params.macdSignal!!)
         shortEma.prepare()
         longEma.prepare()
         signalEma.prepare()
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!)
+        garBuy = GustosAverageRecurrent(params.buyWindow!!, params.buyVolumeWindow!!, params.volumeShort!!)
         bars.forEach { val (sma, sd) = garBuy.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.sma = sma!!.toFloat();it.sd = sd!!.toFloat(); }
-        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!)
+        garSell = GustosAverageRecurrent(params.sellWindow!!, params.sellVolumeWindow!!, params.volumeShort!!)
         bars.forEach { val (sma, sd) = garSell.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.smaSell = sma.toFloat();it.sdSell = sd.toFloat(); }
-        garBuy2 = GustosAverageRecurrent(getParams().buyWindow2!!, getParams().buyVolumeWindow2!!, getParams().volumeShort2!!)
+        garBuy2 = GustosAverageRecurrent(params.buyWindow2!!, params.buyVolumeWindow2!!, params.volumeShort2!!)
         bars.forEach { val (sma, sd) = garBuy2.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.sma2 = sma.toFloat();it.sd2 = sd.toFloat(); }
-        garSell2 = GustosAverageRecurrent(getParams().sellWindow2!!, getParams().sellVolumeWindow2!!, getParams().volumeShort2!!)
+        garSell2 = GustosAverageRecurrent(params.sellWindow2!!, params.sellVolumeWindow2!!, params.volumeShort2!!)
         bars.forEach { val (sma, sd) = garSell2.feed(it.closePrice.toDouble(), it.volume.toDouble()); it.smaSell2 = sma.toFloat();it.sdSell2 = sd.toFloat(); }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
         lastDecisionIndicator.prepare()
-
+        super.prepareBars()
     }
 
     private fun getTrendDecision(index: Int): Pair<Decision, Map<String, String>> {
@@ -116,11 +116,11 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
         val pbar = getBar(i - 1)
         val bar = getBar(i)
         if (upTrend(i)) {
-            val p = pbar.sma - pbar.sd * getParams().buyDiv!! / 10
-            return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * getParams().buyBoundDiv!! / 10 && !falling(i)
+            val p = pbar.sma - pbar.sd * params.buyDiv!! / 10
+            return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * params.buyBoundDiv!! / 10 && !falling(i)
         } else {
-            val p = pbar.sma2 - pbar.sd2 * getParams().buyDiv2!! / 10
-            return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma2 - bar.sd2 * getParams().buyBoundDiv2!! / 10 && !falling(i)
+            val p = pbar.sma2 - pbar.sd2 * params.buyDiv2!! / 10
+            return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma2 - bar.sd2 * params.buyBoundDiv2!! / 10 && !falling(i)
 
         }
     }
@@ -128,11 +128,11 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     private fun shouldSell(i: Int): Boolean {
         val bar = getBar(i)
         if (upTrend(i)) {
-            val p = bar.smaSell + bar.sdSell * getParams().sellDiv!! / 10
-            return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().sellBoundDiv!! / 10 && !rising(i)
+            val p = bar.smaSell + bar.sdSell * params.sellDiv!! / 10
+            return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * params.sellBoundDiv!! / 10 && !rising(i)
         } else {
-            val p = bar.smaSell2 + bar.sdSell2 * getParams().sellDiv2!! / 10
-            return bar.maxPrice >= p && bar.closePrice > bar.smaSell2 + bar.sdSell2 * getParams().sellBoundDiv2!! / 10 && !rising(i)
+            val p = bar.smaSell2 + bar.sdSell2 * params.sellDiv2!! / 10
+            return bar.maxPrice >= p && bar.closePrice > bar.smaSell2 + bar.sdSell2 * params.sellBoundDiv2!! / 10 && !rising(i)
         }
     }
 
@@ -186,7 +186,7 @@ open class GustosBotLogic2WithMacd(name: String, instrument: Instrument, barInte
     }
 
 
-    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
+    override fun getAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 

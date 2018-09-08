@@ -3,6 +3,7 @@ package ru.efreet.trading.logic.impl.sd5
 import ru.efreet.trading.bars.XExtBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.logic.AbstractXExtBarBotLogic
 import ru.efreet.trading.logic.impl.SimpleBotLogicParams
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic
 import ru.efreet.trading.ta.indicators.*
@@ -13,30 +14,30 @@ open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterv
 
     override fun newInitParams(): SimpleBotLogicParams = SimpleBotLogicParams()
 
-    override fun onInit() {
+    init {
         describeCommomParams()
     }
 
-    override fun prepareBarsImpl() {
+    override fun prepareBars() {
 
-        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, getParams().short!!)
-        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, getParams().long!!)
+        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, params.short!!)
+        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, params.long!!)
         macd = XMACDIndicator(shortEma, longEma)
-        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, getParams().signal!!)
-        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, getParams().signal2!!)
+        signalEma = XDoubleEMAIndicator(bars, XExtBar._signalEma1, XExtBar._signalEma2, XExtBar._signalEma, macd, params.signal!!)
+        signal2Ema = XDoubleEMAIndicator(bars, XExtBar._signal2Ema1, XExtBar._signal2Ema2, XExtBar._signal2Ema, macd, params.signal2!!)
 
-        sma = XSMAIndicator(bars, XExtBar._sma, closePrice, getParams().deviationTimeFrame!!)
-        sd = XStandardDeviationIndicator(bars, XExtBar._sd, closePrice, sma, getParams().deviationTimeFrame!!)
+        sma = XSMAIndicator(bars, XExtBar._sma, closePrice, params.deviationTimeFrame!!)
+        sd = XStandardDeviationIndicator(bars, XExtBar._sd, closePrice, sma, params.deviationTimeFrame!!)
 
-        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, getParams().dayShort!!)
-        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, getParams().dayLong!!)
+        dayShortEma = XEMAIndicator(bars, XExtBar._dayShortEma, closePrice, params.dayShort!!)
+        dayLongEma = XEMAIndicator(bars, XExtBar._dayLongEma, closePrice, params.dayLong!!)
         dayMacd = XMACDIndicator(dayShortEma, dayLongEma)
-        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, getParams().daySignal!!)
-        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, getParams().daySignal2!!)
+        daySignalEma = XEMAIndicator(bars, XExtBar._daySignalEma, dayMacd, params.daySignal!!)
+        daySignal2Ema = XEMAIndicator(bars, XExtBar._daySignal2Ema, dayMacd, params.daySignal2!!)
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, bar -> getTrendDecision(index, bar) })
         decisionStartIndicator = XDecisionStartIndicator(bars, XExtBar._decisionStart, lastDecisionIndicator)
         tslIndicator = XTslIndicator(bars, XExtBar._tslIndicator, lastDecisionIndicator, closePrice)
-        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastDecisionIndicator, tslIndicator, decisionStartIndicator, getParams().stopLoss, getParams().tStopLoss, getParams().takeProfit, getParams().tTakeProfit)
+        soldBySLIndicator = XSoldBySLIndicator(bars, XExtBar._soldBySLIndicator, lastDecisionIndicator, tslIndicator, decisionStartIndicator, params.stopLoss, params.tStopLoss, params.takeProfit, params.tTakeProfit)
 
         val tasks = mutableListOf<ForkJoinTask<*>>()
         tasks.add(ForkJoinPool.commonPool().submit { shortEma.prepare() })
@@ -55,5 +56,6 @@ open class Sd5Logic(name: String, instrument: Instrument, barInterval: BarInterv
         tasks.forEach { it.join() }
 
         soldBySLIndicator.prepare()
+        barsIsPrepared = true
     }
 }

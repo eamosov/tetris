@@ -20,14 +20,12 @@ import ru.efreet.trading.utils.storeAsJson
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
-import java.util.stream.Collectors
 
 data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T00:00Z[GMT]"),
                  var endTime: ZonedDateTime = ZonedDateTime.parse("2018-06-01T00:00Z[GMT]"),
-                 var instruments: List<Instrument> = arrayListOf(Instrument.ETH_USDT, Instrument.BNB_USDT, Instrument.BTC_USDT, Instrument.BCC_USDT, Instrument.LTC_USDT),
+                 var instruments: Map<Instrument, Float> = listOf(Instrument.ETH_USDT to 0.5F).toMap(),
                  var usd: Float = 1000.0F,
                  val usdLimit: Float = 1.0f,
-                 val betLimit: Float = 0.5f,
                  var interval: BarInterval = BarInterval.ONE_MIN,
                  var feeFactor: Float = 1.0f,
                  var historyPath: String = "simulate_history.json",
@@ -51,7 +49,7 @@ data class State(var startTime: ZonedDateTime = ZonedDateTime.parse("2018-02-01T
 }
 
 data class SimulateData(val instrument: Instrument,
-                        var logic: BotLogic<Any, XBar>,
+                        var logic: BotLogic<Any>,
                         var lastTrainTime: ZonedDateTime,
                         var everyDay: ZonedDateTime,
                         val barIterator: Iterator<XBar>
@@ -68,25 +66,26 @@ class Simulator(val cmd: CmdArgs) {
 
         exchange.setBalance("USDT", state.usd)
 
-        val trader = Trader(null, exchange, state.usdLimit, state.instruments.stream().collect(Collectors.toMap({ it }, { state.betLimit })), updateBalancesTimeout = -1, updateTickerTimeout = -1)
+        val trader = Trader(null, exchange, state.usdLimit, state.instruments, updateBalancesTimeout = -1, updateTickerTimeout = -1)
 
         val simulateData = arrayListOf<SimulateData>()
 
         val marketBarFactory = MarketBarFactory(cache, state.interval, realExchange.getName())
 
 
-        val tmpLogic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, Instrument.BTC_USDT, state.interval, simulate = true)
+        val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, Instrument.BTC_USDT, state.interval, simulate = true)
         val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars))
 
         log.info("Start building history of MarketBars")
-        val marketBars = marketBarFactory.build(historyStart, state.endTime).map { it.endTime.withSecond(59) to it }.toMap()
-        log.info("Ok building {} MarketBars", marketBars.size)
+        val marketBarsList = marketBarFactory.build(historyStart, state.endTime)
+        val marketBarsMap = marketBarsList.map { it.endTime.withSecond(59) to it }.toMap()
+        log.info("Ok building {} MarketBars", marketBarsMap.size)
 
-        for (instrument in state.instruments) {
+        for (instrument in state.instruments.keys) {
 
             exchange.setBalance(instrument.asset, 0.0f)
 
-            val logic: BotLogic<Any, XBar> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
+            val logic: BotLogic<Any> = LogicFactory.getLogic(cmd.logicName, instrument, state.interval, simulate = true)
             if (!logic.loadState(state.properties)) {
                 logic.saveState(state.properties, "initial properties")
             }
@@ -97,8 +96,7 @@ class Simulator(val cmd: CmdArgs) {
             val history = cache.getBars(exchange.getName(), logic.instrument, state.interval, historyStart, state.startTime)
             log.info("Loaded history ${history.size} bars from $historyStart to ${state.startTime} for ${logic.instrument}")
 
-            history.forEach { logic.insertBar(it, marketBars[it.endTime.withSecond(59)]) }
-            logic.prepareBars()
+            logic.setHistory(history, marketBarsList)
 
             val bars = cache.getBars(exchange.getName(), instrument, state.interval, state.startTime, state.endTime)
             log.info("Loaded ${bars.size} bars from ${state.startTime} to ${state.endTime}")
@@ -123,8 +121,7 @@ class Simulator(val cmd: CmdArgs) {
 
                     val bar = sd.barIterator.next()
 
-                    sd.logic.insertBar(bar, marketBars[bar.endTime.withSecond(59)])
-                    val advice = sd.logic.getAdvice(true)
+                    val advice = sd.logic.getAdvice(bar, marketBarsMap[bar.endTime.withSecond(59).minus(state.interval.duration)])
 
                     val trade = trader.executeAdvice(advice)
 

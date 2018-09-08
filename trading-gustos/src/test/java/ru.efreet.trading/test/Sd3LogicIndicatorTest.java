@@ -2,12 +2,9 @@ package ru.efreet.trading.test;
 
 import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.XBar;
-import ru.efreet.trading.bars.XBaseBar;
-import ru.efreet.trading.bars.XExtBar;
 import ru.efreet.trading.exchange.BarInterval;
 import ru.efreet.trading.exchange.Instrument;
 import ru.efreet.trading.exchange.impl.cache.BarsCache;
-import ru.efreet.trading.logic.BotLogic;
 import ru.efreet.trading.logic.impl.sd3.Sd3Logic;
 
 import java.time.ZonedDateTime;
@@ -23,9 +20,9 @@ public class Sd3LogicIndicatorTest {
         BarsCache cache = new BarsCache("d:\\tetrislibs\\bars");
 
         final List<? extends XBar> bars = cache.getBars("binance", Instrument.getBTC_USDT(),
-                                                        BarInterval.ONE_MIN,
-                                                        ZonedDateTime.parse("2018-01-16T00:00:00Z[GMT]"),
-                                                        ZonedDateTime.now());
+                BarInterval.ONE_MIN,
+                ZonedDateTime.parse("2018-01-16T00:00:00Z[GMT]"),
+                ZonedDateTime.now());
 
         final Sd3Logic logic = new Sd3Logic("sd3", Instrument.getBTC_USDT(), BarInterval.ONE_MIN);
 
@@ -36,7 +33,7 @@ public class Sd3LogicIndicatorTest {
         double btc = 0;
         Decision prev = Decision.SELL;
         for (int i = 0; i < logic.barsCount(); i++) {
-            Decision side = logic.getBotAdvice(i, false).getDecision();
+            Decision side = logic.getAdvice(i, false).getDecision();
             if (side != prev) {
                 if (side == Decision.BUY) {
                     btc += money / logic.getBar(i).getClosePrice() * 0.9995;
@@ -47,9 +44,9 @@ public class Sd3LogicIndicatorTest {
                 }
 
                 System.out.println(String.format("%d %s: %g %s   %g",
-                                                 i,
-                                                 logic.getBar(i).getEndTime(),
-                                                 logic.getBar(i).getClosePrice(), side, money));
+                        i,
+                        logic.getBar(i).getEndTime(),
+                        logic.getBar(i).getClosePrice(), side, money));
 
             }
             prev = side;

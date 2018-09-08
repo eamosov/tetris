@@ -36,7 +36,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
 
     override fun newInitParams(): GustosBotLogicParams = GustosBotLogicParams()
 
-    override fun onInit() {
+    init {
 
         of(GustosBotLogicParams::buyWindow, "buyWindow", Duration.ofMinutes(8), Duration.ofMinutes(12), Duration.ofSeconds(1), false)
         of(GustosBotLogicParams::buyVolumeWindow, "buyVolumeWindow", Duration.ofMinutes(32), Duration.ofMinutes(48), Duration.ofSeconds(1), false)
@@ -62,7 +62,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
     override fun copyParams(src: GustosBotLogicParams): GustosBotLogicParams = src.copy()
 
 
-    override fun prepareBarsImpl() {
+    override fun prepareBars() {
 
 //        shortEma = XDoubleEMAIndicator(bars, XExtBar._shortEma1, XExtBar._shortEma2, XExtBar._shortEma, closePrice, 600)
 //        longEma = XDoubleEMAIndicator(bars, XExtBar._longEma1, XExtBar._longEma2, XExtBar._longEma, closePrice, 1300)
@@ -77,13 +77,13 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
 
 
 //        println("timeframe1 ${_params.buyWindow} timeframe2 ${_params.buyVolumeWindow} bars ${bars.size}")
-        garBuy = GustosAverageRecurrent(getParams().buyWindow!!, getParams().buyVolumeWindow!!, getParams().volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
-        garSell = GustosAverageRecurrent(getParams().sellWindow!!, getParams().sellVolumeWindow!!, getParams().volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
+        garBuy = GustosAverageRecurrent(params.buyWindow!!, params.buyVolumeWindow!!, params.volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
+        garSell = GustosAverageRecurrent(params.sellWindow!!, params.sellVolumeWindow!!, params.volumeShort!!)//, getParams().volumePow1!! / 10.0, getParams().volumePow2!! / 10.0)
         bars.forEach { doBar(it) }
         lastDecisionIndicator = XLastDecisionIndicator(bars, XExtBar._lastDecision, { index, _ -> getTrendDecision(index) })
         prepared = true
         lastDecisionIndicator.prepare()
-
+        barsIsPrepared
     }
 
     private fun getTrendDecision(index: Int): Pair<Decision, Map<String, String>> {
@@ -103,15 +103,15 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
         val pbar = getBar(i - 1)
         val bar = getBar(i)
 //        if (bar.closePrice<bar.sma2*0.999) return false
-        val p = pbar.sma - pbar.sd * getParams().buyDiv!! / 10
-        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * getParams().buyBoundDiv!! / 10 && !falling(i)
+        val p = pbar.sma - pbar.sd * params.buyDiv!! / 10
+        return bar.minPrice <= p && bar.maxPrice >= p && bar.closePrice < bar.sma - bar.sd * params.buyBoundDiv!! / 10 && !falling(i)
     }
 
     private fun shouldSell(i: Int): Boolean {
         val bar = getBar(i)
 //        if (bar.sd2<0) return true
-        val p = bar.smaSell + bar.sdSell * getParams().sellDiv!! / 10
-        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * getParams().sellBoundDiv!! / 10 && !rising(i)
+        val p = bar.smaSell + bar.sdSell * params.sellDiv!! / 10
+        return bar.maxPrice >= p && bar.closePrice > bar.smaSell + bar.sdSell * params.sellBoundDiv!! / 10 && !rising(i)
 
     }
 
@@ -167,7 +167,7 @@ open class GustosBotLogicTest2(name: String, instrument: Instrument, barInterval
         return emptyMap()
     }
 
-    override fun getBotAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
+    override fun getAdviceImpl(index: Int, fillIndicators: Boolean): BotAdvice {
 
         synchronized(this) {
 

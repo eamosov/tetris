@@ -38,7 +38,7 @@ class SimulateAll {
                     log.info("Simulate {}, fistBar={}, lastBar={}", instrument, firstBar.endTime, lastBar.endTime)
 
                     val state = State()
-                    state.instruments = listOf(instrument)
+                    state.instruments = listOf(instrument to 1.0f).toMap()
                     state.interval = cmd.barInterval
                     state.startTime = ZonedDateTime.parse("2018-07-01T00:00Z[GMT]")
                     state.endTime = ZonedDateTime.parse("2018-08-06T00:00Z[GMT]")

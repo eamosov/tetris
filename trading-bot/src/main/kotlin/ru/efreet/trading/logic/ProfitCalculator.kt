@@ -22,9 +22,10 @@ class ProfitCalculator {
                                times: List<Pair<ZonedDateTime, ZonedDateTime>>,
                                fillIndicators: Boolean): TradeHistory {
 
-        val logic: BotLogic<P, XBar> = LogicFactory.getLogic(logicName, instrument, interval)
+        val logic =  LogicFactory.getLogic<P>(logicName, instrument, interval) as BarsAwareAbstractBotLogic<P,XBar>
+
         bars.forEach { logic.insertBar(it) }
-        logic.setParams(params)
+        logic.params = params
 
         val trader = Trader.fakeTrader(feeP, interval, instrument)
 
@@ -33,7 +34,7 @@ class ProfitCalculator {
             val startIndex = logic.getBarIndex(ti.first)
 
             for (index in startIndex until logic.barsCount()) {
-                val advice = logic.getBotAdvice(index, fillIndicators)
+                val advice = logic.getAdvice(index, fillIndicators)
 
                 if (!advice.time.isBefore(ti.second)) {
 
