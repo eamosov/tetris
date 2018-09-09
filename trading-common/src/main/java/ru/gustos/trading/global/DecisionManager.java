@@ -90,7 +90,9 @@ public class DecisionManager {
 
     @NotNull
     public Decision decision() {
+//        System.out.println(calc.calcIndex+" "+calcModelFrom+" "+calcAllFrom+" "+data.instrument);
         MomentData mldata = data.data.get(calc.calcIndex - 1);
+        if (!hasModel()) return Decision.NONE;
         boolean classifiedBuy = data.helper.get(mldata, "@goodBuy|main") > 0.5;
         boolean classifiedSell = true;//data.helper.get(mldata, "@goodSell|main") > 0.5;
 
