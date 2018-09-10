@@ -130,6 +130,25 @@ class MlBot {
         bot.lastBar = ZonedDateTime.now()
     }
 
+    fun updateCache(){
+        log.info("Refresh cache of Bars")
+        for (instrument in exchange.getTicker().keys.toList().marketBarList()) {
+
+            cache.createTable(exchange.getName(), instrument, interval)
+
+            val cacheStart = cache.getLast(exchange.getName(), instrument, interval)?.endTime?.minus(interval.duration)
+                    ?: ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
+
+            log.info("Fetching ${instrument}/${interval.duration} from ${exchange.getName()} between ${cacheStart} and now ")
+            val cacheBars = exchange.loadBars(instrument, interval, cacheStart, ZonedDateTime.now())
+
+            log.info("Saving ${cacheBars.size} bars from ${cacheBars.first().endTime} to ${cacheBars.last().endTime}")
+            cache.saveBars(exchange.getName(), instrument, cacheBars.filter { it.timePeriod == interval.duration })
+
+            bots[instrument] = MlBotData(instrument, null)
+        }
+    }
+
     fun start(args: Array<String>) {
 
         val cmd = CmdArgs.parse(args)
@@ -148,24 +167,9 @@ class MlBot {
 
         log.info("Configuration: {}", botConfig)
 
+        updateCache()
+
         val startTime = ZonedDateTime.now()
-
-        log.info("Refresh cache of bars for MarketBar")
-        for (instrument in exchange.getTicker().keys.toList().marketBarList()) {
-
-            cache.createTable(exchange.getName(), instrument, interval)
-
-            val cacheStart = cache.getLast(exchange.getName(), instrument, interval)?.endTime?.minus(interval.duration)
-                    ?: ZonedDateTime.parse("2017-10-01T00:00Z[GMT]")
-
-            log.info("Fetching ${instrument}/${interval.duration} from ${exchange.getName()} between ${cacheStart} and ${startTime} ")
-            val cacheBars = exchange.loadBars(instrument, interval, cacheStart, startTime)
-
-            log.info("Saving ${cacheBars.size} bars from ${cacheBars.first().endTime} to ${cacheBars.last().endTime}")
-            cache.saveBars(exchange.getName(), instrument, cacheBars.filter { it.timePeriod == interval.duration })
-
-            bots[instrument] = MlBotData(instrument, null)
-        }
 
         val tmpLogic: BotLogic<Any> = LogicFactory.getLogic(logicName, Instrument.BTC_USDT, interval, simulate = true)
         val historyStart = startTime.minus(interval.duration.multipliedBy(tmpLogic.historyBars))
@@ -188,6 +192,8 @@ class MlBot {
 
             bots[instrument] = MlBotData(instrument, logic)
         }
+
+        updateCache()
 
         val tradeRecordDao = TradeRecordDao(cache.getConnection())
 
