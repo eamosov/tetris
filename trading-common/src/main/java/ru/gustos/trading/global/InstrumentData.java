@@ -42,7 +42,7 @@ public class InstrumentData implements BarsSource{
         this.withbuysell = withbuysell;
         this.global = global;
         this.bars = new TimeSeries<>(bars.size());
-        this.marketBars = new ArrayList<>(marketBars);
+        this.marketBars = new ArrayList<>();
         totalBar = null;
         if (withml) {
             data = new ArrayList<>();
@@ -56,7 +56,7 @@ public class InstrumentData implements BarsSource{
         }
 
         for (int i = 0;i<bars.size();i++)
-            addBar(bars.get(i), marketBars.get(i));
+            addBar(bars.get(i), marketBars==null?null:marketBars.get(i));
 
     }
 
@@ -73,7 +73,8 @@ public class InstrumentData implements BarsSource{
             totalBar = new XBaseBar(bar);
         else
             totalBar.addBar(bar);
-        marketBars.add(marketBar);
+        if (marketBars!=null)
+            marketBars.add(marketBar);
         bars.add(bar, bar.getEndTime().toEpochSecond());
         if (withml) {
             data.add(new MomentData(100));

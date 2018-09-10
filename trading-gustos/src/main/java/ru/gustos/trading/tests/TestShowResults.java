@@ -81,8 +81,10 @@ public class TestShowResults {
         double moneyPart = Double.parseDouble(moneyPartField.getText().trim());
 //        double moneyPart = 1.0/Math.max(1,planalyzer1.histories.size()-ignore.size());
         ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
-        TimeSeriesDouble h1 = planalyzer1.makeHistory(false, 1, ignore);
-//        graphs.add(h1);
+//        TimeSeriesDouble h1 = planalyzer1.makeHistory(false, moneyPart, ignore);
+        TimeSeriesDouble h1 = planalyzer1.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
+        System.out.println();
+        graphs.add(h1);
 //        graphs.add(planalyzer1.makeHistory(false, moneyPart, ignore));
         TimeSeriesDouble h2 = planalyzer2.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
         graphs.add(h2);

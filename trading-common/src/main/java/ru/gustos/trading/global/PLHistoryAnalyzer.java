@@ -166,8 +166,15 @@ public class PLHistoryAnalyzer {
 
             if (m<=0) {
 //            if (m<=0 || (p.timeBuy==prepare.get(i+1).timeBuy && p.timeBuy!=prepare.get(i-1).timeBuy)) {
-//                if (m>0)
-//                    System.out.println(p.instrument+" "+prepare.get(i+1).instrument);
+//                if (m>0) {
+//                    int j = i;
+//                    while (p.timeBuy==prepare.get(j).timeBuy){
+//                        System.out.print(prepare.get(j).instrument+"("+prepare.get(j).profit+") ");
+//                        j++;
+//                    }
+//                    System.out.println();
+////                    System.out.println(p.instrument + " " + prepare.get(i + 1).instrument);
+//                }
 //            if (m<=0 || p.timeBuy!=prepare.get(i-1).timeBuy ) {
 //            if (m<=0 || p.timeBuy-lastbuy<pause) {
 //                lastbuy = p.timeBuy;

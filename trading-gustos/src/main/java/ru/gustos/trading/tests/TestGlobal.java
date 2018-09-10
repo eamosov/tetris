@@ -107,7 +107,7 @@ public class TestGlobal{
         BarsCache cache = new BarsCache("cache.sqlite3");
         MarketBarFactory market = new MarketBarFactory(cache, BarInterval.ONE_MIN, "binance");
         List<MarketBar> marketBars = market.build(loadFrom, loadTo);
-        marketBars.add(0, marketBars.get(0)); // simulate time lag
+//        marketBars.add(0, marketBars.get(0)); // simulate time lag
         return marketBars;
     }
 
