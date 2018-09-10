@@ -145,7 +145,7 @@ class MlBot {
             log.info("Saving ${cacheBars.size} bars from ${cacheBars.first().endTime} to ${cacheBars.last().endTime}")
             cache.saveBars(exchange.getName(), instrument, cacheBars.filter { it.timePeriod == interval.duration })
 
-            bots[instrument] = MlBotData(instrument, null)
+            bots.putIfAbsent(instrument, MlBotData(instrument, null))
         }
     }
 
