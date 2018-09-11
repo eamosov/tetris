@@ -90,7 +90,7 @@ public class TestGlobal{
         return global;
     }
     static ZonedDateTime loadFrom = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-    static ZonedDateTime loadTo = ZonedDateTime.of(2018,9,5,18,0,0,0, ZoneId.systemDefault());
+    static ZonedDateTime loadTo = ZonedDateTime.of(2018,9,11,6,0,0,0, ZoneId.systemDefault());
 
     public static void addInstrument(Global global, Instrument ii, boolean withml, boolean withbuysell){
         Exchange exch = new Binance();
@@ -107,7 +107,7 @@ public class TestGlobal{
         BarsCache cache = new BarsCache("cache.sqlite3");
         MarketBarFactory market = new MarketBarFactory(cache, BarInterval.ONE_MIN, "binance");
         List<MarketBar> marketBars = market.build(loadFrom, loadTo);
-//        marketBars.add(0, marketBars.get(0)); // simulate time lag
+        marketBars.add(0, marketBars.get(0)); // simulate time lag
         return marketBars;
     }
 

@@ -1,6 +1,7 @@
 package ru.gustos.trading.global;
 
 import kotlin.Pair;
+import ru.gustos.trading.book.indicators.EmaRecurrent;
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
 import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
@@ -151,6 +152,7 @@ public class PLHistoryAnalyzer {
         double m = 1;
         double inactives = 0;
         long lastbuy = 0;
+        Hashtable<String, EmaRecurrent> pows = new Hashtable<>();
 
         for (int i = 1; i < prepare.size()-1; i++) {
             PLHistory.PLTrade p = prepare.get(i);
@@ -160,24 +162,37 @@ public class PLHistoryAnalyzer {
                     m+=toSell.get(j).getFirst()*sell.profit;
                     inactives-=toSell.get(j).getFirst();
                     result.add(m+inactives, p.timeSell);
+
+                    EmaRecurrent ema = pows.get(sell.instrument);
+                    if (ema==null)
+                        pows.put(sell.instrument,ema = new EmaRecurrent(10));
+                    ema.feed(sell.profit);
+
                     toSell.remove(j);
                 }
             }
 
-            if (m<=0) {
-//            if (m<=0 || (p.timeBuy==prepare.get(i+1).timeBuy && p.timeBuy!=prepare.get(i-1).timeBuy)) {
-//                if (m>0) {
+//            if (m<=0) {
+//            if (m<=0 || (near(p.timeBuy,prepare.get(i+1).timeBuy) && !near(p.timeBuy,prepare.get(i-1).timeBuy))) {
+            if (m<=0 || ((near(p.timeBuy,prepare.get(i+1).timeBuy) || near(p.timeBuy,prepare.get(i-1).timeBuy)) && !p.instrument.equals(bestOfSimulataneous(pows,prepare,i)))) {
+//            if (m<=0 || (near(p.timeBuy,prepare.get(i+1).timeBuy) || near(p.timeBuy,prepare.get(i-1).timeBuy))) {
+                if (m>0) {
 //                    int j = i;
-//                    while (p.timeBuy==prepare.get(j).timeBuy){
+//                    while (j<prepare.size() && near(p.timeBuy,prepare.get(j).timeBuy)){
 //                        System.out.print(prepare.get(j).instrument+"("+prepare.get(j).profit+") ");
 //                        j++;
 //                    }
-//                    System.out.println();
-////                    System.out.println(p.instrument + " " + prepare.get(i + 1).instrument);
-//                }
-//            if (m<=0 || p.timeBuy!=prepare.get(i-1).timeBuy ) {
+                    System.out.println("skip "+p.instrument+" "+p.profit);
+                }
+//            if (m<=0 || !near(p.timeBuy,prepare.get(i-1).timeBuy) ) {
 //            if (m<=0 || p.timeBuy-lastbuy<pause) {
 //                lastbuy = p.timeBuy;
+                PLHistory.PLTrade t = prepare.get(i);
+                EmaRecurrent ema = pows.get(t.instrument);
+                if (ema==null)
+                    pows.put(t.instrument,ema = new EmaRecurrent(10));
+                ema.feed(t.profit);
+
                 continue;
             }
             double part = Math.min(m,moneyPart*(m+inactives));
@@ -187,6 +202,35 @@ public class PLHistoryAnalyzer {
             toSell.add(new Pair<>(part,p));
         }
         return result;
+    }
+
+    private String bestOfSimulataneous(Hashtable<String, EmaRecurrent> pows, ArrayList<PLHistory.PLTrade> prepare, int pos) {
+        int from = pos;
+        while (from>0 && near(prepare.get(from).timeBuy,prepare.get(from-1).timeBuy))
+            from--;
+        int to = pos;
+        while (to<prepare.size()-1 && near(prepare.get(to).timeBuy,prepare.get(to+1).timeBuy))
+            to++;
+
+        String best = null;
+        double bestprofit = 1.001;
+        for (int i = from;i<=to;i++){
+            PLHistory.PLTrade t = prepare.get(i);
+            EmaRecurrent ema = pows.get(t.instrument);
+            if (ema!=null && !t.instrument.equals("ETH_USDT") && !t.instrument.equals("LTC_USDT")){
+                if (ema.value()>bestprofit) {
+                    bestprofit = ema.value();
+                    best = t.instrument;
+                }
+
+            }
+        }
+        return best;
+//        return prepare.get(from+1).instrument;
+    }
+
+    private boolean near(long t1, long t2) {
+        return Math.abs(t1-t2)<1;
     }
 
     public ArrayList<Long> makeModelTimes(HashSet<String> ignore) {

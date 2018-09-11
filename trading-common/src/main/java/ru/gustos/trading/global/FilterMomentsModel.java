@@ -102,7 +102,7 @@ public class FilterMomentsModel {
             int trees = buy ? manager.config.treesBuy : manager.config.treesSell;
             int kValue = Math.min(buy ? manager.config.kValueBuy : manager.config.kValueSell, set1.numAttributes() - 1);
 
-            attFilter = new J48AttributeFilter(5, 0.3);
+            attFilter = new J48AttributeFilter(3, 0.4);
             attFilter.prepare(set1);
             set1 = attFilter.filter(set1);
             if (set1.numAttributes()<=1){
