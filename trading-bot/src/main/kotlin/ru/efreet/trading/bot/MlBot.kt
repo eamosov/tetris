@@ -74,7 +74,7 @@ class MlBot {
                 }
 
                 if (bot.logic != null) {
-                    val marketBar = marketBarFactory.build(bar.endTime.withSecond(59).minus(interval.duration))
+                    val marketBar = marketBarFactory.build(bar.endTime.trimToBar().minus(interval.duration))
 
                     log.info("Market bar: {}", marketBar)
 

@@ -6,6 +6,7 @@ import ru.efreet.trading.bars.XBarList
 import ru.efreet.trading.bars.XBaseBar
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
+import ru.efreet.trading.utils.trimToBar
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -97,7 +98,7 @@ class BarsCache(val path: String) {
     }
 
     fun mapToBar(resultSet: ResultSet, interval: BarInterval): XBaseBar {
-        val time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(resultSet.getLong("time") * 1000), ZoneId.of("GMT")).withSecond(59)
+        val time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(resultSet.getLong("time") * 1000), ZoneId.of("GMT")).trimToBar()
 
         return XBaseBar(interval.duration,
                 time,
@@ -160,7 +161,7 @@ class BarsCache(val path: String) {
         return synchronized(this) {
             conn.autoCommit = true
             val ret = conn.createStatement().use { statement ->
-                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.withSecond(59).toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
+                statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.trimToBar().toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
             }
             ret
         }
@@ -172,7 +173,7 @@ class BarsCache(val path: String) {
             conn.autoCommit = false
             conn.createStatement().use { statement ->
                 bars.forEach { bar ->
-                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.withSecond(59).toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
+                    statement.executeUpdate("INSERT OR REPLACE INTO ${tableName(exchange, instrument, BarInterval.of(bar.timePeriod))} (time, open, high, low, close, volume, volumebase, volumequote, trades) VALUES (${bar.endTime.trimToBar().toEpochSecond()}, ${bar.openPrice}, ${bar.maxPrice}, ${bar.minPrice}, ${bar.closePrice}, ${bar.volume}, ${bar.volumeBase}, ${bar.volumeQuote}, ${bar.trades})")
                 }
             }
             conn.commit()

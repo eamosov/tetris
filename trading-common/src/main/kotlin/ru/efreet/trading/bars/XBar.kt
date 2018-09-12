@@ -246,7 +246,7 @@ fun List<XBar>.getWithDelta(index: Int, deltaMinutes: Long): XBar? {
     if (Duration.between(bar.endTime, r.endTime).toMinutes() == deltaMinutes)
         return r
 
-    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes), 0, index, selector = { it.endTime })
+    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes).toEpochSecond(), 0, index, selector = { it.endTime.toEpochSecond() })
     return if (bs >= 0) {
         get(bs)
     } else {

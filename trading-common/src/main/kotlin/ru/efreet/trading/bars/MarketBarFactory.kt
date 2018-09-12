@@ -3,6 +3,7 @@ package ru.efreet.trading.bars
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.exchange.impl.cache.BarsCache
+import ru.efreet.trading.utils.trimToBar
 import java.time.Duration
 import java.time.ZonedDateTime
 import kotlin.reflect.KMutableProperty1
@@ -36,7 +37,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
     fun build(time: ZonedDateTime): MarketBar {
 
         val mb = MarketBar(time)
-        val time = time.withSecond(59)
+        val time = time.trimToBar()
 
         for (instrument in instruments) {
 
@@ -61,11 +62,11 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
 
             if (mbIndex < marketBars.size - 1) {
 
-                if (mbIndex >= 0 && marketBars[mbIndex + 1].endTime == endTime) {
+                if (mbIndex >= 0 && marketBars[mbIndex + 1].endTime.isEqual(endTime)) {
                     mbIndex += 1
                     mb = marketBars[mbIndex]
                 } else {
-                    val bsr = marketBars.binarySearchBy(endTime, mbIndex + 1, marketBars.size, selector = { it.endTime })
+                    val bsr = marketBars.binarySearchBy(endTime.toEpochSecond(), mbIndex + 1, marketBars.size, selector = { it.endTime.toEpochSecond() })
                     if (bsr >= 0) {
                         mbIndex = bsr
                         mb = marketBars[mbIndex]
@@ -83,7 +84,7 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
             throw RuntimeException("out.size != bars.size")
 
         for (index in 0 until bars.size) {
-            if (bars[index].endTime != out[index].endTime) {
+            if (!bars[index].endTime.isEqual(out[index].endTime)) {
                 throw RuntimeException("bars[$index].endTime(${bars[index].endTime}) != out[$index].endTime(${out[index].endTime})")
             }
         }
@@ -103,8 +104,8 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
 
         val deltaList = arrayListOf<MarketBar>()
 
-        var endTime = start.withSecond(59)
-        while (!endTime.isAfter(end.withSecond(59))) {
+        var endTime = start.trimToBar()
+        while (!endTime.isAfter(end.trimToBar())) {
 
             val delta = MarketBar(endTime)
 
@@ -114,11 +115,11 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
                 var bar: XBar? = null
 
                 if (holder.index < holder.bars.size - 1) {
-                    if (holder.index >= 0 && holder.bars[holder.index + 1].endTime == endTime) {
+                    if (holder.index >= 0 && holder.bars[holder.index + 1].endTime.isEqual(endTime)) {
                         holder.index = holder.index + 1
                         bar = holder.bars[holder.index]
                     } else {
-                        val bsr = holder.bars.binarySearchBy(endTime, holder.index + 1, holder.bars.size, selector = { it.endTime })
+                        val bsr = holder.bars.binarySearchBy(endTime.toEpochSecond(), holder.index + 1, holder.bars.size, selector = { it.endTime.toEpochSecond() })
                         if (bsr >= 0) {
                             //println("binarySearchBy success")
                             holder.index = bsr

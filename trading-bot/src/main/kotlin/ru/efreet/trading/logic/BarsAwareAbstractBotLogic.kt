@@ -7,6 +7,7 @@ import ru.efreet.trading.bot.BotAdvice
 import ru.efreet.trading.exchange.BarInterval
 import ru.efreet.trading.exchange.Instrument
 import ru.efreet.trading.ta.indicators.XIndicator
+import ru.efreet.trading.utils.trimToBar
 import java.time.ZonedDateTime
 import kotlin.reflect.KClass
 
@@ -27,7 +28,7 @@ abstract class BarsAwareAbstractBotLogic<P : Any, B : XBar>(name: String, params
 
     fun getBarIndex(time: ZonedDateTime): Int {
 
-        var startIndex = bars.binarySearchBy(time, selector = { it.endTime })
+        var startIndex = bars.binarySearchBy(time.toEpochSecond(), selector = { it.endTime.toEpochSecond() })
 
         if (startIndex < 0)
             startIndex = -startIndex - 1
@@ -36,9 +37,9 @@ abstract class BarsAwareAbstractBotLogic<P : Any, B : XBar>(name: String, params
     }
 
     override fun setHistory(bars: List<XBar>, marketBars: List<MarketBar>?) {
-        val mm = marketBars?.map { it.endTime.withSecond(59) to it }?.toMap() ?: mapOf()
+        val mm = marketBars?.map { it.endTime.trimToBar() to it }?.toMap() ?: mapOf()
         bars.forEach {
-            insertBar(it, mm[it.endTime.withSecond(59)])
+            insertBar(it, mm[it.endTime.trimToBar()])
         }
         prepareBars()
     }

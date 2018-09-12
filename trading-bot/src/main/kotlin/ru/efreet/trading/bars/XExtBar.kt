@@ -7,7 +7,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 fun List<XBar>.indexOf(endTime: ZonedDateTime): Int {
-    var startIndex = this.binarySearchBy(endTime, selector = { it.endTime })
+    var startIndex = this.binarySearchBy(endTime.toEpochSecond(), selector = { it.endTime.toEpochSecond() })
     if (startIndex < 0)
         startIndex = -startIndex - 1
 

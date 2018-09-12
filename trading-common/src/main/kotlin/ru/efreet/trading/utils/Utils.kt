@@ -121,3 +121,5 @@ fun roundAmount(amount: Float, price: Float): Float {
 
     return (amount * k).toInt() / k
 }
+
+fun ZonedDateTime.trimToBar(): ZonedDateTime = this.withSecond(59).withNano(0)
