@@ -123,7 +123,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         else if (td.closePrice > td.maxPrice)
             td.maxPrice = td.closePrice
 
-        cash.add(Pair(advice.bar.endTime, deposit((exchange is FakeExchange) || (logicAdvice.decision != Decision.NONE))))
+        cash.add(Pair(advice.bar.endTime, deposit((exchange is FakeExchange) || needForcedUpdate)))
 
 //        if (advice.decision == Decision.NONE &&
 //                lastBuy.containsKey(advice.instrument) &&
