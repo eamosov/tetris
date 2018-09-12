@@ -8,7 +8,7 @@ import java.time.ZonedDateTime
 import kotlin.reflect.KMutableProperty1
 
 fun List<Instrument>.marketBarList(): List<Instrument> {
-    return this.filter { it.base == "USDT" && it.asset != "TUSD" }
+    return this.filter { it.base == "USDT" && it.asset != "TUSD" && it.asset != "VEN" }
 }
 
 class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInterval.ONE_MIN, val exchange: String = "binance") {
@@ -27,7 +27,9 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
         setDeltaXX(bar, instrument, interval, XBar::delta5m, Duration.ofMinutes(5))
         setDeltaXX(bar, instrument, interval, XBar::delta15m, Duration.ofMinutes(15))
         setDeltaXX(bar, instrument, interval, XBar::delta1h, Duration.ofHours(1))
+        setDeltaXX(bar, instrument, interval, XBar::delta12h, Duration.ofHours(12))
         setDeltaXX(bar, instrument, interval, XBar::delta1d, Duration.ofDays(1))
+        setDeltaXX(bar, instrument, interval, XBar::delta3d, Duration.ofDays(3))
         setDeltaXX(bar, instrument, interval, XBar::delta7d, Duration.ofDays(7))
     }
 
@@ -47,49 +49,80 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
         return mb
     }
 
+    fun trim(marketBars: List<MarketBar>, bars: List<XBar>): List<MarketBar> {
+
+        val out = ArrayList<MarketBar>(bars.size)
+        var mbIndex = -1
+
+        for (index in 0 until bars.size) {
+
+            var mb: MarketBar? = null
+            val endTime = bars[index].endTime
+
+            if (mbIndex < marketBars.size - 1) {
+
+                if (mbIndex >= 0 && marketBars[mbIndex + 1].endTime == endTime) {
+                    mbIndex += 1
+                    mb = marketBars[mbIndex]
+                } else {
+                    val bsr = marketBars.binarySearchBy(endTime, mbIndex + 1, marketBars.size, selector = { it.endTime })
+                    if (bsr >= 0) {
+                        mbIndex = bsr
+                        mb = marketBars[mbIndex]
+                    }
+                }
+            }
+
+            if (mb == null)
+                throw RuntimeException("Couldn't find MarketBar for $endTime")
+
+            out.add(mb)
+        }
+
+        if (out.size != bars.size)
+            throw RuntimeException("out.size != bars.size")
+
+        for (index in 0 until bars.size) {
+            if (bars[index].endTime != out[index].endTime) {
+                throw RuntimeException("bars[$index].endTime(${bars[index].endTime}) != out[$index].endTime(${out[index].endTime})")
+            }
+        }
+
+        return out
+    }
+
     fun build(start: ZonedDateTime, end: ZonedDateTime): List<MarketBar> {
 
         val map = mutableMapOf<Instrument, Holder>()
-        
+
         //println("instruments: $instruments")
 
         for (instrument in instruments) {
             map[instrument] = Holder(cache.getBars(exchange, instrument, interval, start.minusDays(7), end))
         }
 
-        val btcBars = map[Instrument.BTC_USDT]!!
-
         val deltaList = arrayListOf<MarketBar>()
 
-        for (index in 0 until btcBars.bars.size) {
-
-            val btcBar = btcBars.bars.setDeltaXX(index)
-            val endTime = btcBar.endTime
+        var endTime = start.withSecond(59)
+        while (!endTime.isAfter(end.withSecond(59))) {
 
             val delta = MarketBar(endTime)
-            delta.addBar(btcBar)
-            //println("BTC: ${btcBar}")
 
-            for (instrument in instruments.filter { it != Instrument.BTC_USDT }) {
+            for (instrument in instruments) {
                 val holder = map[instrument]!!
 
-                var bar: XBar?
+                var bar: XBar? = null
 
-                if (holder.index == holder.bars.size - 1) {
-                    bar = null
-                } else {
-                    bar = if (holder.index >= 0) {
-                        holder.bars[holder.index + 1]
-                    } else null
-
-                    if (bar != null && bar.endTime == endTime) {
-                        holder.index++
+                if (holder.index < holder.bars.size - 1) {
+                    if (holder.index >= 0 && holder.bars[holder.index + 1].endTime == endTime) {
+                        holder.index = holder.index + 1
+                        bar = holder.bars[holder.index]
                     } else {
                         val bsr = holder.bars.binarySearchBy(endTime, holder.index + 1, holder.bars.size, selector = { it.endTime })
                         if (bsr >= 0) {
                             //println("binarySearchBy success")
                             holder.index = bsr
-                            bar = holder.bars[bsr]
+                            bar = holder.bars[holder.index]
                         }
                     }
                 }
@@ -103,9 +136,11 @@ class MarketBarFactory(val cache: BarsCache, val interval: BarInterval = BarInte
                 }
             }
 
-            if (!delta.endTime.isBefore(start)) {
+            if (delta.count > 0) {
                 deltaList.add(delta)
             }
+
+            endTime = endTime.plus(interval.duration)
         }
 
         return deltaList

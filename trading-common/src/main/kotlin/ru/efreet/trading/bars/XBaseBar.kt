@@ -19,7 +19,9 @@ data class XBaseBar(override var timePeriod: Duration,
                     override var delta5m: Float = 0.0F,
                     override var delta15m: Float = 0.0F,
                     override var delta1h: Float = 0.0F,
+                    override var delta12h: Float = 0.0F,
                     override var delta1d: Float = 0.0F,
+                    override var delta3d: Float = 0.0F,
                     override var delta7d: Float = 0.0F) : XBar {
 
     /** Begin time of the bar  */

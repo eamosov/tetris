@@ -97,7 +97,7 @@ class BarsCache(val path: String) {
     }
 
     fun mapToBar(resultSet: ResultSet, interval: BarInterval): XBaseBar {
-        val time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(resultSet.getLong("time") * 1000), ZoneId.of("GMT"))
+        val time = ZonedDateTime.ofInstant(Instant.ofEpochMilli(resultSet.getLong("time") * 1000), ZoneId.of("GMT")).withSecond(59)
 
         return XBaseBar(interval.duration,
                 time,

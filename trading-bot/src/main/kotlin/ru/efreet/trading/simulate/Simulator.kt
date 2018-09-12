@@ -77,9 +77,10 @@ class Simulator(val cmd: CmdArgs) {
         val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars))
 
         log.info("Start building history of MarketBars")
+        val mbs = System.currentTimeMillis()
         val marketBarsList = marketBarFactory.build(historyStart, state.endTime)
         val marketBarsMap = marketBarsList.map { it.endTime.withSecond(59) to it }.toMap()
-        log.info("Ok building {} MarketBars", marketBarsMap.size)
+        log.info("Ok building {} MarketBars with {}s", marketBarsMap.size, (System.currentTimeMillis() - mbs) / 1000)
 
         for (instrument in state.instruments.keys) {
 
@@ -96,7 +97,7 @@ class Simulator(val cmd: CmdArgs) {
             val history = cache.getBars(exchange.getName(), logic.instrument, state.interval, historyStart, state.startTime)
             log.info("Loaded history ${history.size} bars from $historyStart to ${state.startTime} for ${logic.instrument}")
 
-            logic.setHistory(history, marketBarsList)
+            logic.setHistory(history, marketBarFactory.trim(marketBarsList, history))
 
             val bars = cache.getBars(exchange.getName(), instrument, state.interval, state.startTime, state.endTime)
             log.info("Loaded ${bars.size} bars from ${state.startTime} to ${state.endTime}")
