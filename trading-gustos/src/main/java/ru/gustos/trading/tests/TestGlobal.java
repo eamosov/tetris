@@ -96,7 +96,7 @@ public class TestGlobal{
         return global;
     }
     static ZonedDateTime loadFrom = ZonedDateTime.of(2017,12,15,0,0,0,0, ZoneId.systemDefault());
-    static ZonedDateTime loadTo = ZonedDateTime.of(2018,9,11,6,0,0,0, ZoneId.systemDefault());
+    static ZonedDateTime loadTo = ZonedDateTime.of(2018,9,13,6,0,0,0, ZoneId.systemDefault());
 
     static ArrayList<MarketBar> syncBars(ArrayList<? extends XBar> bars, Global global){
         int marketFrom = global.marketBarIndex(bars.get(0).getEndTime());
@@ -210,7 +210,7 @@ public class TestGlobal{
             file.mkdir();
         }
         global.setMarket(initMarketBars());
-        ZonedDateTime from = ZonedDateTime.of(2018,2,15,0,0,0,0, ZoneId.systemDefault());
+        ZonedDateTime from = ZonedDateTime.of(2018,5,15,0,0,0,0, ZoneId.systemDefault());
 //        ZonedDateTime dontRenewAfter = ZonedDateTime.of(2018,6,20,0,0,0,0, ZoneId.systemDefault());
         double[] kappas = new double[instruments.length];
         for (int i = 0;i<instruments.length;i++) {

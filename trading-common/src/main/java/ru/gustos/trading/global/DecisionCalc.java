@@ -366,8 +366,10 @@ public class DecisionCalc {
                 helper().put(mldata,"marketPos1",marketBar.p5m());
                 helper().put(mldata,"marketPos2",marketBar.p15m());
                 helper().put(mldata,"marketPos3",marketBar.p1h());
-                helper().put(mldata,"marketPos4",marketBar.p1d());
-                helper().put(mldata,"marketPos5",marketBar.p7d());
+                helper().put(mldata,"marketPos4",marketBar.p12h());
+                helper().put(mldata,"marketPos5",marketBar.p1d());
+                helper().put(mldata,"marketPos6",marketBar.p3d());
+//                helper().put(mldata,"marketPos7",marketBar.p7d());
 //                helper().putLagged(mldata,"marketPos1",prevmldata2,2);
 //                helper().putLagged(mldata,"marketPos2",prevmldata2,2);
 //                helper().putLagged(mldata,"marketPos3",prevmldata2,2);
