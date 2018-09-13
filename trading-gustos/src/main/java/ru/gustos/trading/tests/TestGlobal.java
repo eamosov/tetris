@@ -42,13 +42,12 @@ public class TestGlobal{
             new Instrument("NULS","USDT"),
             new Instrument("VET","USDT"),
             new Instrument("IOTA","USDT"),
+            new Instrument("TRX","USDT"),
 
 //            new Instrument("QTUM","USDT"),
-//            new Instrument("IOTA","USDT"),
 //            new Instrument("ADA","USDT"),
 //            new Instrument("ETC","USDT"),
 //            new Instrument("EOS","USDT"),
-//            new Instrument("TRX","USDT"),
     };
 
     public static TimeSeriesDouble makeMarketAveragePrice(Global global, PLHistoryAnalyzer pl, TimeSeriesDouble trades, HashSet<String> ignore) {

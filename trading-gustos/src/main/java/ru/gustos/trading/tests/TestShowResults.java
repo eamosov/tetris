@@ -33,7 +33,7 @@ public class TestShowResults {
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl2/pl141.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl2313.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);
@@ -89,8 +89,9 @@ public class TestShowResults {
         TimeSeriesDouble h2 = planalyzer2.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
         graphs.add(h2);
 //        graphs.add(planalyzer2.makeHistory(true, moneyPart,ignore));
+        TimeSeriesDouble h3 = planalyzer3.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
 //        TimeSeriesDouble h3 = planalyzer3.makeHistory(false, moneyPart, ignore);
-//        graphs.add(h3);
+        graphs.add(h3);
         System.out.println(h2.lastOrZero());
 //        System.out.println(h3.lastOrZero());
 //        for (int i = 0;i<planalyzers.length;i++)

@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 
+import static ru.gustos.trading.global.DecisionManager.calcAllFrom;
+
 public class FilterMomentsModel {
 
 
@@ -65,8 +67,8 @@ public class FilterMomentsModel {
         for (int j = 0; j < moments.size(); j++) {
             PLHistory.CriticalMoment m = moments.get(j);
             int index = data.getBarIndex(m.time(buy));
-            if (index > manager.calcAllFrom) {
-                int fromIndex = Math.max(manager.calcAllFrom, index - period);
+            if (index > calcAllFrom) {
+                int fromIndex = Math.max(calcAllFrom, index - period);
 
 //                if (fromIndex<maxTrainIndex) fromIndex = maxTrainIndex;
 
@@ -107,8 +109,13 @@ public class FilterMomentsModel {
                 attFilter = null;
                 manager.export.add(new Pair<>(set1, data.helper.makeEmptySet(manager.ignoreBuy, attFilter, 0, 9)));
             } else {
+
                 attFilter = new J48AttributeFilter(3, 0.4);
-                attFilter.prepare(set1);
+                if (manager.calc.oldInstr()) {
+                    Instances settemp = data.helper.makeSet(data.data, manager.ignoreBuy, null, Math.max(calcAllFrom,calcIndex-60*24*30), calcIndex, endtime, 0, level);
+                    attFilter.prepare(settemp);
+                } else
+                    attFilter.prepare(set1);
                 set1 = attFilter.filter(set1);
                 if (set1.numAttributes()<=1){
                     this.full = false;
@@ -149,7 +156,7 @@ public class FilterMomentsModel {
     void correctNewModel() {
         if (manager.calc.targetCalcedTo - maxTrainIndex > 10) {
             System.out.println(String.format("checking for correction: %d bars", manager.calc.targetCalcedTo - maxTrainIndex));
-            int ind = Math.max(manager.calcAllFrom, maxTrainIndex);
+            int ind = Math.max(calcAllFrom, maxTrainIndex);
             while (ind < manager.calc.targetCalcedTo) {
                 correctModelForMoment(ind);
                 ind++;

@@ -61,6 +61,7 @@ public class DemaRecurrent {
     }
 
     public double history(int back){
+        if (history.size()==0) return 0;
         int ind = history.size()-back-1;
         if (ind<0) ind = 0;
         return history.get(ind);

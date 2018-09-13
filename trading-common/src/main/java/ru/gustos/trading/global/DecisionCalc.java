@@ -31,6 +31,11 @@ public class DecisionCalc {
 
     boolean onlyCalc;
 
+    public boolean oldInstr(){
+        String s = data.instrument.component1();
+        return s.equals("BTC") || s.equals("LTC") || s.equals("NEO") || s.equals("XRP");
+    }
+
 
     public DecisionCalc(DecisionManager manager, boolean onlyCalc) {
         this.manager = manager;
@@ -301,8 +306,24 @@ public class DecisionCalc {
         helper().put(mldata, "change3", values.change3.value());
         helper().put(mldata, "change4", values.change4.value());
 
-        helper().put(mldata, "vdema0_delta1", values.vdema0.pvalue() - values.vdema0.value());
-        helper().put(mldata, "vdema1_delta1", values.vdema1.pvalue() - values.vdema1.value());
+        if (!oldInstr()) {
+//        helper().put(mldata, "vdema0_delta1", values.vdema0.pvalue() - values.vdema0.value());
+            helper().put(mldata, "vdema1_delta1", values.vdema1.pvalue() - values.vdema1.value());
+//        for (int i = 1;i<10;i++)
+//            helper().put(mldata, "vdema0_delta"+i, values.vdema0.history(i) - values.vdema0.value());
+            for (int i = 1; i < 10; i++)
+                helper().put(mldata, "vdema0_lag" + i, values.vdema0.history(i));
+//            helper().put(mldata, "vdema0_lag10", values.vdema0.history(10));
+//            helper().put(mldata, "vdema0_lag20", values.vdema0.history(20));
+        }
+
+//        if (calcIndex>20) {
+//            for (int i = 1; i < 5; i++)
+//                helper().put(mldata, "price_delta" + i, price - data.bar(index-i).getClosePrice());
+//            helper().put(mldata, "price_delta10", price - data.bar(index-10).getClosePrice());
+//            helper().put(mldata, "price_delta20", price - data.bar(index-20).getClosePrice());
+//        }
+
         helper().putDelta(mldata, "macd1", prevmldata, 1);
 //        helper().putDelta(mldata, "macd0", prevmldata, 1);
 //        helper().putDelta(mldata, "rsi0", prevmldata, 1);

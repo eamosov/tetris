@@ -71,7 +71,7 @@ public class J48AttributeFilter{
         for (int i = 0;i<good.length;i++)
             if (good[i]) {
                 goodCount++;
-                use[i]++;
+//                use[i]++;
             }
     }
 
