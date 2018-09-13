@@ -28,7 +28,9 @@ fun ByteArrayList.setXBar(index: Int, v: XBar): Int {
     i += setFloat(i, v.delta5m)
     i += setFloat(i, v.delta15m)
     i += setFloat(i, v.delta1h)
+    i += setFloat(i, v.delta12h)
     i += setFloat(i, v.delta1d)
+    i += setFloat(i, v.delta3d)
     i += setFloat(i, v.delta7d)
 
     return i
@@ -45,11 +47,13 @@ const val TRADES_OFFSET = VOLUME_QUOTE_OFFSET + 4
 const val TIME_PERIOD_OFFSET = TRADES_OFFSET + 2
 const val END_TIME_OFFSET = TIME_PERIOD_OFFSET + 2
 
-const val DELTA5M_OFFSET = END_TIME_OFFSET + 8
-const val DELTA15M_OFFSET = DELTA5M_OFFSET + 4
-const val DELTA1H_OFFSET = DELTA15M_OFFSET + 4
-const val DELTA1D_OFFSET = DELTA1H_OFFSET + 4
-const val DELTA7D_OFFSET = DELTA1D_OFFSET + 4
+const val DELTA_5M_OFFSET = END_TIME_OFFSET + 8
+const val DELTA_15M_OFFSET = DELTA_5M_OFFSET + 4
+const val DELTA_1H_OFFSET = DELTA_15M_OFFSET + 4
+const val DELTA_12H_OFFSET = DELTA_1H_OFFSET + 4
+const val DELTA_1D_OFFSET = DELTA_12H_OFFSET + 4
+const val DELTA_3D_OFFSET = DELTA_1D_OFFSET + 4
+const val DELTA_7D_OFFSET = DELTA_3D_OFFSET + 4
 
 class XBarRef(val b: ByteArrayList, val index: Int) : XBar {
     override var openPrice: Float
@@ -109,33 +113,43 @@ class XBarRef(val b: ByteArrayList, val index: Int) : XBar {
         }
 
     override var delta5m: Float
-        get() = b.getFloat(index + DELTA5M_OFFSET)
+        get() = b.getFloat(index + DELTA_5M_OFFSET)
         set(value) {
-            b.setFloat(index + DELTA5M_OFFSET, value)
+            b.setFloat(index + DELTA_5M_OFFSET, value)
         }
     override var delta15m: Float
-        get() = b.getFloat(index + DELTA15M_OFFSET)
+        get() = b.getFloat(index + DELTA_15M_OFFSET)
         set(value) {
-            b.setFloat(index + DELTA15M_OFFSET, value)
+            b.setFloat(index + DELTA_15M_OFFSET, value)
         }
     override var delta1h: Float
-        get() = b.getFloat(index + DELTA1H_OFFSET)
+        get() = b.getFloat(index + DELTA_1H_OFFSET)
         set(value) {
-            b.setFloat(index + DELTA1H_OFFSET, value)
+            b.setFloat(index + DELTA_1H_OFFSET, value)
+        }
+    override var delta12h: Float
+        get() = b.getFloat(index + DELTA_12H_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA_12H_OFFSET, value)
         }
     override var delta1d: Float
-        get() = b.getFloat(index + DELTA1D_OFFSET)
+        get() = b.getFloat(index + DELTA_1D_OFFSET)
         set(value) {
-            b.setFloat(index + DELTA1D_OFFSET, value)
+            b.setFloat(index + DELTA_1D_OFFSET, value)
+        }
+    override var delta3d: Float
+        get() = b.getFloat(index + DELTA_3D_OFFSET)
+        set(value) {
+            b.setFloat(index + DELTA_3D_OFFSET, value)
         }
     override var delta7d: Float
-        get() = b.getFloat(index + DELTA7D_OFFSET)
+        get() = b.getFloat(index + DELTA_7D_OFFSET)
         set(value) {
-            b.setFloat(index + DELTA7D_OFFSET, value)
+            b.setFloat(index + DELTA_7D_OFFSET, value)
         }
 
     override fun toString(): String {
-        return "XBar(timePeriod=$timePeriod, endTime=$endTime, openPrice=$openPrice, maxPrice=$maxPrice, minPrice=$minPrice, closePrice=$closePrice, volume=$volume, volumeBase=$volumeBase, volumeQuote=$volumeQuote, trades=$trades, delta5m=$delta5m, delta15m=$delta15m, delta1h=$delta1h, delta1d=$delta1d, delta7d=$delta7d)"
+        return "XBar(timePeriod=$timePeriod, endTime=$endTime, openPrice=$openPrice, maxPrice=$maxPrice, minPrice=$minPrice, closePrice=$closePrice, volume=$volume, volumeBase=$volumeBase, volumeQuote=$volumeQuote, trades=$trades, delta5m=$delta5m, delta15m=$delta15m, delta1h=$delta1h, delta12h=$delta12h, delta1d=$delta1d, delta3d=$delta3d, delta7d=$delta7d)"
     }
 }
 
@@ -154,8 +168,8 @@ class XBarList : java.util.AbstractList<XBar>, RandomAccess {
         }()
 
         init {
-            if (xBarSize != DELTA7D_OFFSET + 4) {
-                throw IllegalArgumentException("Invalid xBarSize??, xBarSize=${xBarSize}, offset=${DELTA7D_OFFSET + 4}")
+            if (xBarSize != DELTA_7D_OFFSET + 4) {
+                throw IllegalArgumentException("Invalid xBarSize??, xBarSize=${xBarSize}, offset=${DELTA_7D_OFFSET + 4}")
             }
         }
     }

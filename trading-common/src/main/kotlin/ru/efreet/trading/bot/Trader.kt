@@ -40,7 +40,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     private lateinit var ticker: Map<Instrument, Ticker>
     private var lastTicker: ZonedDateTime = ZonedDateTime.now()
 
-    lateinit var balances: Map<String, Float>
+    lateinit var balances: MutableMap<String, Float>
     private var lastBalances: ZonedDateTime = ZonedDateTime.now()
 
 
@@ -70,7 +70,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
     private fun updateBalance(force: Boolean = false) {
         if (force || Duration.between(lastBalances, ZonedDateTime.now()).toMillis() > updateBalancesTimeout) {
-            balances = exchange.getBalancesMap()
+            balances = exchange.getBalancesMap().toMutableMap()
             lastBalances = ZonedDateTime.now()
         }
     }
@@ -95,8 +95,9 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             exchange.setTicker(advice.instrument, advice.bar)
         }
 
-        updateTicker(logicAdvice.decision != Decision.NONE)
-        updateBalance(logicAdvice.decision != Decision.NONE)
+        val needForcedUpdate = logicAdvice.decision == Decision.BUY || (logicAdvice.decision == Decision.SELL && balance(advice.instrument) * advice.price >= 10)
+        updateTicker(needForcedUpdate)
+        updateBalance(needForcedUpdate)
 
         val td = iTradeHistory(advice.instrument)
 
@@ -122,7 +123,7 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
         else if (td.closePrice > td.maxPrice)
             td.maxPrice = td.closePrice
 
-        cash.add(Pair(advice.bar.endTime, deposit((exchange is FakeExchange) || (logicAdvice.decision != Decision.NONE))))
+        cash.add(Pair(advice.bar.endTime, deposit((exchange is FakeExchange) || needForcedUpdate)))
 
 //        if (advice.decision == Decision.NONE &&
 //                lastBuy.containsKey(advice.instrument) &&
@@ -137,8 +138,10 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
             if (cancelAllOrders(advice.instrument))
                 updateBalance(true)
 
+            val openOrders = getOpenOrders()
+
             //usd + все наблюдаемые валюты
-            val deposit = deposit(false)
+            val deposit = deposit(openOrders = openOrders)
 
             //сколько боту осталось доступно USD
             val availableUsd = usd - deposit * (1.0F - limit)
@@ -157,34 +160,34 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                 val usdBefore = balance(advice.instrument.base)
                 val assetBefore = balance(advice.instrument.asset)
-                val order = exchange.buy(advice.instrument, roundAmount(asset, advice.price), advice.price, OrderType.LIMIT, advice.time)
+                val quantity = roundAmount(asset, advice.price)
+                val order = exchange.buy(advice.instrument, quantity, advice.price, OrderType.LIMIT, advice.time)
 
                 updateBalance(true)
+                openOrders[advice.instrument] = getOpenOrders(advice.instrument)
 
-                if (order != null) {
-                    val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
-                            advice.decision, advice.decisionArgs, order.type, order.asset,
-                            exchange.getFee() / 200.0F,
-                            usdBefore,
-                            assetBefore,
-                            balance(advice.instrument.base),
-                            balance(advice.instrument.asset))
+                val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.asset,
+                        exchange.getFee() / 200.0F,
+                        usdBefore,
+                        assetBefore,
+                        balance(advice.instrument.base),
+                        balance(advice.instrument.asset))
 
-                    iTradeHistory(advice.instrument).trades.add(trade)
-                    tradeRecordDao?.create(trade)
+                iTradeHistory(advice.instrument).trades.add(trade)
+                tradeRecordDao?.create(trade)
 
-                    lastBuy[advice.instrument] = advice.bar
+                lastBuy[advice.instrument] = advice.bar
 
-                    try {
-                        val message = "BUY ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit().round2()}$, BNB: ${balances["BNB"]?.round2()
-                                ?: 0.0F}"
-                        log.info("telegram: {}", message)
-                        telegram?.sendMessage(message)
-                    } catch (e: Exception) {
-                        log.error("Error sending message to telegram", e)
-                    }
-                    return trade
+                try {
+                    val message = "BUY ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit(openOrders = openOrders).round2()}$, BNB: ${balances["BNB"]?.round2()
+                            ?: 0.0F}"
+                    log.info("telegram: {}", message)
+                    telegram?.sendMessage(message)
+                } catch (e: Exception) {
+                    log.error("Error sending message to telegram", e)
                 }
+                return trade
             }
         } else if (advice.decision == Decision.SELL) {
 
@@ -203,40 +206,44 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
                 updateBalance(true)
 
-                if (order != null) {
-                    val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
-                            advice.decision, advice.decisionArgs, order.type, order.asset,
-                            exchange.getFee() / 200.0F,
-                            usdBefore,
-                            assetBefore,
-                            balance(advice.instrument.base),
-                            balance(advice.instrument.asset))
+                val trade = TradeRecord(order.orderId, order.time, exchange.getName(), order.instrument.toString(), order.price,
+                        advice.decision, advice.decisionArgs, order.type, order.asset,
+                        exchange.getFee() / 200.0F,
+                        usdBefore,
+                        assetBefore,
+                        balance(advice.instrument.base),
+                        balance(advice.instrument.asset))
 
-                    iTradeHistory(advice.instrument).trades.add(trade)
-                    tradeRecordDao?.create(trade)
-                    try {
-                        val message = "SELL ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit().round2()}$, BNB: ${balances["BNB"]?.round2()
-                                ?: 0.0F}"
-                        log.info("telegram: {}", message)
+                iTradeHistory(advice.instrument).trades.add(trade)
+                tradeRecordDao?.create(trade)
+                try {
+                    val message = "SELL ${trade.amount} ${order.instrument.asset} for ${trade.price} ${order.instrument.base}, total: ${deposit().round2()}$, BNB: ${balances["BNB"]?.round2()
+                            ?: 0.0F}"
+                    log.info("telegram: {}", message)
 
-                        telegram?.sendMessage(message)
-                    } catch (e: Exception) {
-                        log.error("Error sending message to telegram", e)
-                    }
-                    return trade
+                    telegram?.sendMessage(message)
+                } catch (e: Exception) {
+                    log.error("Error sending message to telegram", e)
                 }
+                return trade
             }
         }
 
         return null
     }
 
-    fun deposit(checkOrders: Boolean = true): Float {
+    fun deposit(checkOrders: Boolean = true, openOrders: Map<Instrument, List<Order>>? = null): Float {
+
+        val _openOrders = openOrders ?: if (checkOrders) {
+            getOpenOrders()
+        } else {
+            null
+        }
+
         return instruments.map { (instrument, _) ->
             var i = price(instrument) * balance(instrument)
-            if (checkOrders) {
-                val openOrders = getOpenOrders(instrument)
-                i += price(instrument) * openOrders.filter { it.side == Decision.SELL }.map { it.asset }.sum() + openOrders.filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
+            if (_openOrders != null) {
+                i += price(instrument) * _openOrders[instrument]!!.filter { it.side == Decision.SELL }.map { it.asset }.sum() + _openOrders[instrument]!!.filter { it.side == Decision.BUY }.map { it.asset * it.price }.sum()
             }
             i
         }.sum() + usd
@@ -249,6 +256,11 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
     fun getOpenOrders(instrument: Instrument): List<Order> {
         return exchange.getOpenOrders(instrument)
     }
+
+    fun getOpenOrders(): MutableMap<Instrument, List<Order>> {
+        return instruments.mapValues { exchange.getOpenOrders(it.key) }.toMutableMap()
+    }
+
 
     fun cancelAllOrders(instrument: Instrument): Boolean {
         var isCancelled = false
@@ -273,11 +285,13 @@ class Trader(val tradeRecordDao: TradeRecordDao?,
 
     fun logBalance() {
 
+        val openOrders = getOpenOrders()
+
         for ((i, _) in instruments) {
-            log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), getOpenOrders(i))
+            log.info("{}: {} ({} USDT), orders={}", i.asset, balance(i), (balance(i) * price(i)).round2(), openOrders[i])
         }
 
-        log.info("total: {}$, BNB: {}", deposit().round2(), balances["BNB"]?.round2() ?: 0.0F)
+        log.info("total: {}$, BNB: {}", deposit(openOrders = openOrders).round2(), balances["BNB"]?.round2() ?: 0.0F)
     }
 
     companion object {

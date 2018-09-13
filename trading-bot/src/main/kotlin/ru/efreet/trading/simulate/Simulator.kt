@@ -13,10 +13,7 @@ import ru.efreet.trading.exchange.impl.cache.BarsCache
 import ru.efreet.trading.exchange.impl.cache.CachedExchange
 import ru.efreet.trading.logic.BotLogic
 import ru.efreet.trading.logic.impl.LogicFactory
-import ru.efreet.trading.utils.CmdArgs
-import ru.efreet.trading.utils.loadFromJson
-import ru.efreet.trading.utils.round2
-import ru.efreet.trading.utils.storeAsJson
+import ru.efreet.trading.utils.*
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -77,9 +74,10 @@ class Simulator(val cmd: CmdArgs) {
         val historyStart = state.startTime.minus(state.interval.duration.multipliedBy(tmpLogic.historyBars))
 
         log.info("Start building history of MarketBars")
+        val mbs = System.currentTimeMillis()
         val marketBarsList = marketBarFactory.build(historyStart, state.endTime)
-        val marketBarsMap = marketBarsList.map { it.endTime.withSecond(59) to it }.toMap()
-        log.info("Ok building {} MarketBars", marketBarsMap.size)
+        val marketBarsMap = marketBarsList.map { it.endTime.trimToBar() to it }.toMap()
+        log.info("Ok building {} MarketBars with {}s", marketBarsMap.size, (System.currentTimeMillis() - mbs) / 1000)
 
         for (instrument in state.instruments.keys) {
 
@@ -96,7 +94,7 @@ class Simulator(val cmd: CmdArgs) {
             val history = cache.getBars(exchange.getName(), logic.instrument, state.interval, historyStart, state.startTime)
             log.info("Loaded history ${history.size} bars from $historyStart to ${state.startTime} for ${logic.instrument}")
 
-            logic.setHistory(history, marketBarsList)
+            logic.setHistory(history, marketBarFactory.trim(marketBarsList, history))
 
             val bars = cache.getBars(exchange.getName(), instrument, state.interval, state.startTime, state.endTime)
             log.info("Loaded ${bars.size} bars from ${state.startTime} to ${state.endTime}")
@@ -121,7 +119,7 @@ class Simulator(val cmd: CmdArgs) {
 
                     val bar = sd.barIterator.next()
 
-                    val advice = sd.logic.getAdvice(bar, marketBarsMap[bar.endTime.withSecond(59).minus(state.interval.duration)])
+                    val advice = sd.logic.getAdvice(bar, marketBarsMap[bar.endTime.trimToBar().minus(state.interval.duration)])
 
                     val trade = trader.executeAdvice(advice)
 

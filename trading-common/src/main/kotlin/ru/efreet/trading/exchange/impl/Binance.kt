@@ -73,7 +73,9 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal(asset).round5())
 
         try {
-            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            val orderId = api.createOrder(placement).get("orderId").asLong
+            Thread.sleep(1000)
+            val order = api.getOrderById(symbol(instrument), orderId)
             return Order(
                     order.orderId.toString(),
                     instrument,
@@ -96,7 +98,8 @@ class Binance() : Exchange {
         placement.setQuantity(BigDecimal(asset).round5())
 
         try {
-            val order = api.getOrderById(symbol(instrument), api.createOrder(placement).get("orderId").asLong)
+            val orderId = api.createOrder(placement).get("orderId").asLong
+            val order = api.getOrderById(symbol(instrument), orderId)
             return Order(
                     order.orderId.toString(),
                     instrument,

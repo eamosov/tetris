@@ -7,7 +7,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 fun List<XBar>.indexOf(endTime: ZonedDateTime): Int {
-    var startIndex = this.binarySearchBy(endTime, selector = { it.endTime })
+    var startIndex = this.binarySearchBy(endTime.toEpochSecond(), selector = { it.endTime.toEpochSecond() })
     if (startIndex < 0)
         startIndex = -startIndex - 1
 
@@ -89,10 +89,20 @@ data class XExtBar(val bar: XBar) : XBar {
         set(value) {
             bar.delta1h = value
         }
+    override var delta12h: Float
+        get() = bar.delta12h
+        set(value) {
+            bar.delta12h = value
+        }
     override var delta1d: Float
         get() = bar.delta1d
         set(value) {
             bar.delta1d = value
+        }
+    override var delta3d: Float
+        get() = bar.delta3d
+        set(value) {
+            bar.delta3d = value
         }
     override var delta7d: Float
         get() = bar.delta7d

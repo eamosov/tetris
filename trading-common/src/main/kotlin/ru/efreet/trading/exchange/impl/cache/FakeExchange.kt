@@ -51,13 +51,13 @@ open class FakeExchange(val _name: String, val _fee: Float, val interval: BarInt
         return balances
     }
 
-    override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order? {
+    override fun buy(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order {
 
         val base = balances[instrument.base] ?: 0.0F
         val cost = price * asset
         if (cost > base || asset <= 0.0F || price <= 0.0F) {
             log.error("Couldn't buy {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.base, base)
-            return null
+            throw OrderException(instrument, asset, price, type, Decision.BUY, Exception("not enough money"))
         }
 
         setBalance(instrument.base, base - cost)
@@ -72,12 +72,12 @@ open class FakeExchange(val _name: String, val _fee: Float, val interval: BarInt
         return order
     }
 
-    override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order? {
+    override fun sell(instrument: Instrument, asset: Float, price: Float, type: OrderType, now:ZonedDateTime): Order {
 
         val myAsset = balances[instrument.asset] ?: 0.0F
         if (asset > myAsset || asset <= 0.0F || price <= 0.0F) {
             log.error("Couldn't sell {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.asset, myAsset)
-            return null
+            throw OrderException(instrument, asset, price, type, Decision.SELL, Exception("not enough money"))
         }
 
         //setBalance(instrument.base, (balances[instrument.base] ?: 0.0) + price * asset * (1.0 - getFee() / 200.0))

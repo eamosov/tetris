@@ -74,7 +74,7 @@ class MlBot {
                 }
 
                 if (bot.logic != null) {
-                    val marketBar = marketBarFactory.build(bar.endTime.withSecond(59).minus(interval.duration))
+                    val marketBar = marketBarFactory.build(bar.endTime.trimToBar().minus(interval.duration))
 
                     log.info("Market bar: {}", marketBar)
 
@@ -130,7 +130,7 @@ class MlBot {
         bot.lastBar = ZonedDateTime.now()
     }
 
-    fun updateCache(){
+    fun updateCache() {
         log.info("Refresh cache of Bars")
         for (instrument in exchange.getTicker().keys.toList().marketBarList()) {
 
@@ -177,8 +177,9 @@ class MlBot {
         marketBarFactory = MarketBarFactory(cache, interval, exchange.getName())
 
         log.info("Start building history of MarketBars")
+        val mbs = System.currentTimeMillis()
         val marketBarsList = marketBarFactory.build(historyStart, startTime)
-        log.info("Ok building {} MarketBars", marketBarsList.size)
+        log.info("Ok building {} MarketBars with {}s", marketBarsList.size, (System.currentTimeMillis() - mbs) / 1000)
 
         for ((instrument, _) in botConfig.instruments) {
 
@@ -188,12 +189,10 @@ class MlBot {
             log.info("Loaded history ${history.size} bars from $historyStart to ${startTime} for ${logic.instrument}")
 
             log.info("Training model for {}", instrument)
-            logic.setHistory(history, marketBarsList)
+            logic.setHistory(history, marketBarFactory.trim(marketBarsList, history))
 
             bots[instrument] = MlBotData(instrument, logic)
         }
-
-        updateCache()
 
         val tradeRecordDao = TradeRecordDao(cache.getConnection())
 
@@ -204,6 +203,9 @@ class MlBot {
         trader = Trader(tradeRecordDao, exchange, botConfig.usdLimit, botConfig.instruments, telegram, botConfig.keepBnb)
 
         trader.logBalance()
+
+        //update cache second time
+        updateCache()
 
         bots.forEach { _, bot ->
             startTrade(bot)

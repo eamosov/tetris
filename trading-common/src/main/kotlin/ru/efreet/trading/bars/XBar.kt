@@ -69,7 +69,9 @@ interface XBar {
     var delta5m: Float
     var delta15m: Float
     var delta1h: Float
+    var delta12h: Float
     var delta1d: Float
+    var delta3d: Float
     var delta7d: Float
 
     /**
@@ -213,8 +215,16 @@ fun <T : XBar> List<T>.setDeltaXX(index: Int): T {
         bar.delta1h = bar.closePrice - it.closePrice
     }
 
+    getWithDelta(index, -60 * 12)?.let {
+        bar.delta12h = bar.closePrice - it.closePrice
+    }
+
     getWithDelta(index, -60 * 24)?.let {
         bar.delta1d = bar.closePrice - it.closePrice
+    }
+
+    getWithDelta(index, -60 * 24 * 3)?.let {
+        bar.delta3d = bar.closePrice - it.closePrice
     }
 
     getWithDelta(index, -60 * 24 * 7)?.let {
@@ -222,12 +232,6 @@ fun <T : XBar> List<T>.setDeltaXX(index: Int): T {
     }
 
     return bar
-}
-
-fun List<XBar>.setDeltaXX() {
-    for (index in 0 until size) {
-        setDeltaXX(index)
-    }
 }
 
 fun List<XBar>.getWithDelta(index: Int, deltaMinutes: Long): XBar? {
@@ -242,7 +246,7 @@ fun List<XBar>.getWithDelta(index: Int, deltaMinutes: Long): XBar? {
     if (Duration.between(bar.endTime, r.endTime).toMinutes() == deltaMinutes)
         return r
 
-    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes), 0, index, selector = { it.endTime })
+    val bs = binarySearchBy(bar.endTime.plusMinutes(deltaMinutes).toEpochSecond(), 0, index, selector = { it.endTime.toEpochSecond() })
     return if (bs >= 0) {
         get(bs)
     } else {

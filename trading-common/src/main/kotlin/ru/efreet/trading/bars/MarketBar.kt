@@ -20,10 +20,12 @@ data class MarketBar(val endTime: ZonedDateTime,
                      val delta5m: FloatList = FloatArrayList(),
                      val delta15m: FloatList = FloatArrayList(),
                      val delta1h: FloatList = FloatArrayList(),
+                     val delta12h: FloatList = FloatArrayList(),
                      val delta1d: FloatList = FloatArrayList(),
+                     val delta3d: FloatList = FloatArrayList(),
                      val delta7d: FloatList = FloatArrayList()) {
 
-    private var count = 0
+    var count = 0
 
     fun addBar(b: XBar) {
         if (b.delta5m != 0f)
@@ -35,8 +37,14 @@ data class MarketBar(val endTime: ZonedDateTime,
         if (b.delta1h != 0f)
             delta1h.add(b.delta1h / b.closePrice)
 
+        if (b.delta12h != 0f)
+            delta12h.add(b.delta12h / b.closePrice)
+
         if (b.delta1d != 0f)
             delta1d.add(b.delta1d / b.closePrice)
+
+        if (b.delta3d != 0f)
+            delta3d.add(b.delta3d / b.closePrice)
 
         if (b.delta7d != 0f)
             delta7d.add(b.delta7d / b.closePrice)
@@ -47,7 +55,9 @@ data class MarketBar(val endTime: ZonedDateTime,
     fun p5m(): Float = delta5m.gtZero()
     fun p15m(): Float = delta15m.gtZero()
     fun p1h(): Float = delta1h.gtZero()
+    fun p12h(): Float = delta12h.gtZero()
     fun p1d(): Float = delta1d.gtZero()
+    fun p3d(): Float = delta3d.gtZero()
     fun p7d(): Float = delta7d.gtZero()
     fun max5m(): Float = delta5m.max()?:0.0f
     fun max15m(): Float = delta15m.max()?:0.0f
@@ -61,6 +71,6 @@ data class MarketBar(val endTime: ZonedDateTime,
     fun min7d(): Float = delta7d.min()?:0.0f
 
     override fun toString(): String {
-        return "MarketBar(endTime=$endTime, count=${count}, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 1d=${p1d()}, 7d=${p7d()})"
+        return "MarketBar(endTime=$endTime, count=${count}, 5m=${p5m()}, 15m=${p15m()}, 1h=${p1h()}, 12h=${p12h()}, 1d=${p1d()}, 3d=${p3d()}, 7d=${p7d()})"
     }
 }
