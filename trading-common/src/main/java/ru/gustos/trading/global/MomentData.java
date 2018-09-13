@@ -5,6 +5,7 @@ public class MomentData implements  MomentDataProvider{
     public double[] values;
     public long whenWillKnow;
     public double weight = 1;
+    public double weight2 = 1;
     public boolean ignore = false;
 
     public MomentData(int size) {

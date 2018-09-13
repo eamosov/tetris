@@ -203,4 +203,27 @@ public class Exporter {
         shouldSell();
 //        shouldBuy();
     }
+
+    public static void export2tdf(String fname, Instances set) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(set.attribute(set.classIndex()).name());
+        for (int i = 0;i<set.numAttributes();i++)
+            if (i!=set.classIndex())
+                sb.append("\t").append(set.attribute(i).name());
+        for (int j = 0;j<set.size();j++){
+            sb.append("\n");
+            Instance ii = set.get(j);
+            sb.append(ii.value(ii.classIndex()));
+            for (int i = 0;i<ii.numAttributes();i++)
+                if (i!=ii.classIndex())
+                    sb.append("\t").append(ii.value(i));
+
+        }
+        string2file(fname,sb.toString());
+
+    }
+
+    public static void export2arff(String fname, Instances set) {
+        string2file(fname,set.toString());
+    }
 }

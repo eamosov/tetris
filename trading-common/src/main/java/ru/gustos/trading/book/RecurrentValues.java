@@ -41,27 +41,37 @@ public class RecurrentValues {
     public StohasticRecurrent stoh0 = new StohasticRecurrent(5, 80, 20, 90, 10);
     public StohasticRecurrent stoh1 = new StohasticRecurrent(30, 80, 20, 90, 10);
     public StohasticRecurrent stoh2 = new StohasticRecurrent(300, 80, 20, 90, 10);
+    public StohasticRecurrent stoh3 = new StohasticRecurrent(700, 80, 20, 90, 10);
+    public StohasticRecurrent stoh4 = new StohasticRecurrent(1500, 80, 20, 90, 10);
     public MacdRecurrent macd0 = new MacdRecurrent(3, 7, 5);
     public MacdRecurrent macd1 = new MacdRecurrent(25, 60, 17);
-    public MacdRecurrent macd2 = new MacdRecurrent(250, 600, 170);
-    public MacdRecurrent macd3 = new MacdRecurrent(70, 200, 50);
+    public MacdRecurrent macd2 = new MacdRecurrent(70, 200, 50);
+    public MacdRecurrent macd3 = new MacdRecurrent(250, 600, 170);
     public MacdRecurrent macd4 = new MacdRecurrent(700, 2000, 500);
     public DemaRecurrent dema1 = new DemaRecurrent(25, 60, 17);
     public DemaRecurrent dema2 = new DemaRecurrent(250, 600, 170);
     public DemaRecurrent dema3 = new DemaRecurrent(70, 200, 50);
     public DemaRecurrent vdema0 = new DemaRecurrent(3, 7, 5);
     public DemaRecurrent vdema1 = new DemaRecurrent(25, 60, 17);
-    public DemaRecurrent vdema2 = new DemaRecurrent(250, 600, 170);
-    public DemaRecurrent vdema3 = new DemaRecurrent(70, 200, 50);
-    public DemaRecurrent vdema4 = new DemaRecurrent(700, 2000, 500);
+    public DemaRecurrent vdema2 = new DemaRecurrent(70, 200, 50);
+    public DemaRecurrent vdema3 = new DemaRecurrent(150, 430, 110);
+    public DemaRecurrent vdema4 = new DemaRecurrent(250, 600, 170);
+    public DemaRecurrent vdema5 = new DemaRecurrent(400, 1000, 350);
+    public DemaRecurrent vdema6 = new DemaRecurrent(700, 2000, 500);
+    public DemaRecurrent vdema7 = new DemaRecurrent(1500, 4000, 1200);
     public RsiRecurrent rsi0 = new RsiRecurrent(10);
     public RsiRecurrent rsi1 = new RsiRecurrent(100);
     public RsiRecurrent rsi2 = new RsiRecurrent(1000);
+    public RsiRecurrent rsi15m = new RsiRecurrent(20);
+    public RsiRecurrent rsi4h = new RsiRecurrent(20);
     public RsiWithVolumesRecurrent rsiv0 = new RsiWithVolumesRecurrent(10);
     public RsiWithVolumesRecurrent rsiv1 = new RsiWithVolumesRecurrent(100);
     public RsiWithVolumesRecurrent rsiv2 = new RsiWithVolumesRecurrent(1000);
 
     public VolumeBarRecurrent volumeBar = new VolumeBarRecurrent();
+    SumBarRecurrent sum15m = new SumBarRecurrent(15);
+    SumBarRecurrent sum4h = new SumBarRecurrent(60*4);
+
     public MacdRecurrent vmacd0 = new MacdRecurrent(3, 7, 5);
     public MacdRecurrent vmacd1 = new MacdRecurrent(25, 60, 17);
     public MacdRecurrent vmacd2 = new MacdRecurrent(70, 200, 50);
@@ -94,6 +104,8 @@ public class RecurrentValues {
         stoh0.feed(bar);
         stoh1.feed(bar);
         stoh2.feed(bar);
+        stoh3.feed(bar);
+        stoh4.feed(bar);
         macd0.feed(p);
         macd1.feed(p);
         macd2.feed(p);
@@ -141,6 +153,16 @@ public class RecurrentValues {
             vdema2.feed(volumeBar.bar().getClosePrice());
             vdema3.feed(volumeBar.bar().getClosePrice());
             vdema4.feed(volumeBar.bar().getClosePrice());
+            vdema5.feed(volumeBar.bar().getClosePrice());
+            vdema6.feed(volumeBar.bar().getClosePrice());
+            vdema7.feed(volumeBar.bar().getClosePrice());
+        }
+        if (sum15m.feed(bar)){
+            rsi15m.feed(p);
+        }
+
+        if (sum4h.feed(bar)){
+            rsi4h.feed(p);
         }
     }
 

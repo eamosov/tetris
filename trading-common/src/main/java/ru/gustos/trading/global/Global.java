@@ -5,6 +5,7 @@ import ru.efreet.trading.bars.MarketBarFactory;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.timeseries.TimeSeries;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -30,7 +31,7 @@ public class Global {
         timeStep = 30 * 60;
     }
 
-    public InstrumentData getInstrument(String key){
+    public InstrumentData getInstrument(String key) {
         return sheets.get(key);
     }
 
@@ -60,6 +61,12 @@ public class Global {
     public void setMarket(List<MarketBar> marketBars) {
         this.marketBars = marketBars;
     }
+
+    public int marketBarIndex(ZonedDateTime end) {
+        for (int i = 0; i < marketBars.size(); i++)
+            if (marketBars.get(i).getEndTime().isAfter(end)) return i-1;
+        throw new NullPointerException("no market bar for this end time");
+    }
 }
 
 class GlobalMoment {
@@ -70,7 +77,7 @@ class GlobalMoment {
     double[] perc80;
     double[] positive;
 
-    GlobalMoment(){
+    GlobalMoment() {
         mins = new double[Global.intervals.length];
         maxes = new double[Global.intervals.length];
         perc20 = new double[Global.intervals.length];

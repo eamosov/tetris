@@ -213,15 +213,22 @@ class SimpleStrategyWithBackup implements PlayStrategy {
 }
 
 class GustosLogicStrategy implements PlayStrategy{
+    public double maxPrice;
+    public double closePrice;
     GustosLogicStrategy(){
     }
 
     @Override
     public Pair<Double, Integer> calcProfit(InstrumentData data, int from) {
         double buy = data.bar(from).getClosePrice();
+        maxPrice = buy;
         for (int i = from+1;i<data.size();i++){
-            if (data.sells.get(i))
-                return new Pair<>(data.bars.get(i).getClosePrice()/buy-0.002,i);
+            float closePrice = data.bars.get(i).getClosePrice();
+            maxPrice = Math.max(maxPrice, closePrice);
+            if (data.sells.get(i)) {
+                this.closePrice = closePrice;
+                return new Pair<>(this.closePrice / buy - 0.002, i);
+            }
 
         }
         return new Pair<>(1.0, Integer.MAX_VALUE);

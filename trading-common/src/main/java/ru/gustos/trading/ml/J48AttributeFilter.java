@@ -1,5 +1,6 @@
 package ru.gustos.trading.ml;
 
+import kotlin.Pair;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.j48.C45Split;
 import weka.classifiers.trees.j48.ClassifierSplitModel;
@@ -11,6 +12,8 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 
 public class J48AttributeFilter{
@@ -19,6 +22,8 @@ public class J48AttributeFilter{
     private final double window;
     private boolean[] good;
     private int goodCount;
+    private static int[] use;
+    private static String[] useNames;
 
     public J48AttributeFilter(int folds, double window){
         this.folds = folds;
@@ -29,17 +34,57 @@ public class J48AttributeFilter{
         int w = (int)(set.size()*window);
         good = new boolean[set.numAttributes()];
         good[set.classIndex()] = true;
+        if (use==null) {
+            use = new int[set.numAttributes()];
+            useNames = new String[set.numAttributes()];
+            for (int i = 0;i<use.length;i++)
+                useNames[i] = set.attribute(i).name();
+        }
         for (int i = 0;i<folds;i++){
-            int from = (set.size()-w)*i/(folds-1);
+            int from = (set.size()-w)*i/Math.max(1,folds-1);
             Instances t = new Instances(set, from, w);
             MyJ48 j = new MyJ48();
             j.buildClassifier(t);
             j.collect(good);
         }
+
+//        Instances t = new Instances(set, 0, w);
+//        t.clear();
+//        for (int j = 0;j<set.size();j++){
+//            DenseInstance ii = new DenseInstance(set.instance(j));
+//            for (int k = 0;k<good.length;k++)
+//                if (good[k] && k!=set.classIndex())
+//                    ii.setValue(k,0);
+//            t.add(ii);
+//        }
+//        set = t;
+//
+//        for (int i = 0;i<folds;i++){
+//            int from = (set.size()-w)*i/Math.max(1,folds-1);
+//            t = new Instances(set, from, w);
+//            MyJ48 j = new MyJ48();
+//            j.buildClassifier(t);
+//            j.collect(good);
+//        }
+
         goodCount = 0;
         for (int i = 0;i<good.length;i++)
-            if (good[i])
+            if (good[i]) {
                 goodCount++;
+                use[i]++;
+            }
+    }
+
+    public static String printUse(){
+        ArrayList<Pair<Integer,String>> u = new ArrayList<>();
+        for (int i = 0;i<use.length;i++)
+            u.add(new Pair<>(-use[i],useNames[i]));
+        u.sort(Comparator.comparing(Pair::getFirst));
+        StringBuilder sb = new StringBuilder();
+        for (Pair<Integer,String> p : u)
+            sb.append(p.getSecond()).append(": ").append(-p.getFirst()).append(",  ");
+
+        return sb.toString();
     }
 
     public Instances filter(Instances set) {

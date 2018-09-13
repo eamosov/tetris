@@ -1,5 +1,6 @@
 package ru.gustos.trading.global;
 
+import kotlin.Pair;
 import ru.gustos.trading.ml.J48AttributeFilter;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
@@ -80,36 +81,42 @@ public class FilterMomentsModel {
     }
 
 
-    void makeGoodBadModel(FilterMomentsModel model, int calcIndex, long endtime, int level) throws Exception {
+    void makeGoodBadModel(int calcIndex, long endtime, int level) throws Exception {
 //        for (int i = 0; i < data.helper.futureAttributes(); i++) {
         int i = 0;
         boolean full = true;
         boolean buy = i == 0;
         if (data.helper.futureAttributes() == 0) {
-            model.full = false;
+            this.full = false;
             System.out.println("no targets");
             return;
         }
         Instances set1 = makeGoodBadSet(buy, i, endtime, level);
         if (set1.numDistinctValues(set1.classIndex()) == 1) {
-            model.full = false;
+            this.full = false;
             System.out.println("no distinct values!");
         }else if (set1.size() < 10) {
-            model.full = false;
+            this.full = false;
             System.out.println(String.format("use simple model! instrument: %s, attribute: %d, size: %d", data.instrument, i, set1.size()));
         } else {
-            model.full = full;
+            this.full = full;
             int trees = buy ? manager.config.treesBuy : manager.config.treesSell;
             int kValue = Math.min(buy ? manager.config.kValueBuy : manager.config.kValueSell, set1.numAttributes() - 1);
 
-            attFilter = new J48AttributeFilter(3, 0.4);
-            attFilter.prepare(set1);
-            set1 = attFilter.filter(set1);
-            if (set1.numAttributes()<=1){
-                model.full = false;
-                System.out.println("all attributes removed after filtering");
-                return;
+            if (manager.export!=null) {
+                attFilter = null;
+                manager.export.add(new Pair<>(set1, data.helper.makeEmptySet(manager.ignoreBuy, attFilter, 0, 9)));
+            } else {
+                attFilter = new J48AttributeFilter(3, 0.4);
+                attFilter.prepare(set1);
+                set1 = attFilter.filter(set1);
+                if (set1.numAttributes()<=1){
+                    this.full = false;
+                    System.out.println("all attributes removed after filtering");
+                    return;
+                }
             }
+
 
             RandomForestWithExam rf = new RandomForestWithExam();
             rf.setNumExecutionSlots(manager.cpus);
@@ -129,9 +136,9 @@ public class FilterMomentsModel {
                 if (manager.LOGS)
                     System.out.println(String.format("model kappa: %.3g, classes %d/%d (%.3g/%.3g)", evaluation.kappa(), CalcUtils.countWithValue(set1, set1.numAttributes() - 1, 0), CalcUtils.countWithValue(set1, set1.numAttributes() - 1, 1), CalcUtils.weightWithValue(set1, set1.numAttributes() - 1, 0) / 100, CalcUtils.weightWithValue(set1, set1.numAttributes() - 1, 1) / 100));
 
-                model.classifier = rf;
+                classifier = rf;
             } else {
-                model.classifier = new AllClassifer();
+                classifier = new AllClassifer();
             }
         }
 //        }

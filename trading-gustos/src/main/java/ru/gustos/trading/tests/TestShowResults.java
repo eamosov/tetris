@@ -33,7 +33,7 @@ public class TestShowResults {
 
 
     public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl2134.out"))) {
+        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl2268.out"))) {
             planalyzer1 = new PLHistoryAnalyzer(in);
             planalyzer2 = new PLHistoryAnalyzer(in);
             planalyzer3 = new PLHistoryAnalyzer(in);

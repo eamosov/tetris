@@ -172,9 +172,9 @@ public class PLHistoryAnalyzer {
                 }
             }
 
-//            if (m<=0) {
+            if (m<=0) {
 //            if (m<=0 || (near(p.timeBuy,prepare.get(i+1).timeBuy) && !near(p.timeBuy,prepare.get(i-1).timeBuy))) {
-            if (m<=0 || ((near(p.timeBuy,prepare.get(i+1).timeBuy) || near(p.timeBuy,prepare.get(i-1).timeBuy)) && !p.instrument.equals(bestOfSimulataneous(pows,prepare,i)))) {
+//            if (m<=0 || ((near(p.timeBuy,prepare.get(i+1).timeBuy) || near(p.timeBuy,prepare.get(i-1).timeBuy)) && !p.instrument.equals(bestOfSimulataneous(pows,prepare,i)))) {
 //            if (m<=0 || (near(p.timeBuy,prepare.get(i+1).timeBuy) || near(p.timeBuy,prepare.get(i-1).timeBuy))) {
                 if (m>0) {
 //                    int j = i;

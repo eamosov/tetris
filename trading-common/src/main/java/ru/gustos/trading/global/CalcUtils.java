@@ -117,4 +117,10 @@ public class CalcUtils {
             if (set.get(i).value(index) == v) res+=set.get(i).weight();
         return res;
     }
+
+    public static void resetWeights(Instances set) {
+        for (int i = 0; i < set.size(); i++)
+            set.get(i).setWeight(1);
+
+    }
 }

@@ -1,29 +1,28 @@
 package ru.gustos.trading.global;
 
-import weka.classifiers.Evaluation;
-import weka.core.Instances;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-
-
-public class DecisionModels{
+public class DecisionModels {
     DecisionManager manager;
     public FilterMomentsModel model;
     FilterMomentsModel newModel = null;
+
+    public SellNowModel sellNowModel;
+    SellNowModel newSellNowModel;
+
+
     BuyMomentModel buymodel;
     BuyMomentModel newBuyModel = null;
 
 
     InstrumentData data;
 
-    public DecisionModels(DecisionManager manager){
+    public DecisionModels(DecisionManager manager) {
         this.manager = manager;
         data = manager.data;
         model = new FilterMomentsModel(manager);
-        if (data.buydata!=null)
+        if (data.buydata != null)
             buymodel = new BuyMomentModel(manager);
+        sellNowModel = new SellNowModel(manager);
 
     }
 
@@ -31,7 +30,7 @@ public class DecisionModels{
         if (manager.calcIndex() >= manager.calcModelFrom && manager.calcIndex() - model.index >= 60 && manager.calcIndex() < manager.dontRenewAfter) {
 
 
-            if (model.canRenewModel() || (buymodel!=null && buymodel.needRenew()))
+            if (model.canRenewModel() || (buymodel != null && buymodel.needRenew()))
                 renewModel(thread);
 
         }
@@ -42,50 +41,57 @@ public class DecisionModels{
             System.out.println("renew model on " + data.instrument + ", day " + (manager.calcIndex() / (60 * 24)));
         final int currentIndex = manager.calcIndex();
         final FilterMomentsModel model = new FilterMomentsModel(manager);
-        final BuyMomentModel buymodel = data.buydata!=null?new BuyMomentModel(manager):null;
+        final SellNowModel sellnow = new SellNowModel(manager);
+        final BuyMomentModel buymodel = data.buydata != null ? new BuyMomentModel(manager) : null;
         if (thread)
-            new Thread(() -> doRenewModel(model, buymodel, currentIndex)).start();
+            new Thread(() -> doRenewModel(model, sellnow, buymodel, currentIndex)).start();
         else
-            doRenewModel(model, buymodel, currentIndex);
+            doRenewModel(model, sellnow, buymodel, currentIndex);
 
     }
 
-    private void doRenewModel(FilterMomentsModel model, BuyMomentModel buymodel, int calcIndex) {
+    private void doRenewModel(FilterMomentsModel model, SellNowModel sellnow, BuyMomentModel buymodel, int calcIndex) {
 
         if (calcIndex >= manager.calcModelFrom) {
-            prepareModel(model, buymodel, calcIndex);
+            prepareModel(model, sellnow, buymodel, calcIndex);
         }
 
         synchronized (this) {
             newModel = model;
+            newSellNowModel = sellnow;
             newBuyModel = buymodel;
         }
     }
 
     void checkTakeNewModel() {
-            if (newModel != null) {
-                synchronized (this) {
-                    model = newModel;
-                    newModel = null;
-                    buymodel = newBuyModel;
-                    newBuyModel = null;
-                    if (buymodel!=null)
-                        buymodel.install();
-                    manager.plhistoryClassifiedBuy.newModel(data.bar(manager.calcIndex() - 1).getBeginTime());
-                }
+        if (newModel != null) {
+            synchronized (this) {
+                model = newModel;
+                newModel = null;
+                sellNowModel = newSellNowModel;
+                newSellNowModel = null;
+                buymodel = newBuyModel;
+                newBuyModel = null;
+                if (buymodel != null)
+                    buymodel.install();
+                manager.plhistoryClassifiedBuy.newModel(data.bar(manager.calcIndex() - 1).getBeginTime());
             }
+        }
     }
 
 
-    private void prepareModel(FilterMomentsModel model, BuyMomentModel buymodel, int calcIndex) {
+    private void prepareModel(FilterMomentsModel model, SellNowModel sellnow, BuyMomentModel buymodel, int calcIndex) {
         long endtime = data.bar(calcIndex - 1).getEndTime().toEpochSecond();
         try {
-            if (buymodel!=null) {
+            if (buymodel != null) {
                 buymodel.prepare();
                 buymodel.install();
             }
+            if (sellnow!=null){
+                sellnow.prepare(calcIndex,endtime);
+            }
             model.clear();
-            model.makeGoodBadModel(model, calcIndex, endtime, 9);
+            model.makeGoodBadModel(calcIndex, endtime, 9);
             model.correctNewModel();
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,7 +100,7 @@ public class DecisionModels{
 
 
     public boolean hasModel() {
-        return model != null && model.classifier!=null;
+        return model != null && model.classifier != null;
     }
 }
 

@@ -1,5 +1,7 @@
 package ru.gustos.trading.book.indicators;
 
+import java.util.ArrayList;
+
 public class DemaRecurrent {
     EmaRecurrent ema1;
     EmaRecurrent ema2;
@@ -8,6 +10,7 @@ public class DemaRecurrent {
     EmaRecurrent dema2;
     EmaRecurrent demas;
     double pvalue, value;
+    ArrayList<Double> history = new ArrayList<>();
 
     public DemaRecurrent(int shortEma, int longEma, int signalEma) {
         ema1 = new EmaRecurrent(shortEma);
@@ -28,6 +31,7 @@ public class DemaRecurrent {
             dema1.feed(v);
             dema2.feed(v);
             demas.feed(0);
+            history.add(0.0);
             return 0;
         }
         ema1.feed(v);
@@ -44,12 +48,22 @@ public class DemaRecurrent {
         pvalue = value;
         value = (macd - ds);
 
-        return value();
+        double result = value();
+        history.add(result);
+        if (history.size()>30)
+            history.remove(0);
+        return result;
     }
 
     public double value() {
 
         return value/ema2.value();
+    }
+
+    public double history(int back){
+        int ind = history.size()-back-1;
+        if (ind<0) ind = 0;
+        return history.get(ind);
     }
 
     public double pvalue() {

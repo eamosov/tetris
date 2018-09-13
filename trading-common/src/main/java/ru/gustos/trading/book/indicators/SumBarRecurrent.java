@@ -3,21 +3,22 @@ package ru.gustos.trading.book.indicators;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
 
-public class VolumeBarRecurrent {
+public class SumBarRecurrent {
     XBaseBar bar = null;
-    EmaRecurrent volumeLong;
+    int cnt;
+    int cc = 0;
 
-    public VolumeBarRecurrent() {
-        volumeLong = new EmaRecurrent(1000);
+    public SumBarRecurrent(int cnt) {
+        this.cnt = cnt;
     }
 
     public boolean feed(XBar b) {
-        volumeLong.feed(b.getVolume());
-        if (bar==null || bar.getVolume()>volumeLong.value()*10)
+        if (bar==null || cc>=cnt)
             bar = new XBaseBar(b);
         else
             bar.addBar(b);
-        return bar.getVolume()>volumeLong.value()*10;
+        cc++;
+        return cc>=cnt;
     }
 
     public XBar bar(){
@@ -25,5 +26,3 @@ public class VolumeBarRecurrent {
     }
 
 }
-
-

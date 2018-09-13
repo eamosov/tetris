@@ -1,10 +1,12 @@
 package ru.gustos.trading.global;
 
 import com.google.common.collect.Sets;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import ru.efreet.trading.Decision;
 import ru.efreet.trading.bars.MarketBar;
 import ru.efreet.trading.bars.XBar;
+import weka.core.Instances;
 
 import java.util.*;
 
@@ -37,6 +39,7 @@ public class DecisionManager {
     public DecisionCalc calc;
     public DecisionModels models;
 
+    public ArrayList<Pair<Instances,Instances>> export;
 
     int cpus;
 
@@ -57,6 +60,10 @@ public class DecisionManager {
         plhistoryClassifiedSelected = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer3 : null);
         models = new DecisionModels(this);
         calc.calcTillEnd();
+    }
+
+    public void makeExport(){
+         export = new ArrayList<>();
     }
 
     public void checkNeedRenew(boolean thread){
@@ -95,6 +102,7 @@ public class DecisionManager {
         if (!hasModel()) return Decision.NONE;
         boolean classifiedBuy = data.helper.get(mldata, "@goodBuy|main") > 0.5;
         boolean classifiedSell = true;//data.helper.get(mldata, "@goodSell|main") > 0.5;
+
 
         boolean gbuy = data.buys.get(calc.calcIndex - 1);//data.helper.get(mldata, "gustosBuy") > 0.5;
         boolean gsell = data.sells.get(calc.calcIndex - 1);//data.helper.get(mldata, "gustosSell") > 0.5;
