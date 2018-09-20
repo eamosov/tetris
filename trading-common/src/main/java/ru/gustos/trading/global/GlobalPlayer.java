@@ -1,10 +1,10 @@
 package ru.gustos.trading.global;
 
 public class GlobalPlayer {
-    Global global;
+    ExperimentData experimentData;
 
-    public GlobalPlayer(Global global){
-        this.global = global;
+    public GlobalPlayer(ExperimentData experimentData){
+        this.experimentData = experimentData;
     }
 
     public void play(long from){

@@ -1,15 +1,11 @@
 package ru.gustos.trading.global;
 
-import kotlin.Pair;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 
 public class PLHistory {
 
@@ -27,7 +23,7 @@ public class PLHistory {
     PLHistoryAnalyzer analyzer;
     ArrayList<Long> modelTimes = new ArrayList<>();
 
-    public PLHistory(DataInputStream in) throws IOException {
+    public PLHistory(ObjectInputStream in) throws IOException {
         load(in);
     }
 
@@ -75,6 +71,11 @@ public class PLHistory {
         return false;
     }
 
+    public void minMaxCost(double cost, long time){
+        minCost(cost,time);
+        maxCost(cost,time);
+    }
+
     public void minCost(double cost, long time){
         if (buyCost!=0){
             if (minCost>cost)
@@ -87,6 +88,26 @@ public class PLHistory {
             if (maxCost<cost)
                 maxCost = cost;
         }
+    }
+
+    public int countSLBreaking(double stopLoss){
+        int cc = 0;
+        for (int i = 0;i<profitHistory.size();i++){
+            PLTrade t = profitHistory.get(i);
+            if (t.minCost/t.buyCost<1-stopLoss)
+                cc++;
+        }
+        return cc;
+    }
+
+    public int countTPBreaking(double takeProfit){
+        int cc = 0;
+        for (int i = 0;i<profitHistory.size();i++){
+            PLTrade t = profitHistory.get(i);
+            if (t.maxCost/t.buyCost>1+takeProfit)
+                cc++;
+        }
+        return cc;
     }
 
     public double profitWithStoploss(double stopLoss){
@@ -225,10 +246,11 @@ public class PLHistory {
         return true;
     }
 
-    public ArrayList<CriticalMoment> getCriticalBuyMoments(double limit, boolean good, boolean bad) {
+    public ArrayList<CriticalMoment> getCriticalBuyMoments(long time, double limit, boolean good, boolean bad) {
         ArrayList<CriticalMoment> times = new ArrayList<>();
         int goodc = 0, badc = 0;
         for (PLTrade t : profitHistory){
+            if (t.timeSell>=time) break;
             if (good && t.profit>1+limit) {
                 times.add(t.criticalMoment());
                 goodc++;
@@ -241,25 +263,48 @@ public class PLHistory {
         return times;
     }
 
+    public int goodfound, badfound;
+    public ArrayList<PLHistory.CriticalMoment> makeGoodBadMoments(double limit, long time, int goodMoments, int badMoments) {
+        ArrayList<PLHistory.CriticalMoment> moments = new ArrayList<>();
+        ArrayList<PLHistory.CriticalMoment> tmpmoments;
+        tmpmoments = getCriticalBuyMoments(time,limit, true, false);
+        while (tmpmoments.size() > goodMoments) tmpmoments.remove(0);
+        goodfound = tmpmoments.size();
+        moments.addAll(tmpmoments);
+        tmpmoments = getCriticalBuyMoments(time,limit, false, true);
+        while (tmpmoments.size() > badMoments) tmpmoments.remove(0);
+        badfound = tmpmoments.size();
+        moments.addAll(tmpmoments);
+        moments.sort(Comparator.comparingLong(c -> c.timeBuy));
+        return moments;
+    }
 
-    public ArrayList<Long> getMostCriticalBuyMoments(boolean good, boolean bad, boolean buyTime, long backtime, long interval, int cnt) {
+
+
+    public ArrayList<CriticalMoment> getMostCriticalBuyMoments(long interval) {
         if (profitHistory.size()==0) return new ArrayList<>();
-        ArrayList<Pair<Long,Double>> times = new ArrayList<>();
-        int goodc = 0, badc = 0;
-        long from = profitHistory.get(profitHistory.size()-1).timeBuy-backtime-interval;
+        ArrayList<PLHistory.CriticalMoment> moments = new ArrayList<>();
+        goodfound = 0;badfound = 0;
+        double limit = 0.005;
+        long from = profitHistory.get(profitHistory.size()-1).timeBuy-interval;
         for (PLTrade t : profitHistory) if (t.timeBuy>=from && t.timeBuy<from+interval){
-            if (good && t.profit>1) {
-                times.add(new Pair<>(buyTime?t.timeBuy:t.timeSell, 1-t.profit));
-                goodc++;
+            if (t.profit>1+limit) {
+                moments.add(t.criticalMoment());
+//                goods.add(new Pair<>(buyTime?t.timeBuy:t.timeSell, 1-t.profit));
+                goodfound++;
             }
-            if (bad && t.profit<1) {
-                times.add(new Pair<>(buyTime?t.timeBuy:t.timeSell,t.profit));
-                badc++;
+            if (t.profit<1-limit) {
+                moments.add(t.criticalMoment());
+//                bads.add(new Pair<>(buyTime?t.timeBuy:t.timeSell,t.profit));
+                badfound++;
             }
         }
-        times.sort(Comparator.comparing(Pair::getSecond));
+//        goods.sort(Comparator.comparing(Pair::getSecond));
+//        bads.sort(Comparator.comparing(Pair::getSecond));
 //        System.out.println(goodc+" "+badc);
-        return times.stream().limit(cnt).map(Pair<Long, Double>::getFirst).collect(Collectors.toCollection(ArrayList::new));
+//        return times.stream().limit(cnt).map(Pair<Long, Double>::getFirst).collect(Collectors.toCollection(ArrayList::new));
+        moments.sort(Comparator.comparingLong(c -> c.timeBuy));
+        return moments;
     }
 
 
@@ -270,7 +315,7 @@ public class PLHistory {
         return String.format("tested: %s, all: %s", tested,all);
     }
 
-    public void save(DataOutputStream out) throws IOException {
+    public void save(ObjectOutputStream out) throws IOException {
         out.writeUTF(instrument);
         tested.save(out);
         all.save(out);
@@ -280,7 +325,7 @@ public class PLHistory {
         }
     }
 
-    public void load(DataInputStream in) throws IOException {
+    public void load(ObjectInputStream in) throws IOException {
         instrument = in.readUTF();
         tested.load(in);
         all.load(in);
@@ -332,7 +377,7 @@ public class PLHistory {
             return String.format("profit %.4g, good %.3g(*%d), bad %.3g(*%d), drawdown %.3g, pertrade %.3g%%(*%d, worst %.3g%%, best %.3g%%)", profit,good, goodcount,bad, count-goodcount, drawdown, (Math.pow(profit,1.0/count)-1)*100,count,(worst-1)*100,(best-1)*100);
         }
 
-        void save(DataOutputStream out) throws IOException {
+        void save(ObjectOutputStream out) throws IOException {
             out.writeDouble(profit);
             out.writeDouble(good);
             out.writeDouble(bad);
@@ -341,7 +386,7 @@ public class PLHistory {
             out.writeInt(count);
         }
 
-        public void load(DataInputStream in) throws IOException {
+        public void load(ObjectInputStream in) throws IOException {
             profit = in.readDouble();
             good = in.readDouble();
             bad = in.readDouble();
@@ -371,7 +416,7 @@ public class PLHistory {
             this.maxCost = maxCost;
         }
 
-        public PLTrade(DataInputStream in) throws IOException {
+        public PLTrade(ObjectInputStream in) throws IOException {
             buyCost = in.readDouble();
             profit = in.readDouble();
             timeBuy = in.readLong();
@@ -379,7 +424,7 @@ public class PLHistory {
             tested = in.readBoolean();
         }
 
-        void save(DataOutputStream out) throws IOException {
+        void save(ObjectOutputStream out) throws IOException {
             out.writeDouble(buyCost);
             out.writeDouble(profit);
             out.writeLong(timeBuy);

@@ -8,6 +8,7 @@ import ru.efreet.trading.bars.MarketBar;
 import ru.efreet.trading.bars.XBar;
 import weka.core.Instances;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -43,10 +44,13 @@ public class DecisionManager {
 
     int cpus;
 
+    ExperimentData experiment;
 
-    public DecisionManager(CalcConfig config, InstrumentData data, int cpus, boolean onlyCalc, int modelFrom) {
+
+    public DecisionManager(CalcConfig config, ExperimentData experiment, InstrumentData data, int cpus, boolean onlyCalc, int modelFrom) {
         this.config = config == null ? new CalcConfig() : config;
         this.data = data;
+        this.experiment = experiment;
         calc = new DecisionCalc(this, onlyCalc);
         GustosBuySellMomentCalculator buysell = new GustosBuySellMomentCalculator(calc);
 //        calc.setBuySellCalcs(data.buydata!=null?new QlikBuyMomentCalculator(this):buysell, buysell);
@@ -55,9 +59,9 @@ public class DecisionManager {
         if (modelFrom != 0)
             calcModelFrom = modelFrom;
         this.cpus = cpus;
-        plhistoryBase = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer1 : null);
-        plhistoryClassifiedBuy = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer2 : null);
-        plhistoryClassifiedSelected = new PLHistory(data.instrument.toString(), data.global != null ? data.global.planalyzer3 : null);
+        plhistoryBase = new PLHistory(data.instrument.toString(), experiment != null ? experiment.planalyzer1 : null);
+        plhistoryClassifiedBuy = new PLHistory(data.instrument.toString(), experiment != null ? experiment.planalyzer2 : null);
+        plhistoryClassifiedSelected = new PLHistory(data.instrument.toString(), experiment != null ? experiment.planalyzer3 : null);
         models = new DecisionModels(this);
         calc.calcTillEnd();
     }
@@ -67,7 +71,15 @@ public class DecisionManager {
     }
 
     public void checkNeedRenew(boolean thread){
-        models.checkNeedRenew(thread);
+        boolean ok = models.checkNeedRenew(thread);
+        if (experiment!=null && ok) {
+            try {
+                experiment.saveModel(data.instrument.toString(), models.model);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 
@@ -75,6 +87,18 @@ public class DecisionManager {
         models.checkTakeNewModel();
         data.addBar(bar, marketBar);
         calc.calcTillEnd();
+
+    }
+
+    public static double limit(String coin){
+        if (coin.equalsIgnoreCase("NEO") || coin.equalsIgnoreCase("XLM"))
+            return 0.04;
+        else if (coin.equalsIgnoreCase("BNB"))
+            return 0.05;
+        else if (coin.equalsIgnoreCase("LTC") || coin.equalsIgnoreCase("ETH"))
+            return 0.025;
+        else
+            return 0.03;
 
     }
 
@@ -116,7 +140,7 @@ public class DecisionManager {
         return models.hasModel();
     }
 
-    int calcIndex(){
+    public int calcIndex(){
         return calc.calcIndex;
     }
 }

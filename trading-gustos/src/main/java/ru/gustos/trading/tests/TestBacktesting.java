@@ -1,11 +1,10 @@
 package ru.gustos.trading.tests;
 
-import kotlin.Pair;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import ru.gustos.trading.book.indicators.VecUtils;
-import ru.gustos.trading.global.Global;
+import ru.gustos.trading.global.ExperimentData;
 import ru.gustos.trading.global.InstrumentData;
 import ru.gustos.trading.visual.SimpleCharts;
 
@@ -14,8 +13,8 @@ import java.util.ArrayList;
 public class TestBacktesting {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(TestGlobal.instruments,false);
-        for (InstrumentData data : global.sheets.values()) {
+        ExperimentData experimentData = TestGlobal.init(TestGlobal.instruments,false);
+        for (InstrumentData data : experimentData.data) {
             System.out.println(data.instrument);
             SimpleCharts charts = new SimpleCharts(data.instrument.toString(),3);
             for (int r = 0;r<5;r++) {

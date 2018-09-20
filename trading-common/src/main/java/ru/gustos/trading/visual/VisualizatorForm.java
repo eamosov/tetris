@@ -21,8 +21,6 @@ public class VisualizatorForm {
     private JPanel center;
     private JTextField indexField;
     private JButton bot;
-    private JButton zoomPlus;
-    private JButton zoomMinus;
     private JLabel zoomLabel;
     private JButton leftToIndicator;
     private JButton rightToIndicator;
@@ -30,6 +28,8 @@ public class VisualizatorForm {
     private JTextField avg;
     private JComboBox averageType;
     private JTextField vZoom;
+    private JComboBox instruments;
+    private JComboBox trades;
 
     private TimelinePanel timeline;
     private CandlesPane candles;
@@ -135,28 +135,6 @@ public class VisualizatorForm {
                 mouseClick(p);
             }
         });
-//        bot.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                throw new RuntimeException("FIX ME");
-//                //TOOD call RunBotDialog
-////                RunBotDialog dlg = new RunBotDialog(vis);
-////                dlg.pack();
-////                dlg.setVisible(true);
-//            }
-//        });
-        zoomPlus.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                vis.zoomPlus();
-            }
-        });
-        zoomMinus.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                vis.zoomMinus();
-            }
-        });
         leftToIndicator.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -197,6 +175,11 @@ public class VisualizatorForm {
                 vis.setVerticalZoom(Integer.parseInt(vZoom.getText()));
             }
         });
+        for (String name : vis.data.instruments)
+            instruments.addItem(name);
+        instruments.addActionListener(l->vis.setCurrent((String)instruments.getSelectedItem()));
+        trades.addActionListener(l->vis.setShowTradeHistory(trades.getSelectedIndex()));
+
     }
 
     public void setZoom(int zoom){
@@ -217,8 +200,8 @@ public class VisualizatorForm {
     }
 
     public void setInfo(int index, Point point) {
-        ArrayList<Moment> mm = vis.getSheet().moments;
-        if (index<0 || index>=mm.size())
+//        ArrayList<Moment> mm = vis.getSheet().moments;
+        if (index<0 || index>=vis.current().size())
             candles.setInfoText("");
         else {
 
@@ -243,13 +226,13 @@ public class VisualizatorForm {
     }
 
     void updateScrollToIndicators() {
-        boolean has = vis.getSheet().getLib().indicatorsBack.size() > 0;
-        leftToIndicator.setEnabled(has);
-        rightToIndicator.setEnabled(has);
+//        boolean has = vis.getSheet().getLib().indicatorsBack.size() > 0;
+//        leftToIndicator.setEnabled(has);
+//        rightToIndicator.setEnabled(has);
     }
 
     private String info4bar(XBar bar) {
-        return String.format("time: %s, open: %s, close: %s, volume: %.2f, min: %s, max: %s",bar.getBeginTime().toString(), SheetUtils.price2string(vis.getSheet(),bar.getOpenPrice()),SheetUtils.price2string(vis.getSheet(),bar.getClosePrice()),bar.getVolume(),SheetUtils.price2string(vis.getSheet(),bar.getMinPrice()),SheetUtils.price2string(vis.getSheet(),bar.getMaxPrice()));
+        return String.format("time: %s, open: %s, close: %s, volume: %.2f, min: %s, max: %s",bar.getBeginTime().toString(), SheetUtils.price2string(vis.current(),bar.getOpenPrice()),SheetUtils.price2string(vis.current(),bar.getClosePrice()),bar.getVolume(),SheetUtils.price2string(vis.current(),bar.getMinPrice()),SheetUtils.price2string(vis.current(),bar.getMaxPrice()));
     }
 
     public CandlesPane getCandlesPane(){
@@ -257,13 +240,16 @@ public class VisualizatorForm {
     }
 
     private void viewUpdated() {
-        indexField.setText(dateFormatter.format(vis.getSheet().moments.get(vis.getIndex()).bar.getBeginTime()).replace('T',' '));
+        if (!vis.current().instrument.toString().equals(instruments.getSelectedItem())){
+            instruments.setSelectedItem(vis.current().instrument.toString());
+        }
+        indexField.setText(dateFormatter.format(vis.current().bar(vis.getIndex()).getBeginTime()).replace('T',' '));
     }
 
     private void TimeEntered() {
         String text = indexField.getText().trim().replace(' ','T');
         ZonedDateTime time = ZonedDateTime.of(LocalDateTime.parse(text, dateFormatter), ZoneId.of("UTC"));
-        vis.setIndex(vis.getSheet().getBarIndex(time));
+        vis.setIndex(vis.current().getBarIndex(time));
     }
 
 }

@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ru.gustos.trading.visual.VisualizatorForm">
   <grid id="27dc6" binding="root" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="1018" height="491"/>
+      <xy x="20" y="20" width="1111" height="491"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -12,6 +12,20 @@
         <properties/>
         <border type="none"/>
         <children>
+          <component id="99cb1" class="javax.swing.JComboBox" binding="instruments">
+            <constraints/>
+            <properties/>
+          </component>
+          <component id="6fa29" class="javax.swing.JComboBox" binding="trades">
+            <constraints/>
+            <properties>
+              <model>
+                <item value="None"/>
+                <item value="Trades"/>
+                <item value="All gustos"/>
+              </model>
+            </properties>
+          </component>
           <component id="4dc5a" class="javax.swing.JButton" binding="leftToIndicator">
             <constraints/>
             <properties>
@@ -47,18 +61,6 @@
             <constraints/>
             <properties>
               <text value="   Zoom: 0"/>
-            </properties>
-          </component>
-          <component id="852f5" class="javax.swing.JButton" binding="zoomPlus">
-            <constraints/>
-            <properties>
-              <text value="+"/>
-            </properties>
-          </component>
-          <component id="47213" class="javax.swing.JButton" binding="zoomMinus">
-            <constraints/>
-            <properties>
-              <text value="-"/>
             </properties>
           </component>
           <component id="9497f" class="javax.swing.JLabel">

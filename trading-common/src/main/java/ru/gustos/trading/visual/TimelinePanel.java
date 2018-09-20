@@ -1,19 +1,13 @@
 package ru.gustos.trading.visual;
 
 import kotlin.Pair;
-import ru.efreet.trading.bars.XBaseBar;
-import ru.gustos.trading.book.Moment;
-import ru.gustos.trading.book.SheetUtils;
-import ru.gustos.trading.book.indicators.Indicator;
-import ru.gustos.trading.book.indicators.IndicatorResultType;
-import ru.gustos.trading.book.indicators.VecUtils;
+import ru.efreet.trading.bars.XBar;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
 
 public class TimelinePanel extends JPanel implements MouseMotionListener, MouseListener{
     private Visualizator vis;
@@ -36,11 +30,11 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     public void paint(Graphics g){
         super.paint(g);
         int w = getWidth();
-        ArrayList<Moment> mm = vis.getSheet().moments;
+//        ArrayList<Moment> mm = vis.getSheet().moments;
 
         int startIndex = vis.getIndex();
         int endIndex = vis.getEndIndex();
-        int total = mm.size();
+        int total = vis.current().size();
 
         int x1 = startIndex*w/total;
         int x2 = endIndex*w/total;
@@ -53,17 +47,24 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
         g.drawLine(x2,0,x2,getHeight());
 
 
+
         g.setColor(CandlesPane.darkerColor);
-        int prev = price2y(mm.get(0).bar.getClosePrice());
+        int prev = price2y(vis.current().bar(0).getClosePrice());
         for (int x = 1;x<w;x++){
-            int y = price2y(mm.get(x*mm.size()/w).bar.getClosePrice());
+            int y = price2y(vis.current().bar(x*vis.current().size()/w).getClosePrice());
             g.drawLine(x-1,prev,x,y);
             prev = y;
         }
+        drawTradeHistory(g);
         drawIndicatorLines(g);
         g.setColor(Color.blue);
         drawProfitLine(g);
         paintPriceAtLine(g);
+    }
+
+    private void drawTradeHistory(Graphics g) {
+        PaintUtils.paintIntervals(g,vis, this, 0,vis.current().size(), index->index*getWidth()/vis.current().size(), false);
+
     }
 
     private void paintPriceAtLine(Graphics g) {
@@ -85,72 +86,72 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
 
 
     private void drawProfitLine(Graphics g) {
-        if (vis.playResult!=null) {
-
-            double[] v = VecUtils.resize(vis.playResult.money,getWidth());
-//            v = VecUtils.ma(v,10);
-            VisUtils.drawLine(this,g,v,0.1);
-        }
+//        if (vis.playResult!=null) {
+//
+//            double[] v = VecUtils.resize(vis.playResult.money,getWidth());
+////            v = VecUtils.ma(v,10);
+//            VisUtils.drawLine(this,g,v,0.1);
+//        }
     }
 
     private void drawIndicatorLines(Graphics g) {
-        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
-        for (Indicator ind : back){
-            int w = getWidth();
-            int total = vis.getSheet().size();
-            Color tmpcol = ind.getColors().max();
-            Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
-            tmpcol = ind.getColors().min();
-            Color colMin = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
-            int alphaMin = 90, alphaMax = 90;
-            Pair<Double, Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(), ind, 0, vis.getSheet().size(), 1);
-            double[] data = vis.getSheet().getData().get(ind.getId());
-            for (int x = 0;x<w;x++) {
-                int from = x*total/w;
-                int to = (x+1)*total/w;
-                double max = 0;
-                double min = 0;
-                for (int i = from;i<to;i++) {
-                    double v = data[i];
-                    if (v> max)
-                        max = v;
-                    if (v< min)
-                        min = v;
-                }
-
-                if (ind.getResultType()==IndicatorResultType.NUMBER) {
-                    if (min != 0)
-                        alphaMin = (int) (40 + min * 160 / mm.getFirst());
-
-                    if (max!=0)
-                        alphaMax = (int) (40 + max * 160 / mm.getSecond());
-                }
-
-                if (min!=0 && max!=0){
-                    g.setColor(VisUtils.alpha(colMax,alphaMax));
-                    g.fillRect(x, 0, 1, getHeight()/2);
-                    g.setColor(VisUtils.alpha(colMax,alphaMin));
-                    g.fillRect(x, getHeight()/2, 1, getHeight()/2);
-                } else if (min!=0 || max!=0){
-                    Color col = max!=0?VisUtils.alpha(colMax,alphaMax):VisUtils.alpha(colMin,alphaMin);
-                    g.setColor(col);
-                    g.fillRect(x, 0, 1, getHeight());
-                }
-            }
-
-        }
+//        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
+//        for (Indicator ind : back){
+//            int w = getWidth();
+//            int total = vis.getSheet().size();
+//            Color tmpcol = ind.getColors().max();
+//            Color colMax = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
+//            tmpcol = ind.getColors().min();
+//            Color colMin = new Color(tmpcol.getRed(),tmpcol.getGreen(),tmpcol.getBlue(),90);
+//            int alphaMin = 90, alphaMax = 90;
+//            Pair<Double, Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(), ind, 0, vis.getSheet().size(), 1);
+//            double[] data = vis.getSheet().getData().get(ind.getId());
+//            for (int x = 0;x<w;x++) {
+//                int from = x*total/w;
+//                int to = (x+1)*total/w;
+//                double max = 0;
+//                double min = 0;
+//                for (int i = from;i<to;i++) {
+//                    double v = data[i];
+//                    if (v> max)
+//                        max = v;
+//                    if (v< min)
+//                        min = v;
+//                }
+//
+//                if (ind.getResultType()==IndicatorResultType.NUMBER) {
+//                    if (min != 0)
+//                        alphaMin = (int) (40 + min * 160 / mm.getFirst());
+//
+//                    if (max!=0)
+//                        alphaMax = (int) (40 + max * 160 / mm.getSecond());
+//                }
+//
+//                if (min!=0 && max!=0){
+//                    g.setColor(VisUtils.alpha(colMax,alphaMax));
+//                    g.fillRect(x, 0, 1, getHeight()/2);
+//                    g.setColor(VisUtils.alpha(colMax,alphaMin));
+//                    g.fillRect(x, getHeight()/2, 1, getHeight()/2);
+//                } else if (min!=0 || max!=0){
+//                    Color col = max!=0?VisUtils.alpha(colMax,alphaMax):VisUtils.alpha(colMin,alphaMin);
+//                    g.setColor(col);
+//                    g.fillRect(x, 0, 1, getHeight());
+//                }
+//            }
+//
+//        }
 
     }
 
     private int price2y(double price) {
-        XBaseBar total = vis.getSheet().totalBar();
+        XBar total = vis.current().totalBar();
         return (int)((1-price/total.getMaxPrice())*getHeight());
     }
 
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        int pos = e.getPoint().x*vis.getSheet().size()/getWidth();
+        int pos = e.getPoint().x*vis.current().size()/getWidth();
         vis.setMiddleIndex(pos);
     }
 
@@ -181,7 +182,7 @@ public class TimelinePanel extends JPanel implements MouseMotionListener, MouseL
     public void mouseDragged(MouseEvent e) {
         if (dragStart!=null){
             int dx = e.getPoint().x-dragStart.x;
-            int ind = indexStart + dx*vis.getSheet().size()/getWidth();
+            int ind = indexStart + dx*vis.current().size()/getWidth();
             vis.setIndex(ind);
         }
     }

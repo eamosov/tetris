@@ -37,8 +37,8 @@ public class IndicatorsFrame extends JFrame {
     }
 
     private void fillList() {
-        for (Indicator ind : vis.getSheet().getLib().indicators)
-            ((DefaultListModel<Indicator>)list.getModel()).addElement(ind);
+//        for (Indicator ind : vis.getSheet().getLib().indicators)
+//            ((DefaultListModel<Indicator>)list.getModel()).addElement(ind);
     }
 
 
@@ -117,7 +117,7 @@ public class IndicatorsFrame extends JFrame {
                 }
             }
             if (changed) {
-                vis.getSheet().getData().calc(indicator);
+//                vis.getSheet().getData().calc(indicator);
                 vis.fireViewUpdated();
             }
         }

@@ -7,6 +7,7 @@ import weka.classifiers.Evaluation;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -41,35 +42,34 @@ public class FilterMomentsModel {
         classifier = null;
     }
 
-    private ArrayList<PLHistory.CriticalMoment> makeGoodBadMoments() {
-        ArrayList<PLHistory.CriticalMoment> moments = new ArrayList<>();
-        ArrayList<PLHistory.CriticalMoment> tmpmoments;
-        double limit = manager.limit();
-        tmpmoments = manager.calc.gustosProfit.getCriticalBuyMoments(limit, true, false);
-        while (tmpmoments.size() > manager.config.goodMoments) tmpmoments.remove(0);
-        moments.addAll(tmpmoments);
-        tmpmoments = manager.calc.gustosProfit.getCriticalBuyMoments(limit, false, true);
-        while (tmpmoments.size() > manager.config.badMoments) tmpmoments.remove(0);
-        moments.addAll(tmpmoments);
-        moments.sort(Comparator.comparingLong(c -> c.timeBuy));
-        return moments;
+    public int index(){
+        return index;
     }
 
+
+    private ArrayList<PLHistory.CriticalMoment> makeMoments(){
+//        return manager.calc.gustosProfit.getMostCriticalBuyMoments(60*60*24*90);
+        return manager.calc.gustosProfit.makeGoodBadMoments(manager.limit(),Long.MAX_VALUE,manager.config.goodMoments,manager.config.badMoments);
+    }
+
+    int goodfound, badfound;
+    int daysLength;
     private Instances makeGoodBadSet(boolean buy, int futureAttribute, long endtime, int level) {
         Instances set1;
         int period = buy ? manager.config.learnIntervalBuy : manager.config.learnIntervalSell;
         HashSet<String> ignore = manager.ignore(buy);
         ArrayList<PLHistory.CriticalMoment> moments;
         set1 = data.helper.makeEmptySet(ignore, null, futureAttribute, level);
-        moments = makeGoodBadMoments();
+        moments = makeMoments();
+        goodfound = manager.calc.gustosProfit.goodfound;
+        badfound = manager.calc.gustosProfit.badfound;
         prevLastMoment = moments.get(moments.size() - 1).timeBuy;
-
+        daysLength = (int)((prevLastMoment-moments.get(0).timeBuy)/(60*60*24));
         for (int j = 0; j < moments.size(); j++) {
             PLHistory.CriticalMoment m = moments.get(j);
             int index = data.getBarIndex(m.time(buy));
             if (index > calcAllFrom) {
                 int fromIndex = Math.max(calcAllFrom, index - period);
-
 //                if (fromIndex<maxTrainIndex) fromIndex = maxTrainIndex;
 
                 int toIndex = Math.min(manager.calc.targetCalcedTo, index + period);
@@ -79,6 +79,13 @@ public class FilterMomentsModel {
                 set1.addAll(settemp);
             }
         }
+
+//        double badw = CalcUtils.weightWithValue(set1, set1.classIndex(), 0);
+//        double goodw = CalcUtils.weightWithValue(set1, set1.classIndex(), 1);
+//        CalcUtils.mulWeightsWhenValue(set1,2*goodw/badw,set1.classIndex(), 0);
+// 134 192 / 119 157 / 103 145 (209 293),
+// 117 160 / 106 144 / (171 242)
+// 229 293 / 224 289 (242 310)
         return set1;
     }
 
@@ -94,6 +101,9 @@ public class FilterMomentsModel {
             return;
         }
         Instances set1 = makeGoodBadSet(buy, i, endtime, level);
+        int modelDays = daysLength;
+        int goodFound = goodfound;
+        int badFound = badfound;
         if (set1.numDistinctValues(set1.classIndex()) == 1) {
             this.full = false;
             System.out.println("no distinct values!");
@@ -113,9 +123,10 @@ public class FilterMomentsModel {
                 attFilter = new J48AttributeFilter(3, 0.4);
                 if (manager.calc.oldInstr()) {
                     Instances settemp = data.helper.makeSet(data.data, manager.ignoreBuy, null, Math.max(calcAllFrom,calcIndex-60*24*30), calcIndex, endtime, 0, level);
-                    attFilter.prepare(settemp);
+                    attFilter.prepare(settemp,false);
                 } else
-                    attFilter.prepare(set1);
+//                    attFilter.prepare(set1,true);
+                    attFilter.prepare(set1,true);
                 set1 = attFilter.filter(set1);
                 if (set1.numAttributes()<=1){
                     this.full = false;
@@ -141,7 +152,12 @@ public class FilterMomentsModel {
                 kappas += evaluation.kappa();
                 kappascnt++;
                 if (manager.LOGS)
-                    System.out.println(String.format("model kappa: %.3g, classes %d/%d (%.3g/%.3g)", evaluation.kappa(), CalcUtils.countWithValue(set1, set1.numAttributes() - 1, 0), CalcUtils.countWithValue(set1, set1.numAttributes() - 1, 1), CalcUtils.weightWithValue(set1, set1.numAttributes() - 1, 0) / 100, CalcUtils.weightWithValue(set1, set1.numAttributes() - 1, 1) / 100));
+                    System.out.println(String.format("model kappa: %.3g, classes %d/%d (%.3g/%.3g), days %d, bad %d, good %d", evaluation.kappa(),
+                            CalcUtils.countWithValue(set1, set1.classIndex(), 0),
+                            CalcUtils.countWithValue(set1, set1.classIndex(), 1),
+                            CalcUtils.weightWithValue(set1, set1.classIndex(), 0) / 100,
+                            CalcUtils.weightWithValue(set1, set1.classIndex(), 1) / 100,
+                            modelDays, badFound, goodFound));
 
                 classifier = rf;
             } else {
@@ -181,7 +197,7 @@ public class FilterMomentsModel {
     }
 
     public boolean canRenewModel() {
-        ArrayList<PLHistory.CriticalMoment> moments = makeGoodBadMoments();
+        ArrayList<PLHistory.CriticalMoment> moments = makeMoments();
         return moments.size() > 0 && moments.get(moments.size() - 1).timeBuy != prevLastMoment;
     }
 }

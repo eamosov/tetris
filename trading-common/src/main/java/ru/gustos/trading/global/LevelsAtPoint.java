@@ -13,14 +13,14 @@ public class LevelsAtPoint {
     int index;
     static int[] cnts = new int[]{10,100};
 
-    public LevelsAtPoint(BarsSource sheet, int index, int pow) {
+    public LevelsAtPoint(BarsSource sheet, int index, int zoom, int pow) {
         this.sheet = sheet;
         this.index = index;
-        findLevels(pow);
+        findLevels(zoom,pow);
     }
 
-    private void findLevels(int pow) {
-        int[] mins = findMins(pow);
+    private void findLevels(int zoom, int pow) {
+        int[] mins = findMins(zoom,pow);
         SimpleRegression reg;
 //        if (sheet.bar(mins[0]).getMinPrice()>sheet.bar(mins[1]).getMinPrice()){
             reg = new SimpleRegression();
@@ -29,7 +29,7 @@ public class LevelsAtPoint {
             minlevels.add(reg);
 //        }
 
-        int[] maxs = findMaxs(pow);
+        int[] maxs = findMaxs(zoom,pow);
 //        if (sheet.bar(maxs[0]).getMaxPrice()<sheet.bar(maxs[1]).getMaxPrice()){
             reg = new SimpleRegression();
             reg.addData(maxs[1],sheet.bar(maxs[1]).getMaxPrice());
@@ -39,12 +39,12 @@ public class LevelsAtPoint {
 
     }
 
-    public int[] findMins(int pow) {
-        int i = index-pow*2/3;
+    public int[] findMins(int zoom, int pow) {
+        int i = index-zoom*3/2;
         int[] res = new int[2];
         int ii = 0;
         while (i>=0 && ii<2){
-            if (isMin(i,pow)){
+            if (isMin(i,zoom*pow)){
                 res[ii++] = i;
             }
             i--;
@@ -52,12 +52,12 @@ public class LevelsAtPoint {
         return res;
     }
 
-    public int[] findMaxs(int pow) {
-        int i = index-pow*2/3;
+    public int[] findMaxs(int zoom,int pow) {
+        int i = index-zoom*3/2;
         int[] res = new int[2];
         int ii = 0;
         while (i>=0 && ii<2){
-            if (isMax(i,pow)){
+            if (isMax(i,zoom*pow)){
                 res[ii++] = i;
             }
             i--;
@@ -87,3 +87,4 @@ public class LevelsAtPoint {
 
 
 }
+

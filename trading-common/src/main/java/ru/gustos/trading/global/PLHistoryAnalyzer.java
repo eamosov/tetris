@@ -9,9 +9,7 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class PLHistoryAnalyzer {
@@ -36,7 +34,7 @@ public class PLHistoryAnalyzer {
 
     }
 
-    public PLHistoryAnalyzer(DataInputStream in) throws IOException {
+    public PLHistoryAnalyzer(ObjectInputStream in) throws IOException {
         histories = loadHistories(in);
     }
 
@@ -49,6 +47,12 @@ public class PLHistoryAnalyzer {
             if (h.instrument.equals(instrument))
                 return h;
         return null;
+    }
+
+    public void clearHistories() {
+        for (int i = 0;i<histories.size();i++)
+            histories.set(i,new PLHistory(histories.get(i).instrument,null));
+
     }
 
     void newHistoryEvent(PLHistory history) {
@@ -268,15 +272,28 @@ public class PLHistoryAnalyzer {
         StringBuilder sb = new StringBuilder();
         int cc = 0;
         int cp = 0;
+        int lower1 = 0,lower2 = 0,lower3 = 0, lower4 = 0;
+        int higher1 = 0,higher2 = 0,higher3 = 0;
+        double m = 1;
         for (PLHistory h : histories) {
             if (sb.length() > 0)
                 sb.append(",");
             sb.append(String.format("%s:%.4g*%.2g(%d of %d)", h.instrument, h.all.profit, h.all.drawdown, h.all.goodcount, h.all.count));
             cc += h.all.count;
             cp += h.all.goodcount;
+            m*=h.all.profit;
+            lower1+=h.countSLBreaking(0.01);
+            lower2+=h.countSLBreaking(0.02);
+            lower3+=h.countSLBreaking(0.03);
+            lower4+=h.countSLBreaking(0.05);
+            higher1+=h.countTPBreaking(0.01);
+            higher2+=h.countTPBreaking(0.02);
+            higher3+=h.countTPBreaking(0.03);
         }
-        sb.append(", trades ").append(cp).append(" of ").append(cc);
-        return sb.toString();
+//        sb.append(", trades ").append(cp).append(" of ").append(cc);
+        sb.append(String.format(", SL 1%% %d%%, 2%% %d%%, 3%% %d%%, 5%% %d%%, TP 1%% %d%%, 2%% %d%%, 3%% %d%%", lower1*100/cc,lower2*100/cc,lower3*100/cc,lower4*100/cc, higher1*100/cc,higher2*100/cc,higher3*100/cc));
+
+        return String.format("total: %.4g (%d of %d)", m,cp,cc)+sb.toString();
     }
 
 
@@ -303,13 +320,13 @@ public class PLHistoryAnalyzer {
     }
 
 
-    public void saveHistories(DataOutputStream out) throws IOException {
+    public void saveHistories(ObjectOutputStream out) throws IOException {
         out.writeInt(histories.size());
         for (int i = 0; i < histories.size(); i++)
             histories.get(i).save(out);
     }
 
-    public static ArrayList<PLHistory> loadHistories(DataInputStream in) throws IOException {
+    public static ArrayList<PLHistory> loadHistories(ObjectInputStream in) throws IOException {
         int cc = in.readInt();
         ArrayList<PLHistory> res = new ArrayList<>(cc);
         for (int i = 0; i < cc; i++) {
@@ -318,7 +335,7 @@ public class PLHistoryAnalyzer {
         return res;
     }
 
-    public void saveModelTimes(DataOutputStream out) throws IOException {
+    public void saveModelTimes(ObjectOutputStream out) throws IOException {
         for (int i = 0; i < histories.size(); i++) {
             ArrayList<Long> times = histories.get(i).modelTimes;
             out.writeInt(times.size());
@@ -327,11 +344,12 @@ public class PLHistoryAnalyzer {
         }
     }
 
-    public void loadModelTimes(DataInputStream in) throws IOException {
+    public void loadModelTimes(ObjectInputStream in) throws IOException {
         for (int i = 0; i < histories.size(); i++) {
             int cc = in.readInt();
             while (cc-- > 0)
                 histories.get(i).modelTimes.add(in.readLong());
         }
     }
+
 }

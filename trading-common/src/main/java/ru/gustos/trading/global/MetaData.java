@@ -2,9 +2,10 @@ package ru.gustos.trading.global;
 
 import ru.gustos.trading.ml.J48AttributeFilter;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
-public class MetaData{
+public class MetaData implements Serializable {
     public int index;
     public String key;
     public boolean future;

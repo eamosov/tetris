@@ -80,10 +80,10 @@ public class RunBotDialog extends JDialog {
         else if (botName.startsWith("Check period 2h"))
             bot = new CheckPeriodBot(120,true);
 
-        double result = r.run(vis.getSheet(), here ? vis.getIndex() : 0, vis.getSheet().size(), bot);
-        dispose();
-        JOptionPane.showMessageDialog(null,String.format("money x %1$,.2f",(result/BotRunner.startMoney)));
-        new BotIntervalsVisualizer(vis.getSheet(),r.intervals);
+//        double result = r.run(vis.getSheet(), here ? vis.getIndex() : 0, vis.getSheet().size(), bot);
+//        dispose();
+//        JOptionPane.showMessageDialog(null,String.format("money x %1$,.2f",(result/BotRunner.startMoney)));
+//        new BotIntervalsVisualizer(vis.getSheet(),r.intervals);
     }
 
     private void onCancel() {

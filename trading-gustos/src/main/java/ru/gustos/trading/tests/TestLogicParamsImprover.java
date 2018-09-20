@@ -1,20 +1,17 @@
 package ru.gustos.trading.tests;
 
-import kotlin.Pair;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.global.*;
 import ru.gustos.trading.global.timeseries.TimeSeriesDouble;
-import ru.gustos.trading.visual.SimpleCharts;
 import ru.gustos.trading.visual.SimpleProfitGraph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class TestLogicParamsImprover {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(new Instrument[]{new Instrument("BTC","USDT")},false);
-        for (InstrumentData data : global.sheets.values()) {
+        ExperimentData experimentData = TestGlobal.init(new Instrument[]{new Instrument("BTC","USDT")},false);
+        for (InstrumentData data : experimentData.data) {
             System.out.println(data.instrument);
 
             int optInterval = 60 * 24 * 30;
@@ -61,7 +58,7 @@ public class TestLogicParamsImprover {
             graphs.add(h1);
             TimeSeriesDouble h2 = anal2.makeHistory(false, 1, null);
             graphs.add(h2);
-            graph.drawHistory(TestGlobal.makeMarketAveragePrice(global, anal1, h1, null), graphs, null);
+            graph.drawHistory(experimentData.makeMarketAveragePrice(anal1, h1, null), graphs, null);
 //            GustosLogicOptimizator.Params p = new GustosLogicOptimizator.Params();
 //            for (int i = 0;i<p.params.length;i++) {
 //                SimpleCharts charts = new SimpleCharts(data.instrument.toString()+" "+paramNames[i]);

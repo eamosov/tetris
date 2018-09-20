@@ -18,22 +18,6 @@ public class SellNowModel{
         this.manager = manager;
     }
 
-    private ArrayList<PLHistory.CriticalMoment> makeGoodBadMoments() {
-        ArrayList<PLHistory.CriticalMoment> moments = new ArrayList<>();
-        ArrayList<PLHistory.CriticalMoment> tmpmoments;
-        double limit = manager.limit();
-        tmpmoments = manager.calc.gustosProfit.getCriticalBuyMoments(limit, true, false);
-//        while (tmpmoments.size() > manager.config.goodMoments) tmpmoments.remove(0);
-        while (tmpmoments.size() > 20) tmpmoments.remove(0);
-        moments.addAll(tmpmoments);
-        tmpmoments = manager.calc.gustosProfit.getCriticalBuyMoments(limit, false, true);
-//        while (tmpmoments.size() > manager.config.badMoments) tmpmoments.remove(0);
-        while (tmpmoments.size() > 20) tmpmoments.remove(0);
-        moments.addAll(tmpmoments);
-        moments.sort(Comparator.comparingLong(c -> c.timeBuy));
-        return moments;
-    }
-
     private Instances makeGoodBadSet(int futureAttribute, long endtime, int level) {
         Instances set1;
         int period = manager.config.learnIntervalBuy;
@@ -41,7 +25,7 @@ public class SellNowModel{
         ArrayList<PLHistory.CriticalMoment> moments;
         InstrumentData data = manager.data;
         set1 = data.helper.makeEmptySet(ignore, null, futureAttribute, level);
-        moments = makeGoodBadMoments();
+        moments = manager.calc.gustosProfit.makeGoodBadMoments(manager.limit(),Long.MAX_VALUE,manager.config.goodMoments,manager.config.badMoments);
 
         for (int j = 0; j < moments.size(); j++) {
             PLHistory.CriticalMoment m = moments.get(j);

@@ -3,11 +3,11 @@ package ru.gustos.trading.global;
 public class ProfitPredict {
     static final int skip = 500;
     static final int train = 1000;
-    Global global;
+    ExperimentData experimentData;
     InstrumentData data;
 
-    public ProfitPredict(Global global, InstrumentData data){
-        this.global = global;
+    public ProfitPredict(ExperimentData experimentData, InstrumentData data){
+        this.experimentData = experimentData;
         this.data = data;
     }
 

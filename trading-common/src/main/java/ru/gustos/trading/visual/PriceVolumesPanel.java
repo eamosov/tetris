@@ -56,12 +56,12 @@ public class PriceVolumesPanel extends JPanel  {
 
             @Override
             public void visualizatorMouseClicked(Point p, int button) {
-                if (vis.getPriceLineByClick()) {
-                    if (button == 1)
-                        vis.setLineAtPrice(vis.frame.form.getCandlesPane().screen2price(p.y));
-                    else
-                        vis.setLineAtPrice(0);
-                }
+//                if (vis.getPriceLineByClick()) {
+//                    if (button == 1)
+//                        vis.setLineAtPrice(vis.frame.form.getCandlesPane().screen2price(p.y));
+//                    else
+//                        vis.setLineAtPrice(0);
+//                }
             }
         });
 
@@ -82,8 +82,8 @@ public class PriceVolumesPanel extends JPanel  {
         CandlesPane candles = candlesPane();
         minprice = candles.screen2price(getHeight() * 9 / 10);
         maxprice = candles.screen2price(getHeight() / 10);
-        minprice = Math.max(minprice,vis.getSheet().totalBar().getMinPrice());
-        maxprice = Math.min(maxprice,vis.getSheet().totalBar().getMaxPrice());
+        minprice = Math.max(minprice,vis.current().totalBar().getMinPrice());
+        maxprice = Math.min(maxprice,vis.current().totalBar().getMaxPrice());
         paintVolumes(g);
         paintPriceAtLine(g);
         paintPrices(g);
@@ -96,94 +96,94 @@ public class PriceVolumesPanel extends JPanel  {
         g.setColor(Color.lightGray);
         g.fillRect(W-40,y-5,W,15);
         g.setColor(Color.black);
-        g.drawString(SheetUtils.price2string(vis.getSheet(),priceAtMouse),W-40,y+5);
+        g.drawString(SheetUtils.price2string(vis.current(),priceAtMouse),W-40,y+5);
     }
 
     private void paintVolumes(Graphics g) {
-        CandlesPane candles = candlesPane();
-        Volumes vols = vis.getSheet().volumes();
-        GoodBad goodbad = vis.getSheet().goodbad();
-
-        int minpow = vols.price2pow(minprice);
-        int maxpow = vols.price2pow(maxprice);
-        int index = vis.getSelectedIndex();
-        XBar selectedBar = vis.getSheet().bar(index);
-        ZonedDateTime time = selectedBar.getEndTime();
-        Pair<double[], double[]> vv;
-//        if (vis.getGustosVolumes()){
-//        if (vis.getGustosVolumes())
-//            vv = vols.getGustosVolumes(time);
+//        CandlesPane candles = candlesPane();
+//        Volumes vols = vis.getSheet().volumes();
+//        GoodBad goodbad = vis.getSheet().goodbad();
+//
+//        int minpow = vols.price2pow(minprice);
+//        int maxpow = vols.price2pow(maxprice);
+//        int index = vis.getSelectedIndex();
+//        XBar selectedBar = vis.getSheet().bar(index);
+//        ZonedDateTime time = selectedBar.getEndTime();
+//        Pair<double[], double[]> vv;
+////        if (vis.getGustosVolumes()){
+////        if (vis.getGustosVolumes())
+////            vv = vols.getGustosVolumes(time);
+////        else
+//        if (vis.getFixedVolumes())
+//            vv = vols.get();
 //        else
-        if (vis.getFixedVolumes())
-            vv = vols.get();
-        else
-            vv = vols.getMoment(time);
-
-        Pair<double[], double[]> goodbadvv = goodbad.getMoment(time);
-        double[] goodbadsum = VecUtils.add(goodbadvv.getFirst(), goodbadvv.getSecond(), 1);
-        double goodbadsummax = IntStream.range(minpow, maxpow + 1).mapToDouble(i -> i < 0 || i >= goodbadsum.length ? 0 : goodbadsum[i]).max().getAsDouble();
-
-        double[] vvBase = smooth(vv.getFirst());
-        double[] vvAsset = smooth(vv.getSecond());
-        double maxvol = IntStream.range(minpow, maxpow + 1).mapToDouble(i -> i < 0 || i >= vvBase.length ? 0 : vvBase[i] + vvAsset[i]).max().getAsDouble();
-        double[] sum = smooth(VecUtils.add(vv.getFirst(),vv.getSecond(),1));
-        int[] levels = VecUtils.listLevels(sum,vis.param==0?36:vis.param,12);
-        if (levels.length==0) return;
-        int levelIndex = VecUtils.findBaseInLevels(levels,minpow);
-        for (int i = minpow; i <= maxpow; i++) {
-            if (levelIndex+1<levels.length && levels[levelIndex+1]==i)
-                levelIndex++;
-            double price = vols.pow2price(i);
-            double volAsset = i < 0 || i >= vvBase.length ? 0 : vvAsset[i];
-            double volBase = i < 0 || i >= vvBase.length ? 0 : vvBase[i];
-            double goodbadV = i < 0 || i >= vvBase.length ? 0 : goodbadsum[i];
-            int y = candles.price2screen(price);
-            int nexty = pow2screen(i + 1);
-            int h = y - nexty;
-            if (h < 1) h = 1;
-            int wasset = (int) ((W - 40) * volAsset / maxvol)/2;
-            int wbase = (int) ((W - 40) * volBase / maxvol)/2;
-//                g.setColor(price>=selectedBar.getClosePrice()?Color.green.darker():Color.green);
-            Color color = CandlesPane.GREEN;
-//            if (VecUtils.integrals.get(levelIndex)==0 && VecUtils.integrals.get(levelIndex+2)==0)
-//                color = color.darker();
-            g.setColor(color);
-            g.fillRect(W - 40 - wasset, y - h / 2, wasset, h + 1);
-//                g.setColor(price<=selectedBar.getClosePrice()?Color.red.darker():Color.red);
-            g.setColor(color);
-            g.fillRect(W - 40 - wbase-wasset, y - h / 2, wbase, h + 1);
-            g.setColor(CandlesPane.BLUE);
-            g.fillRect(0, y - h / 2, (int)((W-40)/2*goodbadV/goodbadsummax), h + 1);
-//            g.fillRect(0, y - h / 2, wbase, h + 1);
-        }
-
-        g.setColor(Color.black);
-        for (int i = 0;i<levels.length;i++){
-            int p = levels[i];
-//            g.drawLine(0,pow2screen(p),W,pow2screen(p));
-        }
-        int powClose = vols.price2pow(selectedBar.getClosePrice());
-        levelIndex = VecUtils.findBaseInLevels(levels,powClose);
-
-        int level = levels[levelIndex];
-        int upperlevel = VecUtils.nextLevel(levels,levelIndex,1, vols.steps);
-        int upperlevel2 = VecUtils.nextLevel(levels,levelIndex,2, vols.steps);
-        int upperlevel3 = VecUtils.nextLevel(levels,levelIndex,3, vols.steps);
-        int lowerlevel = VecUtils.nextLevel(levels,levelIndex,-1, vols.steps);
-
-        g.setColor(Color.blue);
-
-//        g.drawLine(0,pow2screen(level),W-40,pow2screen(level));
-//        g.drawLine(0,pow2screen(level)-1,W-40,pow2screen(level)-1);
-//        g.drawLine(0,pow2screen(lowerlevel),W-40,pow2screen(lowerlevel));
-//        g.drawLine(0,pow2screen(upperlevel),W-40,pow2screen(upperlevel));
-//        g.drawLine(0,pow2screen(upperlevel2),W-40,pow2screen(upperlevel2));
-//        g.drawLine(0,pow2screen(upperlevel3),W-40,pow2screen(upperlevel3));
-
-        int up1 = vis.getSheet().whenPriceWas(index-1,vols.pow2price(upperlevel));
-        int down1 = vis.getSheet().whenPriceWas(index-1,vols.pow2price(level));
-//        System.out.println((index-up1)+" "+(index-down1));
-
+//            vv = vols.getMoment(time);
+//
+//        Pair<double[], double[]> goodbadvv = goodbad.getMoment(time);
+//        double[] goodbadsum = VecUtils.add(goodbadvv.getFirst(), goodbadvv.getSecond(), 1);
+//        double goodbadsummax = IntStream.range(minpow, maxpow + 1).mapToDouble(i -> i < 0 || i >= goodbadsum.length ? 0 : goodbadsum[i]).max().getAsDouble();
+//
+//        double[] vvBase = smooth(vv.getFirst());
+//        double[] vvAsset = smooth(vv.getSecond());
+//        double maxvol = IntStream.range(minpow, maxpow + 1).mapToDouble(i -> i < 0 || i >= vvBase.length ? 0 : vvBase[i] + vvAsset[i]).max().getAsDouble();
+//        double[] sum = smooth(VecUtils.add(vv.getFirst(),vv.getSecond(),1));
+//        int[] levels = VecUtils.listLevels(sum,vis.param==0?36:vis.param,12);
+//        if (levels.length==0) return;
+//        int levelIndex = VecUtils.findBaseInLevels(levels,minpow);
+//        for (int i = minpow; i <= maxpow; i++) {
+//            if (levelIndex+1<levels.length && levels[levelIndex+1]==i)
+//                levelIndex++;
+//            double price = vols.pow2price(i);
+//            double volAsset = i < 0 || i >= vvBase.length ? 0 : vvAsset[i];
+//            double volBase = i < 0 || i >= vvBase.length ? 0 : vvBase[i];
+//            double goodbadV = i < 0 || i >= vvBase.length ? 0 : goodbadsum[i];
+//            int y = candles.price2screen(price);
+//            int nexty = pow2screen(i + 1);
+//            int h = y - nexty;
+//            if (h < 1) h = 1;
+//            int wasset = (int) ((W - 40) * volAsset / maxvol)/2;
+//            int wbase = (int) ((W - 40) * volBase / maxvol)/2;
+////                g.setColor(price>=selectedBar.getClosePrice()?Color.green.darker():Color.green);
+//            Color color = CandlesPane.GREEN;
+////            if (VecUtils.integrals.get(levelIndex)==0 && VecUtils.integrals.get(levelIndex+2)==0)
+////                color = color.darker();
+//            g.setColor(color);
+//            g.fillRect(W - 40 - wasset, y - h / 2, wasset, h + 1);
+////                g.setColor(price<=selectedBar.getClosePrice()?Color.red.darker():Color.red);
+//            g.setColor(color);
+//            g.fillRect(W - 40 - wbase-wasset, y - h / 2, wbase, h + 1);
+//            g.setColor(CandlesPane.BLUE);
+//            g.fillRect(0, y - h / 2, (int)((W-40)/2*goodbadV/goodbadsummax), h + 1);
+////            g.fillRect(0, y - h / 2, wbase, h + 1);
+//        }
+//
+//        g.setColor(Color.black);
+//        for (int i = 0;i<levels.length;i++){
+//            int p = levels[i];
+////            g.drawLine(0,pow2screen(p),W,pow2screen(p));
+//        }
+//        int powClose = vols.price2pow(selectedBar.getClosePrice());
+//        levelIndex = VecUtils.findBaseInLevels(levels,powClose);
+//
+//        int level = levels[levelIndex];
+//        int upperlevel = VecUtils.nextLevel(levels,levelIndex,1, vols.steps);
+//        int upperlevel2 = VecUtils.nextLevel(levels,levelIndex,2, vols.steps);
+//        int upperlevel3 = VecUtils.nextLevel(levels,levelIndex,3, vols.steps);
+//        int lowerlevel = VecUtils.nextLevel(levels,levelIndex,-1, vols.steps);
+//
+//        g.setColor(Color.blue);
+//
+////        g.drawLine(0,pow2screen(level),W-40,pow2screen(level));
+////        g.drawLine(0,pow2screen(level)-1,W-40,pow2screen(level)-1);
+////        g.drawLine(0,pow2screen(lowerlevel),W-40,pow2screen(lowerlevel));
+////        g.drawLine(0,pow2screen(upperlevel),W-40,pow2screen(upperlevel));
+////        g.drawLine(0,pow2screen(upperlevel2),W-40,pow2screen(upperlevel2));
+////        g.drawLine(0,pow2screen(upperlevel3),W-40,pow2screen(upperlevel3));
+//
+//        int up1 = vis.getSheet().whenPriceWas(index-1,vols.pow2price(upperlevel));
+//        int down1 = vis.getSheet().whenPriceWas(index-1,vols.pow2price(level));
+////        System.out.println((index-up1)+" "+(index-down1));
+//
     }
 
     private void paintPriceAtLine(Graphics g) {
@@ -209,9 +209,9 @@ public class PriceVolumesPanel extends JPanel  {
 
     }
 
-    private int pow2screen(int p){
-        return candlesPane().price2screen(vis.getSheet().volumes().pow2price(p));
-    }
+//    private int pow2screen(int p){
+//        return candlesPane().price2screen(vis.getSheet().volumes().pow2price(p));
+//    }
 
 
     private void paintPrices(Graphics g) {
@@ -225,7 +225,7 @@ public class PriceVolumesPanel extends JPanel  {
         do {
             int y = candles.price2screen(price);
             if (Math.abs(y - prevy) > 50) {
-                g.drawString(SheetUtils.price2string(vis.getSheet(), price), getWidth() - 36, y);
+                g.drawString(SheetUtils.price2string(vis.current(), price), getWidth() - 36, y);
                 prevy = y;
             }
             price = price * grid;

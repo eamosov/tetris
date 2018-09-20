@@ -159,7 +159,7 @@ public class ProfitChecker {
 
         sheet.calcIndicators();
 
-        new Visualizator(sheet);
+//        new Visualizator(sheet);
 
     }
 

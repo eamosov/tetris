@@ -87,7 +87,7 @@ public class OrderBot {
         sheet.getLib().add("result", IndicatorResultType.YESNO,g);
         sheet.calcIndicators();
 
-        new Visualizator(sheet);
+//        new Visualizator(sheet);
 
     }
 

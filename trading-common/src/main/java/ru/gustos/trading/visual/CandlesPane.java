@@ -4,15 +4,14 @@ import kotlin.Pair;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import ru.efreet.trading.bars.XBar;
 import ru.efreet.trading.bars.XBaseBar;
-import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.*;
+import ru.gustos.trading.global.InstrumentData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Map;
 
 public class CandlesPane extends JPanel {
     public static final Color RED = new Color(164, 32, 21);
@@ -21,6 +20,7 @@ public class CandlesPane extends JPanel {
 
     public static final Font gridFont = new Font("Dialog", Font.BOLD, 12);
     public static final Color gridColor = new Color(242, 246, 246,128);
+    public static final Color shadowColor = new Color(99, 120, 120);
     public static final Color darkColor = new Color(74, 90, 90);
     public static final Color darkerColor = new Color(37, 45, 45);
 
@@ -53,15 +53,15 @@ public class CandlesPane extends JPanel {
     private int to;
 
     private void prepare(){
-        Sheet sheet = vis.getSheet();
+        InstrumentData data = vis.current();
         from = vis.getIndex();
         scale = vis.zoomScale();
         bars = getSize().width * scale / vis.candleWidth();
-        to = Math.min(from + bars, sheet.size());
+        to = Math.min(from + bars, data.size());
         if (vis.getFullZoom())
-            minMax = sheet.totalBar();
+            minMax = data.totalBar();
         else
-            minMax = sheet.getSumBar(from, bars);
+            minMax = data.getSumBar(from, bars);
         double price = vis.getLineAtPrice();
         if (price!=0)
             minMax = VecUtils.expandMinMax(new XBaseBar(minMax),price);
@@ -73,8 +73,7 @@ public class CandlesPane extends JPanel {
     }
 
     public void paint(Graphics g) {
-        Sheet sheet = vis.getSheet();
-        if (sheet == null) return;
+        InstrumentData data = vis.current();
         boolean hasAverage = vis.averageWindow > 0 && !vis.averageType.equalsIgnoreCase("None");
         prepare();
         if (hasAverage) {
@@ -82,27 +81,25 @@ public class CandlesPane extends JPanel {
             minMax = VecUtils.expandMinMax(minMax, avg, disp, 2.1, from, bars);
         }
 
-        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
-            for (int i = 0; i < ii.getNumberOfLines(); i++)
-                minMax = VecUtils.expandMinMax(minMax, vis.getSheet().getData().getLine(ii.getId(), i), null, 2.1, from, bars);
+//        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
+//            for (int i = 0; i < ii.getNumberOfLines(); i++)
+//                minMax = VecUtils.expandMinMax(minMax, vis.getSheet().getData().getLine(ii.getId(), i), null, 2.1, from, bars);
 
 
-
+        paintTrades(g);
         paintBackIndicators(g);
         paintGrid(g, false);
 //        paintVolumes(g);
-        for (int i = from; i < to; i += scale) {
-            XBar bar = getBar(i);
-            paintBar(g, i, bar);
-        }
+        paintBars(g);
+        paintMinMax(g);
 //        if (vis.param > 0)
 //            paintVolumeLine(g);
         paintGrid(g, true);
         if (hasAverage)
             paintAverage(g);
-        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
-            for (int i = 0; i < ii.getNumberOfLines(); i++)
-                paintPriceLine(g, ii, i);
+//        for (Indicator ii : vis.getSheet().getLib().indicatorsPrice)
+//            for (int i = 0; i < ii.getNumberOfLines(); i++)
+//                paintPriceLine(g, ii, i);
         paintPriceAtLine(g);
         paintRegression(g);
         paintExtrapolation(g);
@@ -112,22 +109,50 @@ public class CandlesPane extends JPanel {
         super.paint(g);
     }
 
+    private void paintMinMax(Graphics g) {
+        int w = vis.candleWidth();
+        g.setColor(new Color(255,128,128,128));
+        if (vis.getShowMinMax()) {
+            for (int i = from; i < to-scale; i += scale) {
+                int minPow = vis.current().minPow[i];
+                int maxPow = vis.current().maxPow[i];
+                for (int j = 1;j<scale;j++){
+                    minPow = Math.max(minPow,vis.current().minPow[i+j]);
+                    maxPow = Math.max(maxPow,vis.current().maxPow[i+j]);
+                }
+                minPow-=vis.zoom-vis.zoom/5;
+                maxPow-=vis.zoom-vis.zoom/5;
+                int x = (i - vis.getIndex()) / vis.zoomScale() * w + w/2;
+                XBar bar = getBar(i);
+                if (minPow>2){
+                    minPow+=2;
+                    int y = price2screen(bar.getMinPrice());
+                    g.fillOval(x-minPow,y-minPow,minPow*2+1,minPow*2+1);
+                }
+                if (maxPow>2){
+                    maxPow+=2;
+                    int y = price2screen(bar.getMaxPrice());
+                    g.fillOval(x-maxPow,y-maxPow,maxPow*2+1,maxPow*2+1);
+                }
+            }
+        }
+
+    }
+
+    private void paintBars(Graphics g) {
+        for (int i = from; i < to; i += scale) {
+            XBar bar = getBar(i);
+            paintBar(g, i, bar);
+        }
+    }
+
     private void paintLevels(Graphics g) {
         if (vis.levels!=null){
-            ArrayList<SimpleRegression> ll = vis.levels.minlevels;
+            ArrayList<SimpleRegression> ll = vis.levels.regressions();
             g.setColor(Color.green);
             for (SimpleRegression reg : ll){
                 int x1 = 0;
-                int x2 = vis.getSheet().size();
-                double y1 = reg.predict(x1);
-                double y2 = reg.predict(x2);
-                g.drawLine(ind2screen(x1),price2screen(y1), ind2screen(x2),price2screen(y2));
-            }
-            ll = vis.levels.maxlevels;
-            g.setColor(Color.red);
-            for (SimpleRegression reg : ll){
-                int x1 = 0;
-                int x2 = vis.getSheet().size();
+                int x2 = vis.current().size();
                 double y1 = reg.predict(x1);
                 double y2 = reg.predict(x2);
                 g.drawLine(ind2screen(x1),price2screen(y1), ind2screen(x2),price2screen(y2));
@@ -184,36 +209,39 @@ public class CandlesPane extends JPanel {
 
     }
 
+    private void paintTrades(Graphics g) {
+        PaintUtils.paintIntervals(g,vis, this, from,to, this::ind2screen,true);
+    }
     private void paintBackIndicators(Graphics g) {
-        paintForceMap(g);
-
-        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
-        for (Indicator ii : back) {
-            Pair<Double, Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(), ii, 0, vis.getSheet().size(), 1);
-            prevMark = null;
-            for (int i = from; i < to; i += scale)
-                paintBackIndicator(g, i, scale, ii, mm);
-        }
+//        paintForceMap(g);
+//
+//        ArrayList<Indicator> back = vis.getSheet().getLib().indicatorsBack;
+//        for (Indicator ii : back) {
+//            Pair<Double, Double> mm = SheetUtils.getIndicatorMinMax(vis.getSheet(), ii, 0, vis.getSheet().size(), 1);
+//            prevMark = null;
+//            for (int i = from; i < to; i += scale)
+//                paintBackIndicator(g, i, scale, ii, mm);
+//        }
 
     }
 
     private void paintForceMap(Graphics g) {
-        Indicator indicator = vis.getSheet().getLib().get(13);
-        if (indicator!=null) {
-            Object o = indicator.getCoreObject();
-            if (o instanceof GustosVolumeLevel2) {
-                GustosVolumeLevel2 core = (GustosVolumeLevel2) o;
-                Pair<Double, Double> mm = new Pair<>(Double.MAX_VALUE, Double.MIN_VALUE);
-                for (int i = from; i < to; i++) {
-                    double[] map = core.forcemap(i);
-                    mm = VecUtils.minMax(map, mm);
-                }
-                for (int i = from; i < to; i += scale) {
-                    paintForceMapBar(g, i, scale, core, mm);
-                }
-
-            }
-        }
+//        Indicator indicator = vis.getSheet().getLib().get(13);
+//        if (indicator!=null) {
+//            Object o = indicator.getCoreObject();
+//            if (o instanceof GustosVolumeLevel2) {
+//                GustosVolumeLevel2 core = (GustosVolumeLevel2) o;
+//                Pair<Double, Double> mm = new Pair<>(Double.MAX_VALUE, Double.MIN_VALUE);
+//                for (int i = from; i < to; i++) {
+//                    double[] map = core.forcemap(i);
+//                    mm = VecUtils.minMax(map, mm);
+//                }
+//                for (int i = from; i < to; i += scale) {
+//                    paintForceMapBar(g, i, scale, core, mm);
+//                }
+//
+//            }
+//        }
     }
 
     private void paintForceMapBar(Graphics g, int index, int scale, GustosVolumeLevel2 core, Pair<Double, Double> mm) {
@@ -221,13 +249,13 @@ public class CandlesPane extends JPanel {
         int x = (index - vis.getIndex()) / scale * w;
         double[] m = core.forcemap(index).clone();
         int cc = 1;
-        for (int i = 1;i<scale;i++) if (index+i<vis.getSheet().size()) {
+        for (int i = 1;i<scale;i++) if (index+i<vis.current().size()) {
             m = VecUtils.add(m, core.forcemap(index + i), 1);
             cc++;
         }
         if (cc>1)
             VecUtils.mul(m,1.0/cc);
-        double price = vis.getSheet().bar(index).middlePrice();
+        double price = vis.current().bar(index).middlePrice();
         for (int i = 0;i<m.length;i++){
             double pp = price+price*0.002*(i-m.length/2-0.5);
             double pp2 = price+price*0.002*(i-m.length/2+0.5);
@@ -242,7 +270,7 @@ public class CandlesPane extends JPanel {
     }
 
     private void paintPriceLine(Graphics g, Indicator ii, int line) {
-        paintPriceLine(g, vis.getSheet().getData().getLine(ii.getId(), line), ii.getColors().lineColor(line), ii.getColors().stroke(line));
+//        paintPriceLine(g, vis.getSheet().getData().getLine(ii.getId(), line), ii.getColors().lineColor(line), ii.getColors().stroke(line));
     }
 
     private int prevWindow = -1;
@@ -251,11 +279,11 @@ public class CandlesPane extends JPanel {
     private double[] disp;
 
     private void prepareAverage() {
-        Sheet sheet = vis.getSheet();
+        InstrumentData data = vis.current();
         int window = vis.averageWindow;
         if (window != prevWindow || !prevAvgType.equals(vis.averageType)) {
-            double[] v = sheet.moments.stream().mapToDouble(m -> m.bar.getClosePrice()).toArray();
-            double[] vols = sheet.moments.stream().mapToDouble(m -> m.bar.getVolume()).toArray();
+            double[] v = data.bars.stream().mapToDouble(XBar::getClosePrice).toArray();
+            double[] vols = data.bars.stream().mapToDouble(XBar::getVolume).toArray();
             Pair<double[], double[]> rr;
             if (vis.averageType.equalsIgnoreCase("gustos"))
                 rr = GustosAverageRecurrent.calc(v, window, vols, window * 4);
@@ -315,49 +343,49 @@ public class CandlesPane extends JPanel {
     }
 
     private void paintVolumes(Graphics g) {
-        int steps = 100;
-        double[] vv = vis.getSheet().calcVolumes(vis.getIndex() + vis.barsOnScreen() / 2, vis.barsOnScreen() / 2, minMax.getMinPrice(), minMax.getMaxPrice(), steps);
-        Pair<Double, Double> mm = VecUtils.minMax(vv);
-        double price = minMax.getMinPrice();
-        double step = (minMax.getMaxPrice() - price) / steps;
-        for (int i = 0; i < vv.length; i++) {
-            int y = price2screen(price);
-            price += step;
-            int ny = price2screen(price);
-            int r = (int) (vv[i] * 255 / mm.getSecond());
-            g.setColor(new Color(r, 0, 0));
-            g.fillRect(getWidth() / 2 - 30, y, 60, y - ny + 1);
-        }
+//        int steps = 100;
+//        double[] vv = vis.getSheet().calcVolumes(vis.getIndex() + vis.barsOnScreen() / 2, vis.barsOnScreen() / 2, minMax.getMinPrice(), minMax.getMaxPrice(), steps);
+//        Pair<Double, Double> mm = VecUtils.minMax(vv);
+//        double price = minMax.getMinPrice();
+//        double step = (minMax.getMaxPrice() - price) / steps;
+//        for (int i = 0; i < vv.length; i++) {
+//            int y = price2screen(price);
+//            price += step;
+//            int ny = price2screen(price);
+//            int r = (int) (vv[i] * 255 / mm.getSecond());
+//            g.setColor(new Color(r, 0, 0));
+//            g.fillRect(getWidth() / 2 - 30, y, 60, y - ny + 1);
+//        }
     }
 
     private void paintVolumeLine(Graphics g) {
-        Sheet sheet = vis.getSheet();
-        int from = vis.getIndex();
-        int scale = vis.zoomScale();
-        int bars = getSize().width * scale / vis.candleWidth();
-        int to = Math.min(from + bars, sheet.size());
-        double[] vv = new double[(to - from) / scale + 2];
-        double[] volumes = new double[(to - from) / scale];
-        int j = 0;
-        for (int i = from; i < to; i += scale) {
-            XBar b = sheet.getSumBar(i, scale);
-            volumes[j++] = b.getVolume();
-        }
-        double avg = VecUtils.avg(volumes);
-        double limit = vis.param * 100;
-
-        vv[0] = 0;
-        j = 1;
-        for (int i = from; i < to; i += scale) {
-            XBar b = sheet.getSumBar(i, scale);
-            if (b.getVolume() * Math.abs(b.deltaMaxMin()) > limit) {
-                double over = b.getVolume() - avg;
-                vv[j] = vv[j - 1] + (b.isBearish() ? -over : over);
-            } else
-                vv[j] = vv[j - 1];
-            j++;
-        }
-        drawLine(g, vv);
+//        Sheet sheet = vis.getSheet();
+//        int from = vis.getIndex();
+//        int scale = vis.zoomScale();
+//        int bars = getSize().width * scale / vis.candleWidth();
+//        int to = Math.min(from + bars, sheet.size());
+//        double[] vv = new double[(to - from) / scale + 2];
+//        double[] volumes = new double[(to - from) / scale];
+//        int j = 0;
+//        for (int i = from; i < to; i += scale) {
+//            XBar b = sheet.getSumBar(i, scale);
+//            volumes[j++] = b.getVolume();
+//        }
+//        double avg = VecUtils.avg(volumes);
+//        double limit = vis.param * 100;
+//
+//        vv[0] = 0;
+//        j = 1;
+//        for (int i = from; i < to; i += scale) {
+//            XBar b = sheet.getSumBar(i, scale);
+//            if (b.getVolume() * Math.abs(b.deltaMaxMin()) > limit) {
+//                double over = b.getVolume() - avg;
+//                vv[j] = vv[j - 1] + (b.isBearish() ? -over : over);
+//            } else
+//                vv[j] = vv[j - 1];
+//            j++;
+//        }
+//        drawLine(g, vv);
 
     }
 
@@ -379,13 +407,13 @@ public class CandlesPane extends JPanel {
 
     public XBar getBar(int index) {
         int scale = vis.zoomScale();
-        Sheet sheet = vis.getSheet();
-        if (scale == 1) return sheet.bar(index);
+        InstrumentData data = vis.current();
+        if (scale == 1) return data.bar(index);
         int from = index / scale * scale;
-        XBaseBar bar = new XBaseBar(sheet.moments.get(from).bar);
+        XBaseBar bar = new XBaseBar(data.bar(from));
         for (int j = 1; j < scale; j++)
-            if (from + j < sheet.size())
-                bar.addBar(sheet.moments.get(from + j).bar);
+            if (from + j < data.size())
+                bar.addBar(data.bar(from + j));
         return bar;
     }
 
@@ -415,7 +443,7 @@ public class CandlesPane extends JPanel {
         int scale = vis.zoomScale();
 
         do {
-            time = vis.getSheet().moments.get(from + x * scale).bar.getBeginTime();
+            time = vis.current().bar(from + x * scale).getBeginTime();
             if (x / 20 != (x + 1) / 20) {
                 if (text)
                     g.drawString(time.format(VisualizatorForm.dateFormatter), x * w, getHeight());
@@ -423,38 +451,38 @@ public class CandlesPane extends JPanel {
                     g.drawLine(x * w, 0, x * w, getHeight());
             }
             x++;
-        } while (x * w < getWidth() && x * scale + from < vis.getSheet().size());
+        } while (x * w < getWidth() && x * scale + from < vis.current().size());
     }
 
     private String prevMark = null;
 
     private void paintBackIndicator(Graphics g, int index, int scale, Indicator indicator, Pair<Double, Double> mm) {
-        int w = vis.candleWidth();
-        int x = (index - vis.getIndex()) / scale * w;
-        Color col = VisUtils.NumberColor(vis.getSheet(), index, scale, indicator, mm.getFirst(), mm.getSecond());
-        int alpha = 40;
-        if (indicator.getResultType() == IndicatorResultType.NUMBER) {
-            double val = vis.getSheet().getData().get(indicator, index, scale);
-            if (indicator.fromZero()) {
-                alpha = (int) (20 + val * 100 / mm.getSecond());
-            } else {
-                if (val > 0)
-                    alpha = (int) (20 + val * 100 / mm.getSecond());
-                else
-                    alpha = (int) (20 + val * 100 / mm.getFirst());
-            }
-        }
-        if (alpha<20) alpha = 20;
-        if (alpha>120) alpha = 120;
-        g.setColor(VisUtils.alpha(col, alpha));
-        g.fillRect(x, 0, w, getHeight());
-        Map<String, String> markMap = indicator.getMarks(index);
-        String mark = markMap == null ? "" : markMap.toString();
-        g.setColor(darkerColor);
-        if (mark != null && !mark.equals(prevMark)) {
-            g.drawString(mark, x, 35);
-            prevMark = mark;
-        }
+//        int w = vis.candleWidth();
+//        int x = (index - vis.getIndex()) / scale * w;
+//        Color col = VisUtils.NumberColor(vis.current(), index, scale, indicator, mm.getFirst(), mm.getSecond());
+//        int alpha = 40;
+//        if (indicator.getResultType() == IndicatorResultType.NUMBER) {
+//            double val = vis.getSheet().getData().get(indicator, index, scale);
+//            if (indicator.fromZero()) {
+//                alpha = (int) (20 + val * 100 / mm.getSecond());
+//            } else {
+//                if (val > 0)
+//                    alpha = (int) (20 + val * 100 / mm.getSecond());
+//                else
+//                    alpha = (int) (20 + val * 100 / mm.getFirst());
+//            }
+//        }
+//        if (alpha<20) alpha = 20;
+//        if (alpha>120) alpha = 120;
+//        g.setColor(VisUtils.alpha(col, alpha));
+//        g.fillRect(x, 0, w, getHeight());
+//        Map<String, String> markMap = indicator.getMarks(index);
+//        String mark = markMap == null ? "" : markMap.toString();
+//        g.setColor(darkerColor);
+//        if (mark != null && !mark.equals(prevMark)) {
+//            g.drawString(mark, x, 35);
+//            prevMark = mark;
+//        }
     }
 
     private double margin(){
@@ -484,7 +512,7 @@ public class CandlesPane extends JPanel {
         int w = vis.candleWidth();
         int bound = 1;
         int x = (index - vis.getIndex()) / vis.zoomScale() * w;
-        g.setColor(darkColor);
+        g.setColor(shadowColor);
         g.drawLine(x + w / 2, price2screen(bar.getMinPrice()), x + w / 2, price2screen(bar.getMaxPrice()));
         int lo = price2screen(Math.max(bar.getOpenPrice(), bar.getClosePrice()));
         int hi = price2screen(Math.min(bar.getOpenPrice(), bar.getClosePrice()));

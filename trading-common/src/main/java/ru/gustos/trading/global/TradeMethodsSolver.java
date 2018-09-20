@@ -99,10 +99,5 @@ public class TradeMethodsSolver {
         return new Pair<>(ni-1,nj-1);
     }
 
-    public static void saveAnalyzers(DataOutputStream out) throws IOException {
-        for (int i = 0;i<analyzers.length;i++)
-            for (int j = 0;j<analyzers[i].length;j++)
-                analyzers[i][j].saveHistories(out);
-    }
 
 }

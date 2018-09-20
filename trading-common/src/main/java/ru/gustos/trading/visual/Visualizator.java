@@ -2,14 +2,15 @@ package ru.gustos.trading.visual;
 
 import kotlin.Pair;
 import ru.efreet.trading.bot.TradeHistory;
+import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.book.Extrapolation;
 import ru.gustos.trading.book.PlayIndicator;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.SheetUtils;
 import ru.gustos.trading.book.indicators.Indicator;
-import ru.gustos.trading.book.indicators.IndicatorResultType;
 import ru.gustos.trading.book.indicators.IndicatorsData;
-import ru.gustos.trading.global.LevelsAtPoint;
+import ru.gustos.trading.global.*;
+import ru.gustos.trading.utils.Interval;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -19,16 +20,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Visualizator {
-    private Sheet sheet;
+    ExperimentData data;
+
     private int from;
-    private int zoom;
     private int vzoom;
+    public int zoom;
     public VisualizatorFrame frame;
     protected EventListenerList viewListeners = new EventListenerList();
     private IndicatorsFrame indicatorsFrame;
 
-    PlayIndicator.PlayResults playResult = null;
-
+    private Instrument current;
     double param = 0;
     int averageWindow = 50;
     String averageType = "None";
@@ -36,17 +37,21 @@ public class Visualizator {
     private boolean gustosVolumes = false;
     private int selectedIndex;
     private boolean fullZoom = false;
-    private boolean priceLineByClick = false;
-    private boolean localModelByClick = false;
     private double lineAtPrice = 0;
     private double selectedPrice1 = 0;
     private double selectedPrice2 = 0;
+    PLHistory history = null;
+    int selectedHistory;
+
+    boolean showMinMax;
 
     Extrapolation extrapolation = null;
-    LevelsAtPoint levels = null;
+    BoundlinesFinder levels = null;
+    ArrayList<Interval> trainIntervals = null;
 
-    public Visualizator(Sheet sheet){
-        this.sheet = sheet;
+    public Visualizator(ExperimentData data){
+        this.data = data;
+        current = data.data.get(0).instrument;
         frame = new VisualizatorFrame(this);
         frame.setVisible(true);
         setIndex(1000000);
@@ -68,8 +73,12 @@ public class Visualizator {
         Arrays.stream(viewListeners.getListeners(VisualizatorViewListener.class)).forEach(VisualizatorViewListener::visualizatorViewChanged);
     }
 
+    public InstrumentData current(){
+        return data.getInstrument(current.toString());
+    }
+
     public void setFrom(ZonedDateTime from){
-        this.from = sheet.getBarIndex(from);
+        this.from = current().getBarIndex(from);
         fireViewUpdated();
     }
 
@@ -115,37 +124,39 @@ public class Visualizator {
     private void fixFrom(){
         if (from<0) from = 0;
         from = from/zoomScale()*zoomScale();
-        if (from>sheet.size()-barsOnScreen())
-            from = sheet.size()-barsOnScreen();
+        if (from>current().size()-barsOnScreen())
+            from = current().size()-barsOnScreen();
     }
 
     public int candleWidth(){
         return 9;
     }
 
-    public Sheet getSheet() {
-        return sheet;
-    }
-
     public void zoomPlus() {
+        zoomPlus(from+barsOnScreen()/2);
+    }
+    public void zoomPlus(int index) {
         if (zoom>=12) return;
-        int middle = from+barsOnScreen()/2;
+        double pos = (index-from)*1.0/barsOnScreen();
         zoom++;
-        if (barsOnScreen()>sheet.size()) {
+        if (barsOnScreen()>current().size()) {
             zoom--;
             return;
         }
-        from = middle-barsOnScreen()/2;
+        from = index-(int)(barsOnScreen()*pos);
         frame.form.setZoom(zoom);
         fixFrom();
         fireViewUpdated();
     }
 
     public void zoomMinus() {
+        zoomMinus(from+barsOnScreen()/2);
+    }
+    public void zoomMinus(int index) {
         if (zoom<=0) return;
-        int middle = from+barsOnScreen()/2;
+        double pos = (index-from)*1.0/barsOnScreen();
         zoom--;
-        from = middle-barsOnScreen()/2;
+        from = index-(int)(barsOnScreen()*pos);
         frame.form.setZoom(zoom);
         fixFrom();
         fireViewUpdated();
@@ -191,42 +202,28 @@ public class Visualizator {
         Arrays.stream(viewListeners.getListeners(VisualizatorMouseListener.class)).forEach(l -> l.visualizatorMouseClicked(point, button));
     }
 
-    public static void main(String[] args) {
-        try {
-            Sheet sheet = new Sheet();
-            sheet.fromCache(500);
-//            sheet.fromExchange();
-            SheetUtils.FillDecisions(sheet);
-            sheet.calcIndicators();
-            new Visualizator(sheet);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
     public void moveToIndicator(int dir) {
-        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
-        if (back.size()==0) return;
-        int start = from+barsOnScreen()/2+zoomScale()*dir;
-        int ind = start;
-        boolean found = false;
-        IndicatorsData data = sheet.getData();
-        while (ind>0 && ind<sheet.size() && !found) {
-            ind+=dir;
-            for (Indicator i : back){
-                if (data.get(i,start)!= data.get(i,ind)) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        setIndex(ind-barsOnScreen()/2);
+//        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
+//        if (back.size()==0) return;
+//        int start = from+barsOnScreen()/2+zoomScale()*dir;
+//        int ind = start;
+//        boolean found = false;
+//        IndicatorsData data = sheet.getData();
+//        while (ind>0 && ind<sheet.size() && !found) {
+//            ind+=dir;
+//            for (Indicator i : back){
+//                if (data.get(i,start)!= data.get(i,ind)) {
+//                    found = true;
+//                    break;
+//                }
+//            }
+//        }
+//        setIndex(ind-barsOnScreen()/2);
     }
 
     public void updateSelectedIndicator(int ind) {
-        Indicator indicator = sheet.getLib().get(ind);
-        setIndicatorShow(indicator,!indicator.data.show);
+//        Indicator indicator = sheet.getLib().get(ind);
+//        setIndicatorShow(indicator,!indicator.data.show);
     }
 
     public void setParam(double v) {
@@ -235,18 +232,18 @@ public class Visualizator {
     }
 
     public void runPlay() {
-        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
-        if (back.size()==1){
-            playResult = new PlayIndicator().playIndicator(sheet, back.get(0).getId(),from,sheet.size()-1);
-            JOptionPane.showMessageDialog(null, playResult.toString());
-            fireViewUpdated();
-        } else
-            JOptionPane.showMessageDialog(null, String.format("back indicators: %d, must be 1", back.size()));
+//        ArrayList<Indicator> back = sheet.getLib().indicatorsBack;
+//        if (back.size()==1){
+//            playResult = new PlayIndicator().playIndicator(sheet, back.get(0).getId(),from,sheet.size()-1);
+//            JOptionPane.showMessageDialog(null, playResult.toString());
+//            fireViewUpdated();
+//        } else
+//            JOptionPane.showMessageDialog(null, String.format("back indicators: %d, must be 1", back.size()));
     }
 
     public void setPlayHistory(TradeHistory history){
-        playResult = new PlayIndicator.PlayResults(sheet, history);
-        fireViewUpdated();
+//        playResult = new PlayIndicator.PlayResults(sheet, history);
+//        fireViewUpdated();
     }
 
     public void setAverage(String type, int window) {
@@ -280,7 +277,7 @@ public class Visualizator {
     }
 
     private void indicatorUpdated(){
-        sheet.getLib().sortIndicators();
+//        sheet.getLib().sortIndicators();
         fireViewUpdated();
         frame.form.getCenter().revalidate();
         frame.form.getCenter().repaint();
@@ -368,22 +365,15 @@ public class Visualizator {
         return fullZoom;
     }
 
-    public void setPriceLineByClick(boolean state) {
-        priceLineByClick = state;
+    public void setShowMinMax(boolean state) {
+        showMinMax = state;
+        if (showMinMax)
+            current().initMinMax();
         fireViewUpdated();
     }
 
-    public boolean getPriceLineByClick() {
-        return priceLineByClick;
-    }
-
-    public void setLocalModelByClick(boolean state) {
-        localModelByClick = state;
-        fireViewUpdated();
-    }
-
-    public boolean getLocalModelByClick() {
-        return localModelByClick;
+    public boolean getShowMinMax() {
+        return showMinMax;
     }
 
     public void setExtrapolation(Extrapolation e){
@@ -391,8 +381,52 @@ public class Visualizator {
         fireViewUpdated();
     }
 
-    public void setLevels(LevelsAtPoint l){
+    public void setLevels(BoundlinesFinder l){
         levels = l;
+        fireViewUpdated();
+    }
+
+    public void setCurrent(String instr) {
+        setCurrent(instr,current().bar(from).getBeginTime());
+    }
+    public void setCurrent(String instr, ZonedDateTime time) {
+        if (!instr.equals(current().instrument.toString())) {
+            current = data.getInstrument(instr).instrument;
+            trainIntervals = null;
+            if (showMinMax)
+                current().initMinMax();
+            updateHistory();
+            setIndex(current().getBarIndex(time));
+        }
+    }
+
+    public void setShowTradeHistory(int selected) {
+        selectedHistory = selected;
+        updateHistory();
+        fireViewUpdated();
+    }
+
+    private void updateHistory() {
+        if (selectedHistory==0)
+            history = null;
+        else if (selectedHistory==1)
+            history = data.planalyzer2.get(current.toString());
+        else if (selectedHistory==2)
+            history = data.planalyzer1.get(current.toString());
+    }
+
+    public void enableTrainZones(int index) {
+        if (index==0){
+            trainIntervals = null;
+            return;
+        }
+        PLHistory h = data.planalyzer1.get(current.toString());
+        ArrayList<PLHistory.CriticalMoment> moments = h.makeGoodBadMoments(DecisionManager.limit(current.component1()), current().bar(index).getEndTime().toEpochSecond(), 6, 12);
+        trainIntervals = new ArrayList<>();
+        for (PLHistory.CriticalMoment m : moments){
+            int ii = current().bars.findIndex(m.timeBuy);
+            trainIntervals.add(new Interval(ii-180,ii+180));
+        }
         fireViewUpdated();
     }
 }

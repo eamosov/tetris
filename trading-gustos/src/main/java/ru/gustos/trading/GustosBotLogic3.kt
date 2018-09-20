@@ -31,7 +31,7 @@ open class GustosBotLogic3(name: String, instrument: Instrument, barInterval: Ba
     override fun copyParams(src: GustosBotLogicParams3): GustosBotLogicParams3 = src.copy()
 
     override fun setHistory(bars: List<XBar>, marketBars: List<MarketBar>?) {
-        calc = DecisionManager(null, InstrumentData(null, instrument, bars, marketBars, null, true, false), 0, false, 0)
+        calc = DecisionManager(null, null, InstrumentData(null, instrument, bars, marketBars, true, false), 0, false, 0)
         calc.checkNeedRenew(false)
     }
 

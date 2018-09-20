@@ -1,7 +1,7 @@
 package ru.gustos.trading.tests;
 
 import kotlin.Pair;
-import ru.gustos.trading.global.Global;
+import ru.gustos.trading.global.ExperimentData;
 import ru.gustos.trading.global.GustosLogicOptimizator;
 import ru.gustos.trading.global.InstrumentData;
 import ru.gustos.trading.visual.SimpleCharts;
@@ -9,8 +9,8 @@ import ru.gustos.trading.visual.SimpleCharts;
 public class TestOptimizerBounds {
 
     public static void main(String[] args) {
-        Global global = TestGlobal.init(TestGlobal.instruments,false);
-        for (InstrumentData data : global.sheets.values()) {
+        ExperimentData experimentData = TestGlobal.init(TestGlobal.instruments,false);
+        for (InstrumentData data : experimentData.data) {
             System.out.println(data.instrument);
             GustosLogicOptimizator[] ops = new GustosLogicOptimizator[10];
             SimpleCharts charts = new SimpleCharts(data.instrument.toString(),5);

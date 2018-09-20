@@ -31,7 +31,8 @@ public class DecisionCalc {
 
     boolean onlyCalc;
 
-    public boolean oldInstr(){
+    public boolean oldInstr() {
+//        return false;
         String s = data.instrument.component1();
         return s.equals("BTC") || s.equals("LTC") || s.equals("NEO") || s.equals("XRP");
     }
@@ -51,15 +52,19 @@ public class DecisionCalc {
         this.sell = sell;
     }
 
-    public MomentDataHelper helper(){
+    public MomentDataHelper helper() {
         return data.helper;
     }
 
-    public MomentDataHelper buyhelper(){
+    public MomentDataHelper resulthelper() {
+        return data.resulthelper;
+    }
+
+    public MomentDataHelper buyhelper() {
         return data.buyhelper;
     }
 
-    public MomentDataHelper sellhelper(){
+    public MomentDataHelper sellhelper() {
         return data.sellhelper;
     }
 
@@ -71,13 +76,13 @@ public class DecisionCalc {
     private void doNext() {
 //        volumes.calc(calcIndex);
         values.feed(calcIndex);
-        if (data.buydata!=null)
+        if (data.buydata != null)
             calcUsualDetector(calcIndex);
         calcUsual(calcIndex);
         if (calcIndex >= calcAllFrom && !onlyCalc) {
             calcTargets(calcIndex);
             calcPredictions(calcIndex);
-            if (data.buydata!=null)
+            if (data.buydata != null)
                 calcTargetsDetector(calcIndex);
 //            if (DETECTOR) {
 //            calcTargetsDetector(calcIndex);
@@ -87,8 +92,8 @@ public class DecisionCalc {
         calcIndex++;
     }
 
-    public void calcAllDetectorTargets(){
-        for (int i = calcAllFrom;i<calcIndex;i++)
+    public void calcAllDetectorTargets() {
+        for (int i = calcAllFrom; i < calcIndex; i++)
             calcTargetsDetector(i);
     }
 
@@ -162,9 +167,9 @@ public class DecisionCalc {
 //        buyhelper().put(mldata, "volume", m.bar.getVolume());
 //        buyhelper().put(mldata, "price", m.bar.getClosePrice());
 
-        int[] lags = new int[]{1,2,3,6,10,20};
-        for (int i = 0; i < lags.length ; i++)
-            if (lags[i]<index)
+        int[] lags = new int[]{1, 2, 3, 6, 10, 20};
+        for (int i = 0; i < lags.length; i++)
+            if (lags[i] < index)
                 buyhelper().putLagged(mldata, data.buydata.get(index - lags[i]), lags[i]);
     }
 
@@ -180,9 +185,9 @@ public class DecisionCalc {
 
         gbuy = buy.shouldBuy();
         gsell = sell.shouldSell();
-        data.buys.set(calcIndex,gbuy);
-        data.sells.set(calcIndex,gsell);
-        if (gsell || price>values.gustosAvg.value()/* || price>values.gustosAvg4.value()*/)
+        data.buys.set(calcIndex, gbuy);
+        data.sells.set(calcIndex, gsell);
+        if (gsell || price > values.gustosAvg.value()/* || price>values.gustosAvg4.value()*/)
             mldata.ignore = true;
 
 //        gbuy = CalcUtils.gustosBuy(data, index, values.gustosAvg, values.gustosParams);
@@ -221,7 +226,8 @@ public class DecisionCalc {
         helper().putLagged(mldata, "toAvgSdMin2", prevmldata, 1);
         helper().putLagged(mldata, "toAvgSdMax2", prevmldata, 1);
         helper().putLagged(mldata, "sd", prevmldata, 1);
-        helper().putLagged(mldata, "sd2", prevmldata, 1);
+//        helper().putLagged(mldata, "sd2", prevmldata, 1);
+        helper().putLagged(mldata, "sd4", prevmldata, 1);
 
 //        helper().putLagged(mldata,"toAvgSd",prevmldata2,2);
 //        helper().putLagged(mldata,"toAvgSd2",prevmldata2,2);
@@ -306,16 +312,24 @@ public class DecisionCalc {
         helper().put(mldata, "change3", values.change3.value());
         helper().put(mldata, "change4", values.change4.value());
 
-        if (!oldInstr()) {
 //        helper().put(mldata, "vdema0_delta1", values.vdema0.pvalue() - values.vdema0.value());
-            helper().put(mldata, "vdema1_delta1", values.vdema1.pvalue() - values.vdema1.value());
+        helper().put(mldata, "vdema1_delta1", values.vdema1.pvalue() - values.vdema1.value());
+
+        if (!oldInstr()) {
 //        for (int i = 1;i<10;i++)
 //            helper().put(mldata, "vdema0_delta"+i, values.vdema0.history(i) - values.vdema0.value());
             for (int i = 1; i < 10; i++)
                 helper().put(mldata, "vdema0_lag" + i, values.vdema0.history(i));
+//            for (int i = 1; i < 10; i++)
+//                helper().put(mldata, "vdema1_lag" + i, values.vdema1.history(i));
+//            for (int i = 0; i < 10; i++)
+//                helper().put(mldata, "vdema1_4h_lag" + i, values.vdema1_4h.history(i));
+//            for (int i = 0; i < 1; i++)
+//                helper().put(mldata, "vdema0_4h_lag" + i, values.vdema0_4h.history(i));
 //            helper().put(mldata, "vdema0_lag10", values.vdema0.history(10));
 //            helper().put(mldata, "vdema0_lag20", values.vdema0.history(20));
         }
+
 
 //        if (calcIndex>20) {
 //            for (int i = 1; i < 5; i++)
@@ -378,18 +392,18 @@ public class DecisionCalc {
 //            helper().put(mldata, "prevProfit4Time", gustosProfit.lastProfitTime(3, time));
 //            helper().put(mldata, "prevProfit5Time", gustosProfit.lastProfitTime(4, time));
 
-            if (calcIndex>0) {
-                MarketBar marketBar = data.marketBars.get(calcIndex);
-                if (marketBar.getEndTime().isAfter(bar.getEndTime()))
-                    System.out.println("!!!market bar after!");
-                if (marketBar.getEndTime().isBefore(bar.getBeginTime().minusMinutes(2)))
-                    System.out.println("market bar before! "+ Duration.between(marketBar.getEndTime(),bar.getBeginTime()).toMinutes()+" index="+calcIndex);
-                helper().put(mldata,"marketPos1",marketBar.p5m());
-                helper().put(mldata,"marketPos2",marketBar.p15m());
-                helper().put(mldata,"marketPos3",marketBar.p1h());
-                helper().put(mldata,"marketPos4",marketBar.p12h());
-                helper().put(mldata,"marketPos5",marketBar.p1d());
-                helper().put(mldata,"marketPos6",marketBar.p3d());
+        if (index > 0) {
+            MarketBar marketBar = data.marketBars.get(index);
+            if (marketBar.getEndTime().isAfter(bar.getEndTime()))
+                System.out.println("!!!market bar after!");
+            if (marketBar.getEndTime().isBefore(bar.getBeginTime().minusMinutes(2)))
+                System.out.println("market bar before! " + Duration.between(marketBar.getEndTime(), bar.getBeginTime()).toMinutes() + " index=" + index);
+            helper().put(mldata, "marketPos1", marketBar.p5m());
+            helper().put(mldata, "marketPos2", marketBar.p15m());
+            helper().put(mldata, "marketPos3", marketBar.p1h());
+            helper().put(mldata, "marketPos4", marketBar.p12h());
+            helper().put(mldata, "marketPos5", marketBar.p1d());
+            helper().put(mldata, "marketPos6", marketBar.p3d());
 //                helper().put(mldata,"marketPos7",marketBar.p7d());
 //                helper().putLagged(mldata,"marketPos1",prevmldata2,2);
 //                helper().putLagged(mldata,"marketPos2",prevmldata2,2);
@@ -404,8 +418,26 @@ public class DecisionCalc {
 //                helper().put(mldata,"marketMin3",marketBar.min1h());
 //                helper().put(mldata,"marketMin4",marketBar.min1d());
 //                helper().put(mldata,"marketMin5",marketBar.min7d());
-            }
-//            helper().put(mldata, "prevProfitShouldBuy",gustosProfit.shouldBuy()?1:0,true);
+        }
+
+        if (index>0) {
+//            helper().addAvgAndDisp(data, "vdema0", index, 100, false, true);
+//            helper().addAvgAndDisp(data, "vdema3", index, 100);
+//            helper().addAvgAndDisp(data, "sd4", index, 100,false,true);
+//            helper().addAvgAndDisp(data, "marketPos5", index, 100, true, false);
+//            helper().addAvgAndDisp(data, "marketPos6", index, 100, true, false);
+            helper().addAvgAndDisp(data, "marketPos5", index, 100, true, false);
+//            helper().addAvgAndDispVolume(data, "volume", index, 100, 0, false, true);
+//            helper().addAvgAndDispVolume(data, "volume", index, 300, 0, false, true);
+//            helper().addAvgAndDispVolume(data, "volume", index, 1000, 0, false, true);
+
+//            helper().addAvgAndDisp(data, "rsiv2", index, 100,true,true);
+//            helper().addAvgAndDisp(data, "change4", index, 100);
+//            helper().addAvgAndDisp(data, "stoh4", index, 100);
+//            helper().addAvgAndDisp(data, "@goodBuy|main", index, 20, -1,true,false);
+        }
+
+        //            helper().put(mldata, "prevProfitShouldBuy",gustosProfit.shouldBuy()?1:0,true);
 //            helper().put(mldata, "prevProfitSimpleTest", gustosProfit.simpleTest() ? 1 : 0, true);
 
 //            helper().put(mldata,"hour",data.bar(index).getBeginTime().getHour());
@@ -485,9 +517,9 @@ public class DecisionCalc {
 
     }
 
-    public void prepareGustosProfit(){
-        gustosProfit = new PLHistory(null,null);
-        for (int i= 0;i<calcIndex;i++){
+    public void prepareGustosProfit() {
+        gustosProfit = new PLHistory(null, null);
+        for (int i = 0; i < calcIndex; i++) {
             XBar bar = data.bar(i);
             if (data.sells.get(i))
                 gustosProfit.sellMoment(bar.getClosePrice(), bar.getEndTime().toEpochSecond());
@@ -501,16 +533,16 @@ public class DecisionCalc {
         int buyIndex = -1;
         double buyCost = 0;
         long buyTime = Long.MAX_VALUE;
-        for (int i = targetCalcedTo;i>=0;i--){
+        for (int i = targetCalcedTo; i >= 0; i--) {
             MomentData mldata = data.data.get(i);
             double cost = data.bar(i).getClosePrice();
-            if (data.buys.get(i)){
+            if (data.buys.get(i)) {
                 buyIndex = i;
                 buyCost = cost;
                 buyTime = data.bar(i).getEndTime().toEpochSecond();
             }
-            if (buyIndex<0) continue;
-            helper().put(mldata,"_goodSell",cost>buyCost?1:0,true);
+            if (buyIndex < 0) continue;
+            helper().put(mldata, "_goodSell", cost > buyCost ? 1 : 0, true);
             if (withWeights) {
                 mldata.weight = (cost > buyCost ? cost / buyCost - 1 : buyCost / cost - 1) * 100;
                 mldata.whenWillKnow = buyTime;
@@ -522,17 +554,17 @@ public class DecisionCalc {
         int sellIndex = -1;
         long sellTime = Long.MAX_VALUE;
         double sellCost = 0;
-        for (int i = targetCalcedTo;i>=0;i--){
+        for (int i = targetCalcedTo; i >= 0; i--) {
             MomentData mldata = data.data.get(i);
             double cost = data.bar(i).getClosePrice();
-            if (data.sells.get(i)){
+            if (data.sells.get(i)) {
                 sellIndex = i;
                 sellCost = cost;
                 sellTime = data.bar(i).getEndTime().toEpochSecond();
             }
-            if (sellIndex<0) continue;
-            helper().put(mldata,"_goodBuy",cost<sellCost?1:0,true);
-            mldata.weight = (cost<sellCost ? sellCost/cost - 1 : cost/sellCost - 1) * 100;
+            if (sellIndex < 0) continue;
+            helper().put(mldata, "_goodBuy", cost < sellCost ? 1 : 0, true);
+            mldata.weight = (cost < sellCost ? sellCost / cost - 1 : cost / sellCost - 1) * 100;
             mldata.whenWillKnow = sellTime;
         }
     }
@@ -544,7 +576,7 @@ public class DecisionCalc {
                 MomentData mldata = data.data.get(i);
                 MomentData mldatabuy = null;
                 double curPrice = data.bar(i).getClosePrice();
-                if (data.buydata!=null)
+                if (data.buydata != null)
                     mldatabuy = data.buydata.get(i);
                 GustosLogicStrategy strategy;
                 Pair<Double, Integer> p;
@@ -552,17 +584,18 @@ public class DecisionCalc {
                 strategy = new GustosLogicStrategy();
                 p = strategy.calcProfit(data, i);
                 double max = strategy.maxPrice;
-                double close =strategy.closePrice;
+                double close = strategy.closePrice;
                 willKnow = Math.max(willKnow, p.getSecond());
                 double goodBuy = p.getFirst() > 1 ? 1.0 : 0;
 
                 helper().put(mldata, "_goodBuy", goodBuy, true);
                 mldata.weight = (p.getFirst() > 1 ? p.getFirst() - 1 : 1 / p.getFirst() - 1) * 100;
 
-                helper().put(mldata,"_sellNow",(max-curPrice)<0.05*(max-close)?1:0,true);
+                helper().put(mldata, "_sellNow", (max - curPrice) < 0.05 * (max - close) ? 1 : 0, true);
 //                mldata.weight2 = curPrice>close?curPrice/close:close/curPrice;
 
                 manager.models.model.correctModelForMoment(i);
+
 
 
                 int nextSell = strategy.nextSell(data, i);
@@ -576,26 +609,43 @@ public class DecisionCalc {
                 }
 
                 mldata.whenWillKnow = data.bar(willKnow).getEndTime().toEpochSecond();
-                if (mldatabuy!=null) {
+                if (mldatabuy != null) {
                     buyhelper().put(mldatabuy, "_goodBuy", goodBuy, true);
                     buyhelper().put(mldatabuy, "_goodSell", goodSell, true);
                     mldatabuy.weight = mldata.weight;
                     mldatabuy.whenWillKnow = mldata.whenWillKnow;
                 }
 
-                if (manager.export!=null && manager.export.size()>0 && helper().get(mldata,"toAvgSd")<0) {
+                if (manager.export != null && manager.export.size() > 0 && helper().get(mldata, "toAvgSd") < 0) {
                     Instance inst = helper().makeInstance(mldata, manager.ignoreBuy, manager.models.model.attFilter, 0, 9);
-                    for (int j = 0;j<manager.export.size();j++){
+                    for (int j = 0; j < manager.export.size(); j++) {
                         Instances exam = manager.export.get(j).getSecond();
-                        if (exam.size()<5000)
+                        if (exam.size() < 5000)
                             exam.add(inst);
                     }
                 }
+                fillResult(i);
             }
 
             targetCalcedTo = index;
         }
 
+
+    }
+
+    private void fillResult(int index) {
+        if (data.resultdata!=null) {
+            MomentData rd = data.resultdata.get(index);
+            for (int i = 0; i < 20; i++) {
+                resulthelper().put(rd, "goodBuy" + i, helper().get(data.data.get(Math.max(0, index - i)), "@goodBuy|main",0), true);
+            }
+            MomentData md = data.data.get(index);
+            resulthelper().put(rd, "_goodBuy", helper().get(md, "_goodBuy",0), true);
+            resulthelper().put(rd, "price", data.bar(index).getClosePrice());
+            rd.whenWillKnow = md.whenWillKnow;
+            rd.weight = md.weight;
+            rd.ignore = md.ignore;
+        }
 
     }
 
@@ -611,7 +661,7 @@ public class DecisionCalc {
             helper().putResult(mldata, 0, "main", model.full && helper().classify(mldata, manager.ignore(true), model.attFilter, model.classifier, 0, 9));
 
             SellNowModel sellNowModel = manager.models.sellNowModel;
-            helper().putResult(mldata, 1, "main", sellNowModel.classifier!=null && model.full && helper().classify(mldata, manager.ignore(true), null, sellNowModel.classifier, 1, 9));
+            helper().putResult(mldata, 1, "main", sellNowModel.classifier != null && model.full && helper().classify(mldata, manager.ignore(true), null, sellNowModel.classifier, 1, 9));
 
 
             boolean classifiedBuy = helper().get(mldata, "@goodBuy|main") > 0.5;
@@ -693,10 +743,13 @@ public class DecisionCalc {
 //                if (classifiedSell)
 //                    manager.plhistoryClassifiedSelected.sellMoment(price, time);
 //                }
-            } else if (sellNow){
+            } else if (sellNow) {
                 manager.plhistoryClassifiedSelected.sellMoment(price, time);
 
             }
+            manager.plhistoryBase.minMaxCost(price,time);
+            manager.plhistoryClassifiedBuy.minMaxCost(price,time);
+            manager.plhistoryClassifiedSelected.minMaxCost(price,time);
 
 
         }

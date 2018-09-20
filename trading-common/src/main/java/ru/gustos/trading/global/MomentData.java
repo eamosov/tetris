@@ -1,7 +1,9 @@
 package ru.gustos.trading.global;
 
 
-public class MomentData implements  MomentDataProvider{
+import java.io.Serializable;
+
+public class MomentData implements  MomentDataProvider, Serializable {
     public double[] values;
     public long whenWillKnow;
     public double weight = 1;

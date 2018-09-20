@@ -198,7 +198,7 @@ public class SheetUtils {
         return price;
     }
 
-    public static String price2string(Sheet sheet, double price) {
+    public static String price2string(BarsSource sheet, double price) {
         double minPrice = sheet.totalBar().getMinPrice();
         double mul = 1;
         while (minPrice*mul<1000)

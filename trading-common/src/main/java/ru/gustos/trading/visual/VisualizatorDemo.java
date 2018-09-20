@@ -49,6 +49,6 @@ public class VisualizatorDemo{
 //        bars = BarsPacker.packBarsVolume(bars,100);
         sheet.fromBars(bars);
 
-        new Visualizator(sheet);
+//        new Visualizator(sheet);
     }
 }

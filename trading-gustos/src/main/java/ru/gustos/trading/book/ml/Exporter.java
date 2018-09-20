@@ -52,6 +52,17 @@ public class Exporter {
         return result;
     }
 
+    public static Instances makeBoolSet(String[] names, int instances){
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        for (String name : names)
+            attributes.add(new Attribute(name, Arrays.asList("false", "true")));
+        Instances res = new Instances("data", attributes, instances);
+        for (int i = 0;i<instances;i++)
+            res.add(new DenseInstance(1,new double[names.length]));
+        return res;
+
+    }
+
     private static Attribute createAttribute(Indicator ii){
         if (ii.getResultType() == IndicatorResultType.NUMBER)
             return new Attribute(ii.getName());

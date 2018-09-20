@@ -1,6 +1,5 @@
 package ru.gustos.trading.tests;
 
-import kotlin.Pair;
 import org.jfree.chart.ui.ApplicationFrame;
 import ru.efreet.trading.exchange.Instrument;
 import ru.gustos.trading.book.ml.Exporter;
@@ -10,45 +9,30 @@ import ru.gustos.trading.visual.SimpleProfitGraph;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 
 import static ru.gustos.trading.tests.TestGlobal.init;
 
 public class TestShowResults {
-    static PLHistoryAnalyzer planalyzer1 = null;
-    static PLHistoryAnalyzer planalyzer2 = null;
-    static PLHistoryAnalyzer planalyzer3 = null;
 //    static PLHistoryAnalyzer[] planalyzers = new PLHistoryAnalyzer[4];
     static HashSet<String> ignore = new HashSet<>();
     static SimpleProfitGraph graph = new SimpleProfitGraph();
-    static Global global;
+    static ExperimentData experimentData;
     static JTextField moneyPartField;
     static JTextField pauseField;
 
 
-    public static void main(String[] args) {
-        try (DataInputStream in = new DataInputStream(new FileInputStream("d:/tetrislibs/pl/pl2313.out"))) {
-            planalyzer1 = new PLHistoryAnalyzer(in);
-            planalyzer2 = new PLHistoryAnalyzer(in);
-            planalyzer3 = new PLHistoryAnalyzer(in);
-//            for (int i = 0;i<planalyzers.length;i++)
-//                planalyzers[i] = new PLHistoryAnalyzer(in);
-//            TreePizdunstvo.p.load(in);
-//            planalyzer2.loadModelTimes(in);
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+            experimentData = ExperimentData.loadGeneral("d:/tetrislibs/pl/pl2656.out");
 
-        } catch (Exception e){
-            e.printStackTrace();
-        }
 
 //        planalyzer1 = planalyzers[0];
-        ArrayList<PLHistory> hh = planalyzer1.histories;
-        global = init(hh.stream().map(pl->Instrument.Companion.parse(pl.instrument)).distinct().toArray(Instrument[]::new),false);
+        ArrayList<PLHistory> hh = experimentData.planalyzer1.histories;
 //        System.out.println(planalyzer3.histories.get(0).profitHistory.size());
 //        System.out.println(planalyzer3.histories.get(1).profitHistory.size());
         ApplicationFrame frame = graph.getFrame();
@@ -82,14 +66,14 @@ public class TestShowResults {
 //        double moneyPart = 1.0/Math.max(1,planalyzer1.histories.size()-ignore.size());
         ArrayList<TimeSeriesDouble>  graphs = new ArrayList<>();
 //        TimeSeriesDouble h1 = planalyzer1.makeHistory(false, moneyPart, ignore);
-        TimeSeriesDouble h1 = planalyzer1.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
+        TimeSeriesDouble h1 = experimentData.planalyzer1.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
         System.out.println("------------------------------------------------");
         graphs.add(h1);
 //        graphs.add(planalyzer1.makeHistory(false, moneyPart, ignore));
-        TimeSeriesDouble h2 = planalyzer2.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
+        TimeSeriesDouble h2 = experimentData.planalyzer2.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
         graphs.add(h2);
 //        graphs.add(planalyzer2.makeHistory(true, moneyPart,ignore));
-        TimeSeriesDouble h3 = planalyzer3.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
+        TimeSeriesDouble h3 = experimentData.planalyzer3.makeHistoryCorrect(false, moneyPart, Integer.parseInt(pauseField.getText().trim()), ignore);
 //        TimeSeriesDouble h3 = planalyzer3.makeHistory(false, moneyPart, ignore);
         graphs.add(h3);
         System.out.println(h2.lastOrZero());
@@ -97,8 +81,8 @@ public class TestShowResults {
 //        for (int i = 0;i<planalyzers.length;i++)
 //            graphs.add(planalyzers[i].makeHistory(false, moneyPart,ignore));
 //        graphs.add(planalyzer3.makeHistoryNormalized(true, moneyPart,h1));
-        TimeSeriesDouble price = TestGlobal.makeMarketAveragePrice(global, planalyzer1, h1, ignore);
-        ArrayList<Long> marks = planalyzer2.makeModelTimes(ignore);
+        TimeSeriesDouble price = experimentData.makeMarketAveragePrice(experimentData.planalyzer1, h1, ignore);
+        ArrayList<Long> marks = null;//experimentData.planalyzer2.makeModelTimes(ignore);
         graph.drawHistory(price, graphs, marks);
 //        exportToWeka();
 //        exportPriceToWeka("BNB_USDT");
@@ -114,8 +98,8 @@ public class TestShowResults {
         sb.append("@attribute op numeric\n");
         sb.append("@attribute price numeric\n");
         sb.append("\n@data\n");
-        ArrayList<PLHistory.PLTrade> h1 = planalyzer1.get("BNB_USDT").profitHistory;
-        InstrumentData p = global.getInstrument("BNB_USDT");
+        ArrayList<PLHistory.PLTrade> h1 = experimentData.planalyzer1.get("BNB_USDT").profitHistory;
+        InstrumentData p = experimentData.getInstrument("BNB_USDT");
         double money = 1;
         double firstprice = 0;
         long firsttime = 0;
@@ -139,7 +123,7 @@ public class TestShowResults {
         sb.append("@attribute price numeric\n");
         sb.append("@attribute time numeric\n");
         sb.append("\n@data\n");
-        InstrumentData p = global.getInstrument(key);
+        InstrumentData p = experimentData.getInstrument(key);
         long firsttime = 0;
         double firstprice = 0;
         for (int i = 0;i<p.size();i++){

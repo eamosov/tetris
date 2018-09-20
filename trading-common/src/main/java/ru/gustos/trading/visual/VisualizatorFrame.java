@@ -1,14 +1,9 @@
 package ru.gustos.trading.visual;
 
-import javax.swing.AbstractAction;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import javax.swing.WindowConstants;
+import ru.efreet.trading.exchange.Instrument;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class VisualizatorFrame extends JFrame {
@@ -45,6 +40,7 @@ public class VisualizatorFrame extends JFrame {
     }
 
     private void initMenu() {
+
         JMenu mm = new JMenu("Menu");
         menu.add(mm);
         JMenu mm2 = new JMenu("Right");
@@ -63,15 +59,10 @@ public class VisualizatorFrame extends JFrame {
         fullZoom.addActionListener(a -> vis.setFullZoom(fullZoom.getState()));
         mm.add(fullZoom);
 
-        JCheckBoxMenuItem priceLine = new JCheckBoxMenuItem("Price line");
-        priceLine.setState(vis.getPriceLineByClick());
-        priceLine.addActionListener(a -> vis.setPriceLineByClick(priceLine.getState()));
-        mm.add(priceLine);
-
-        JCheckBoxMenuItem localModel = new JCheckBoxMenuItem("Local model");
-        localModel.setState(vis.getLocalModelByClick());
-        localModel.addActionListener(a -> vis.setLocalModelByClick(localModel.getState()));
-        mm.add(localModel);
+        JCheckBoxMenuItem minmax = new JCheckBoxMenuItem("Show extreme points");
+        minmax.setState(vis.getShowMinMax());
+        minmax.addActionListener(a -> vis.setShowMinMax(minmax.getState()));
+        mm.add(minmax);
 
         JCheckBoxMenuItem fixedVolume = new JCheckBoxMenuItem("Fixed volumes");
         fixedVolume.setState(vis.getFixedVolumes());
@@ -82,6 +73,8 @@ public class VisualizatorFrame extends JFrame {
         gustosVolume.setState(vis.getGustosVolumes());
         gustosVolume.addActionListener(a -> vis.setGustosVolumes(gustosVolume.getState()));
         mm2.add(gustosVolume);
+
+
     }
 
 }

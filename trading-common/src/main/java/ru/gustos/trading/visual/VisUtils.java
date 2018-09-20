@@ -1,6 +1,7 @@
 package ru.gustos.trading.visual;
 
 import kotlin.Pair;
+import ru.gustos.trading.book.BarsSource;
 import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.indicators.Indicator;
 import ru.gustos.trading.book.indicators.IndicatorResultType;
@@ -16,17 +17,18 @@ public class VisUtils {
         return new Color((int)(c2.getRed()*p + c1.getRed()*(1-p)),(int)(c2.getGreen()*p + c1.getGreen()*(1-p)),(int)(c2.getBlue()*p + c1.getBlue()*(1-p)));
     }
 
-    public static Color NumberColor(Sheet sheet, int index, int scale, Indicator ind, double min, double max) {
-        if (ind.getResultType()== IndicatorResultType.YESNO) {
-            int v = sheet.getData().hasYesNo(ind,index,scale);
-            if (v==0) return Color.lightGray;
-            if (v==1) return ind.getColors().max();
-            if (v==2) return ind.getColors().min();
-            return lerp(ind.getColors().min(),ind.getColors().max(),0.5);
-        }else {
-            double val = sheet.getData().get(ind,index,scale);
-            return NumberColor(ind,val,min,max);
-        }
+    public static Color NumberColor(BarsSource sheet, int index, int scale, Indicator ind, double min, double max) {
+        return Color.lightGray;
+//        if (ind.getResultType()== IndicatorResultType.YESNO) {
+//            int v = sheet.getData().hasYesNo(ind,index,scale);
+//            if (v==0) return Color.lightGray;
+//            if (v==1) return ind.getColors().max();
+//            if (v==2) return ind.getColors().min();
+//            return lerp(ind.getColors().min(),ind.getColors().max(),0.5);
+//        }else {
+//            double val = sheet.getData().get(ind,index,scale);
+//            return NumberColor(ind,val,min,max);
+//        }
     }
 
     private static Color NumberColor(Indicator ind, double val, double min, double max) {

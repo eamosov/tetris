@@ -105,10 +105,10 @@ public class TestUtils {
         sheet.getLib().add(new TradeHistoryTradesIndicator(100,history));
         sheet.getLib().add(new SuccessIndicator(101,100));
         sheet.calcIndicators();
-        Visualizator vis = new Visualizator(sheet);
-        vis.updateSelectedIndicator(101);
-        vis.setPlayHistory(history);
-        return vis;
+//        Visualizator vis = new Visualizator(sheet);
+//        vis.updateSelectedIndicator(101);
+//        vis.setPlayHistory(history);
+        return null;
     }
 
     public static void main(String[] args) {

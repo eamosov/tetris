@@ -31,10 +31,10 @@ public class TestBuySell {
 //        DecisionManager c = new DecisionManager(null, data, 6, false, 0);
             total = new PLHistory(instr.toString(), null);
             for (int i = 0; i < 100; i +=days) {
-                Global global = TestGlobal.init(new Instrument[]{instr}, true, true);
-                InstrumentData data = global.getInstrument(instr.toString());
+                ExperimentData experimentData = TestGlobal.init(new Instrument[]{instr}, true, true,true);
+                InstrumentData data = experimentData.getInstrument(instr.toString());
 
-                DecisionManager c = new DecisionManager(null, data, 6, false, 0);
+                DecisionManager c = new DecisionManager(null, null, data, 6, false, 0);
                 tryGustosBranches(c, i);
             }
             System.out.println("result " + instr.toString() + ": " + total.all);

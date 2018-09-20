@@ -26,14 +26,17 @@ public class DecisionModels {
 
     }
 
-    public void checkNeedRenew(boolean thread) {
+    public boolean checkNeedRenew(boolean thread) {
         if (manager.calcIndex() >= manager.calcModelFrom && manager.calcIndex() - model.index >= 60 && manager.calcIndex() < manager.dontRenewAfter) {
 
 
-            if (model.canRenewModel() || (buymodel != null && buymodel.needRenew()))
+            if (model.canRenewModel() || (buymodel != null && buymodel.needRenew())) {
                 renewModel(thread);
+                return true;
+            }
 
         }
+        return false;
     }
 
     private void renewModel(boolean thread) {

@@ -44,7 +44,7 @@ public class IndicatorPropertiesWindow extends JFrame {
         for (String key : data.keySet())
             p.put(key,data.get(key).getText());
         ((IIndicatorWithProperties) indicator).setIndicatorProperties(p);
-        vis.getSheet().calcIndicators();
+//        vis.getSheet().calcIndicators();
         vis.fireViewUpdated();
     }
 }

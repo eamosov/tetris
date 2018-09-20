@@ -1,9 +1,9 @@
 package ru.gustos.trading.global.timeseries;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class TimeSeries<T>{
     ArrayList<T> data;
@@ -75,6 +75,9 @@ public class TimeSeries<T>{
         return times[data.size()-1];
     }
 
+    public Stream<T> stream() {
+        return data.stream();
+    }
 }
 
 

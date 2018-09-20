@@ -11,12 +11,13 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 
-public class J48AttributeFilter{
+public class J48AttributeFilter implements Serializable {
 
     private final int folds;
     private final double window;
@@ -30,11 +31,11 @@ public class J48AttributeFilter{
         this.window = window;
     }
 
-    public void prepare(Instances set) throws Exception {
+    public void prepare(Instances set, boolean withuse) throws Exception {
         int w = (int)(set.size()*window);
         good = new boolean[set.numAttributes()];
         good[set.classIndex()] = true;
-        if (use==null) {
+        if (use==null && withuse) {
             use = new int[set.numAttributes()];
             useNames = new String[set.numAttributes()];
             for (int i = 0;i<use.length;i++)
@@ -71,11 +72,13 @@ public class J48AttributeFilter{
         for (int i = 0;i<good.length;i++)
             if (good[i]) {
                 goodCount++;
-//                use[i]++;
+                if (withuse)
+                    use[i]++;
             }
     }
 
     public static String printUse(){
+        if (use==null) return "filter not used";
         ArrayList<Pair<Integer,String>> u = new ArrayList<>();
         for (int i = 0;i<use.length;i++)
             u.add(new Pair<>(-use[i],useNames[i]));

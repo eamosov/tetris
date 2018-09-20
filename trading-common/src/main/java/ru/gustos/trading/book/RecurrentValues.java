@@ -1,7 +1,6 @@
 package ru.gustos.trading.book;
 
 import ru.efreet.trading.bars.XBar;
-import ru.gustos.trading.book.Sheet;
 import ru.gustos.trading.book.indicators.*;
 import ru.gustos.trading.global.GustosLogicOptimizator;
 
@@ -53,6 +52,8 @@ public class RecurrentValues {
     public DemaRecurrent dema3 = new DemaRecurrent(70, 200, 50);
     public DemaRecurrent vdema0 = new DemaRecurrent(3, 7, 5);
     public DemaRecurrent vdema1 = new DemaRecurrent(25, 60, 17);
+    public DemaRecurrent vdema0_4h = new DemaRecurrent(3, 7, 5);
+    public DemaRecurrent vdema1_4h = new DemaRecurrent(25, 60, 17);
     public DemaRecurrent vdema2 = new DemaRecurrent(70, 200, 50);
     public DemaRecurrent vdema3 = new DemaRecurrent(150, 430, 110);
     public DemaRecurrent vdema4 = new DemaRecurrent(250, 600, 170);
@@ -68,7 +69,8 @@ public class RecurrentValues {
     public RsiWithVolumesRecurrent rsiv1 = new RsiWithVolumesRecurrent(100);
     public RsiWithVolumesRecurrent rsiv2 = new RsiWithVolumesRecurrent(1000);
 
-    public VolumeBarRecurrent volumeBar = new VolumeBarRecurrent();
+    public VolumeBarRecurrent volumeBar10 = new VolumeBarRecurrent(10);
+    public VolumeBarRecurrent volumeBar240 = new VolumeBarRecurrent(240);
     SumBarRecurrent sum15m = new SumBarRecurrent(15);
     SumBarRecurrent sum4h = new SumBarRecurrent(60*4);
 
@@ -144,18 +146,22 @@ public class RecurrentValues {
         change3.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-1000)).getClosePrice()-1)*100);
         change4.feed((bar.getClosePrice()/sheet.bar(Math.max(0,index-3000)).getClosePrice()-1)*100);
 
-        if (volumeBar.feed(bar)){
-            vmacd0.feed(volumeBar.bar().getClosePrice());
-            vmacd1.feed(volumeBar.bar().getClosePrice());
-            vmacd2.feed(volumeBar.bar().getClosePrice());
-            vdema0.feed(volumeBar.bar().getClosePrice());
-            vdema1.feed(volumeBar.bar().getClosePrice());
-            vdema2.feed(volumeBar.bar().getClosePrice());
-            vdema3.feed(volumeBar.bar().getClosePrice());
-            vdema4.feed(volumeBar.bar().getClosePrice());
-            vdema5.feed(volumeBar.bar().getClosePrice());
-            vdema6.feed(volumeBar.bar().getClosePrice());
-            vdema7.feed(volumeBar.bar().getClosePrice());
+        if (volumeBar10.feed(bar)){
+            vmacd0.feed(volumeBar10.bar().getClosePrice());
+            vmacd1.feed(volumeBar10.bar().getClosePrice());
+            vmacd2.feed(volumeBar10.bar().getClosePrice());
+            vdema0.feed(volumeBar10.bar().getClosePrice());
+            vdema1.feed(volumeBar10.bar().getClosePrice());
+            vdema2.feed(volumeBar10.bar().getClosePrice());
+            vdema3.feed(volumeBar10.bar().getClosePrice());
+            vdema4.feed(volumeBar10.bar().getClosePrice());
+            vdema5.feed(volumeBar10.bar().getClosePrice());
+            vdema6.feed(volumeBar10.bar().getClosePrice());
+            vdema7.feed(volumeBar10.bar().getClosePrice());
+        }
+        if (volumeBar240.feed(bar)){
+            vdema0_4h.feed(volumeBar240.bar().getClosePrice());
+            vdema1_4h.feed(volumeBar240.bar().getClosePrice());
         }
         if (sum15m.feed(bar)){
             rsi15m.feed(p);
