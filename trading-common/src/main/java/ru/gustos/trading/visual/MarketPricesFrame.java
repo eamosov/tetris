@@ -1,13 +1,9 @@
 package ru.gustos.trading.visual;
 
-import javafx.stage.Screen;
 import org.jfree.chart.*;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.data.time.*;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import ru.gustos.trading.global.InstrumentData;
 
 import javax.swing.*;

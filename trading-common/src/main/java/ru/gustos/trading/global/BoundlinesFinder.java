@@ -6,7 +6,7 @@ import ru.gustos.trading.visual.Visualizator;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.HashSet;
 
 public class BoundlinesFinder {
     Visualizator vis;
@@ -23,49 +23,57 @@ public class BoundlinesFinder {
 
         ArrayList<MPoint> points = preparePoints(index, current);
         System.out.println("points: " + points.size());
-        normPoints(points);
+        makeLines(points);
 
 
     }
 
-    private void normPoints(ArrayList<MPoint> points) {
-//        double min = points.stream().mapToDouble(p -> p.y).min().getAsDouble();
-//        double max = points.stream().mapToDouble(p -> p.y).max().getAsDouble();
-//
-//        int minx = points.stream().mapToInt(p -> p.x).min().getAsInt();
-//        int maxx = points.stream().mapToInt(p -> p.x).max().getAsInt();
-
-//        double k = (maxx - minx) / (max - min);
-        PriorityQueue<Line> q = new PriorityQueue<>();
-//        points.forEach(p -> p.y *= k);
-        for (int i = 0; i < points.size() - 1; i++)
-            for (int j = i + 1; j < points.size(); j++) {
-                double l = estimateLine(points, points.get(i), points.get(j));
-                q.add(new Line(points.get(i), points.get(j), l));
-                if (q.size() > 5) {
-                    Line poll = q.poll();
-//                    System.out.println(poll.pow);
+    private void makeLines(ArrayList<MPoint> points) {
+        lines = new ArrayList<>();
+        do {
+            double bestp = 0;
+            Line best = null;
+            HashSet<Integer> used = new HashSet<>();
+            for (int i = 0; i < points.size() - 1; i++)
+                for (int j = i + 1; j < points.size(); j++) {
+                    used.clear();
+                    double l = estimateLine(points, points.get(i), points.get(j), used);
+                    if (l > bestp) {
+                        best = new Line(points.get(i), points.get(j), l);
+                        best.usedPoints = used;
+                        used = new HashSet<>();
+                        bestp = l;
+                    }
                 }
-            }
-        lines = new ArrayList<>(q);
-            System.out.println(lines);
+            lines.add(best);
+        } while (lines.size() < 5);
     }
 
-    private double estimateLine(ArrayList<MPoint> points, MPoint p1, MPoint p2) {
+    private double estimateLine(ArrayList<MPoint> points, MPoint p1, MPoint p2, HashSet<Integer> used) {
         double res = 0;
         double dy = p2.y - p1.y;
         double dx = p2.x - p1.x;
         double dd = Math.sqrt(dx * dx + dy * dy);
         double a = p2.x * p1.y - p2.y * p1.x;
+        lines.forEach(l->l.tempUsed = -1);
 
         for (int i = 0; i < points.size(); i++) {
             MPoint p = points.get(i);
             double rr = Math.abs(dy * p.x - dx * p.y + a);
             rr = rr / dd;
             double l = vis.current().avgStep * Math.sqrt(p.pow);
-            if (rr< l) {
+            if (rr < l) {
 //                System.out.println("rr= "+rr+ String.format(", step*pow=%.3g*%.3g", vis.current().avgStep,p.pow));
-                res += p.pow/(1+Math.exp(rr*5/l));
+                for (Line ll : lines){
+                    if (ll.usedPoints.contains(p.x)){
+                        if (ll.tempUsed<0)
+                            ll.tempUsed = p.x;
+                        else if (Math.abs(p.x-ll.tempUsed)>30)
+                            return 0;
+                    }
+                }
+                res += p.pow / (1 + Math.exp(rr  / l));
+                used.add(p.x);
             }
         }
         return res;
@@ -75,11 +83,11 @@ public class BoundlinesFinder {
         ArrayList<MPoint> points = new ArrayList<>();
         for (int i = index; i >= 0; i--) {
             int d = 31 - Integer.numberOfLeadingZeros(index - i);
-            d = Math.max(2,d-3);
+            d = Math.max(0, d - 3);
             if (current.minPow[i] > d) {
-                points.add(new MPoint(i, current.bar(i).getMinPrice(), current.minPow[i]));
+                points.add(new MPoint(i, current.bar(i).getMinPrice(), current.minPow[i]+1));
             } else if (current.maxPow[i] > d) {
-                points.add(new MPoint(i, current.bar(i).getMaxPrice(), current.maxPow[i]));
+                points.add(new MPoint(i, current.bar(i).getMaxPrice(), current.maxPow[i]+1));
             }
         }
         points.sort(Comparator.comparingInt(p -> p.x));
@@ -112,6 +120,8 @@ public class BoundlinesFinder {
         MPoint p1;
         MPoint p2;
         double pow;
+        HashSet<Integer> usedPoints;
+        int tempUsed;
 
         public Line(MPoint p1, MPoint p2, double p) {
             this.p1 = p1;
@@ -136,7 +146,7 @@ public class BoundlinesFinder {
 
         @Override
         public String toString() {
-            return String.format("p1 pow %.3g, p2 pow %.3g, pow %.3g", p1.pow,p2.pow,pow);
+            return String.format("p1 pow %.3g, p2 pow %.3g, pow %.3g", p1.pow, p2.pow, pow);
         }
     }
 }
