@@ -23,7 +23,7 @@ class UpdateOne {
 
             cache.createTable(exchange.getName(), cmd.instrument, cmd.barInterval)
 
-            val start = (cmd.start ?: cache.getLast(exchange.getName(), cmd.instrument, cmd.barInterval)?.endTime?.minus(cmd.barInterval.duration)) ?: ZonedDateTime.parse("2017-01-01T00:00Z[GMT]")
+            val start = (cmd.start ?: cache.getLast(exchange.getName(), cmd.instrument, cmd.barInterval)?.endTime?.minus(cmd.barInterval.duration)) ?: ZonedDateTime.parse("2020-01-01T00:00Z[GMT]")
             val end = cmd.end ?: ZonedDateTime.now()
 
             log.info("Fetching ${cmd.instrument}/${cmd.barInterval.duration} from ${exchange.getName()} between ${start} and ${end} ")

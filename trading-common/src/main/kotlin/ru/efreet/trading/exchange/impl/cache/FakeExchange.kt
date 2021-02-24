@@ -77,7 +77,7 @@ open class FakeExchange(val _name: String, val _fee: Float, val interval: BarInt
         val myAsset = balances[instrument.asset] ?: 0.0F
         if (asset > myAsset || asset <= 0.0F || price <= 0.0F) {
             log.error("Couldn't sell {} {} for {}, not enough {} ({})", instrument.asset, asset, price, instrument.asset, myAsset)
-            throw OrderException(instrument, asset, price, type, Decision.SELL, Exception("not enough money"))
+            throw OrderException(instrument, asset, price, type, Decision.SELL, Exception("not enough money, myAsset=$myAsset"))
         }
 
         //setBalance(instrument.base, (balances[instrument.base] ?: 0.0) + price * asset * (1.0 - getFee() / 200.0))

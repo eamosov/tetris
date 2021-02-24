@@ -2,7 +2,7 @@ package ru.efreet.trading.exchange
 
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.exchange.impl.Binance
-import ru.efreet.trading.exchange.impl.Poloniex
+//import ru.efreet.trading.exchange.impl.Poloniex
 import java.time.ZonedDateTime
 
 /**
@@ -39,7 +39,7 @@ interface Exchange {
     companion object {
         fun getExchange(name: String): Exchange {
             return when (name) {
-                "poloniex" -> Poloniex()
+                //"poloniex" -> Poloniex()
                 "binance" -> Binance()
                 else -> throw RuntimeException("exchange $name not found")
             }

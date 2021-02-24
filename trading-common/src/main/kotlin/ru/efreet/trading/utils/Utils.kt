@@ -33,6 +33,7 @@ fun <T : Any> KClass<T>.getPropertyByName(name: String): KMutableProperty1<T, *>
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> String.parseNumberOrBool(cls: KClass<T>): T = when {
     cls.isSubclassOf(Int::class) -> this.toInt() as T
+    cls.isSubclassOf(Float::class) -> this.toFloat() as T
     cls.isSubclassOf(Double::class) -> this.toDouble() as T
     cls.isSubclassOf(Boolean::class) -> this.toBoolean() as T
     else -> throw RuntimeException("coudn't convert String to ${cls.java.canonicalName}")

@@ -2,6 +2,7 @@ package ru.efreet.trading.simulate
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ru.efreet.trading.bars.MarketBar
 import ru.efreet.trading.bars.MarketBarFactory
 import ru.efreet.trading.bars.XBar
 import ru.efreet.trading.bot.TradeHistory
@@ -109,6 +110,8 @@ class Simulator(val cmd: CmdArgs) {
 
         var hasNext: Boolean = true
 
+        var prevMarketBar: MarketBar? = null
+
         while (hasNext) {
 
             hasNext = false
@@ -119,7 +122,12 @@ class Simulator(val cmd: CmdArgs) {
 
                     val bar = sd.barIterator.next()
 
-                    val advice = sd.logic.getAdvice(bar, marketBarsMap[bar.endTime.trimToBar().minus(state.interval.duration)])
+                    val marketBar = marketBarsMap[bar.endTime.trimToBar().minus(state.interval.duration)]
+                    val advice = sd.logic.getAdvice(bar,  marketBar ?: prevMarketBar)
+
+                    if (prevMarketBar == null){
+                        prevMarketBar = marketBar
+                    }
 
                     val trade = trader.executeAdvice(advice)
 
